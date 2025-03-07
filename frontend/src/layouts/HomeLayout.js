@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useRef } from "react";
 import kuds from "../assets/images/kuds.png";
+import useLogout from "../hooks/useLogout";
 export default function RootLayout() {
   const checkNav = (e) => {
     const user = window.confirm("هل تريد الذهاب من هذه الصفحه؟");
@@ -8,7 +9,10 @@ export default function RootLayout() {
       e.preventDefault();
     }
   };
-
+  const {logout} = useLogout();
+  const handleLogout = () =>{
+      logout()
+  }
   return (
     <div className="background">
       <div className="container h-[1px] max-w-[1900px] flex-col-reverse max-w-none md:max-[] md:flex-row gap-4 w-full md:p-7 p-0">
@@ -44,6 +48,8 @@ export default function RootLayout() {
               <NavLink className="text-center" to={"settings"}>
                 اعدادات
               </NavLink>
+              <button onClick={handleLogout} className="iron-btn logout"> تسجيل خروج </button>
+
             </div>
           </div>
         </div>
