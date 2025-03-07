@@ -22,7 +22,7 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-if (process.env.NODE_ENV === 'PRODUCTION') {
+if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../frontend/build')))
 }
 
@@ -77,10 +77,6 @@ app.use("/ticketId", require("./routes/ticketId"));
 app.use("/wallet", require("./routes/wallets"));
 app.use("/user", require("./routes/user"));
 
-if (false) {
-  app.use(express.static(path.join(__dirname, "../frontend/build")));
-}
-
 let readData;
 // serialPort2.on("open", function () {
 //     console.log("-- Connection opened --", serialPort2);
@@ -97,7 +93,7 @@ let readData;
 //     res.json(readData);
 // });
 
-if (process.env.NODE_ENV === 'PRODUCTION') {
+if (process.env.NODE_ENV === 'production') {
   console.log("here")
   app.get('*', (req, res) => {
       res.sendFile(path.join(__dirname, '../frontend/build/index.html'));
