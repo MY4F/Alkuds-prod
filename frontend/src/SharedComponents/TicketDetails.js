@@ -21,7 +21,7 @@ const TicketDetails = ({ order, orderContextIdx }) => {
 
   const handleSubmit = (e) =>{
     e.preventDefault()
-    window.open("https://alkuds-cd6a685335ea.herokuapp.com/"+ order._id,"_blank")
+    window.open("https://alkuds-cd6a685335ea.herokuapp.com/print/"+ order._id,"_blank")
   }
 
   const updateFirstWeight = async(weight)=>{
