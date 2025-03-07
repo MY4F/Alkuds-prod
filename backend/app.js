@@ -22,6 +22,10 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
+if (process.env.NODE_ENV === 'PRODUCTION') {
+  app.use(express.static(path.join(__dirname, '../frontend/build')))
+}
+
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:3000",
@@ -93,10 +97,12 @@ let readData;
 //     res.json(readData);
 // });
 
-if (false) {
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../frontend/build/index.html"));
+if (process.env.NODE_ENV === 'PRODUCTION') {
+  console.log("here")
+  app.get('*', (req, res) => {
+      res.sendFile(path.join(__dirname, '../frontend/build/index.html'));
   });
 }
+
 
 server.listen("8000", () => console.log("running on port 8000"));
