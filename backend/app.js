@@ -105,4 +105,4 @@ if (process.env.NODE_ENV === 'PRODUCTION') {
 }
 
 
-server.listen("8000", () => console.log("running on port 8000"));
+server.listen(process.env.PORT, () => console.log("running on port 8000"));
