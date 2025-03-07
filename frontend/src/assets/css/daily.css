@@ -1,0 +1,69 @@
+.daily-table-holder{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: flex-start;
+}
+.daily-table-holder table{
+    min-height: 100vh;
+    border-collapse: collapse;
+    border: 2px solid rgb(140,140,140);
+    font-family: cairo;
+    font-size: 15px;
+    letter-spacing: 1px;
+    text-align: right;
+}
+
+.right-table{
+    margin-right: 80px;
+}
+
+.left-table{
+    min-height: 50px;
+    width: 60px;
+}
+
+.out-table{
+    width: auto;
+    flex-grow: 3;
+}
+
+.out-table >tbody > tr{
+    height: 25px;
+}
+
+.out-table > tbody > tr>td{
+    border: 1px solid black;
+
+}
+
+.daily-table-holder thead,tfoot{
+    background-color: rgb(228,240,245);
+}
+
+.daily-table-holder td,th{
+    border: 1px solid rgb(160,160,160);
+    padding: 0px 3px;
+}
+
+.daily-table-holder td:last-of-type{
+    text-align: center;
+}
+
+.daily-table-holder tfoot, th{
+    text-align: right;
+}
+
+.daily-table-holder tfoot,td{
+    font-weight: bold;
+}
+
+.daily-table-holder tr{
+    height: 10px;
+}
+
+@media print{
+    .daily-table-holder table{
+        min-height: auto;
+    }
+}

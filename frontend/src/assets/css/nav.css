@@ -1,0 +1,36 @@
+@font-face {
+    font-family: cairo;
+    src: url('../fonts/static/Cairo-Bold.ttf');
+}
+.nav{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    width: 15%;
+    font-family: "Cairo", sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    padding-right: 30px;
+    gap: 10px;
+}
+
+.nav .nav-container a{
+    color: white;
+    text-decoration: none;
+    opacity: 0.5;
+    transition: 0.5s;
+}
+
+.active{
+    opacity: 1 !important;
+}
+
+.nav .nav-container a:hover{
+    opacity: 1;
+}
+
+.nav .nav-container img{
+    width: 60%;
+    margin-bottom: 100px;
+}

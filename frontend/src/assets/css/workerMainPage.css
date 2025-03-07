@@ -1,0 +1,71 @@
+.worker-container{
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-end;
+    width: 100%;
+}
+
+.out-orders{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.in-orders{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.orders-holder{
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-content: flex-end;
+    flex-wrap: wrap;
+    overflow-y: auto;
+    width: 100%;
+}
+
+.order-container{
+    width: 30%;
+    border: 1px solid black;
+    padding: 10px;
+    margin: 5px 0 5px 5px;
+    border-radius: 5px;
+    direction: rtl;
+}
+
+.ticket-container{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.type-filter{
+    font-size: 20px;
+}
+
+.print-submit{
+    width: 100%;
+    outline: none;
+    border: none;
+    padding: 15px;
+    border-radius: 15px;
+    box-shadow: 2px 2px 15px rgba(0, 0, 0, 0.2);
+    transition: 0.5s;
+    cursor: pointer;
+    display: block;
+    margin-top: 30px;
+    color: white;
+    background-color: #16C47F;
+}
+
+.print-submit:hover{
+    background-color: black;
+}

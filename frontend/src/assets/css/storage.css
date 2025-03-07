@@ -1,0 +1,9 @@
+.ironStorage{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}   
+.ironStorage .data-input{
+    width: auto;
+}

@@ -1,0 +1,32 @@
+.header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
+}
+
+.header img {
+    width: 45px;
+    height: 45px;
+}
+
+.impexp-table {
+    border-collapse: collapse;
+    max-width: 100%;
+    white-space: no-wrap;
+}
+
+.impexp-table thead {
+    border-radius: 15px;
+    /* background-color: #f5f7f9; */
+    color: #60657e;
+
+}
+
+.impexp-table thead tr  th{
+    padding: 2px;
+
+}
+.impexp-table tbody tr td{
+    padding: 2px;
+}
