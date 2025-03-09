@@ -6,9 +6,9 @@ export const SocketContext = createContext()
 
 export const SocketProvider = ({ children }) => {
     const [socket, setSocket] = useState(null);
-    const { user } = useUserContext()
+    const { user } = useUserContext() 
     useEffect(() => {
-        const socket = io.connect("http://localhost:8000");
+        const socket = io.connect("https://alkuds-cd6a685335ea.herokuapp.com");
         socket.emit("join_room","123");
         setSocket(socket);
 
