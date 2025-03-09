@@ -370,6 +370,7 @@ label {
   color: white;
 }
 
+
 @media print{
   .print-btn{
     display: none;

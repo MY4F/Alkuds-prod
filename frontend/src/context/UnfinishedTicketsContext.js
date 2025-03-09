@@ -13,9 +13,32 @@ export const UnfinishedTicketsReducer = (state, action) => {
         unfinishedTickets: [action.payload, ...state.unfinishedTickets],
       };
     case "UPDATE_TICKET":
-      return {
-        unfinishedTickets: [...action.payload],
-      };
+      let typeObj = {
+        "in":"inOrders",
+        "out":"outOrders"
+      }
+      let newArr = []
+      for(let i = 0 ;i<state.unfinishedTickets[`${typeObj[action.payload.type]}`].length;i++){
+        if(state.unfinishedTickets[`${typeObj[action.payload.type]}`][i]._id === action.payload._id){
+          newArr.push(action.payload)
+        }
+        else{
+          newArr.push(state.unfinishedTickets[`${typeObj[action.payload.type]}`][i])
+        }
+      }
+      if(typeObj[action.payload.type] === "in")
+      {
+        return {
+          unfinishedTickets: {"inOrders": newArr, "outOrders":state.unfinishedTickets["outOrders"] },
+        };
+      }
+      else
+      {
+        return {
+          unfinishedTickets: {"outOrders": newArr, "inOrders":state.unfinishedTickets["inOrders"] },
+        };
+      }
+      
     case "DELETE_TICKET":
       return {
         unfinishedTickets: [

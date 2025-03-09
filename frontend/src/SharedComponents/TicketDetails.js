@@ -5,7 +5,9 @@ import { useUnfinishedTicketsContext } from "../hooks/useUnfinishedTicketsContex
 import { Button } from "@mui/material";
 import LocalPrintshopIcon from '@mui/icons-material/LocalPrintshop';
 import ReceiptIcon from '@mui/icons-material/Receipt';
-const TicketDetails = ({ order, orderContextIdx }) => {
+import { useSocketContext } from "../hooks/useSocket";
+import swal from 'sweetalert';
+const TicketDetails = ({ order, orderContextIdx, isFinishedTicket }) => {
   const [firstWeight, setFirstWeight] = useState(0)
   const [firstTime, setFirstTime] = useState(0);
   const [firstDate, setFirstDate] = useState(0);
@@ -15,13 +17,23 @@ const TicketDetails = ({ order, orderContextIdx }) => {
   const [netWeight, setNetWeight] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const { unfinishedTickets, dispatch } = useUnfinishedTicketsContext();
- 
-  useEffect(() => {}, [weight, time, date, netWeight, isLoading,firstWeight,firstDate,firstTime]);
+  const { socket } = useSocketContext();
+  useEffect(() => {
+    socket.on("receive_order_finish_state", (info) => {
+      if(info.order === null)
+        swal ( info.message ,  "تم طباعه اذن الاستلام بنجاح ." ,  "success" )
+      else
+        swal ( info.message ,  "تم طباعه اذن الاستلام بنجاح و ايضا تغير حاله الاوردر لجاري انتظار الدفع." ,  "success" )
+      if(!isFinishedTicket)
+        dispatch({ type: "UPDATE_TICKET", payload: info.order });
+  });
+  }, [weight, time, date, netWeight, isLoading,firstWeight,firstDate,firstTime,socket]);
 
 
   const handleSubmit = (e) =>{
     e.preventDefault()
-    window.open("https://alkuds-cd6a685335ea.herokuapp.com/print/"+ order._id,"_blank")
+    window.open("http://localhost:3000/print/"+ isFinishedTicket.toString() + "/" + order._id,"_blank")
+    // window.open("https://alkuds-cd6a685335ea.herokuapp.com/print/"+ order._id,"_blank")
   }
 
   const updateFirstWeight = async(weight)=>{

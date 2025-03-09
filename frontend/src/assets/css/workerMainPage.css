@@ -34,7 +34,7 @@
 
 .order-container{
     width: 30%;
-    border: 1px solid black;
+    border: 2px solid;
     padding: 10px;
     margin: 5px 0 5px 5px;
     border-radius: 5px;
@@ -68,4 +68,8 @@
 
 .print-submit:hover{
     background-color: black;
+}
+
+.swal-text{
+    text-align: center;
 }

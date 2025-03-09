@@ -11,22 +11,23 @@ import "./assets/css/login.css";
 import "./assets/css/workerMainPage.css";
 import App from "./App";
 import { UnfinishedTicketsContextProvider } from "./context/UnfinishedTicketsContext";
+import { FinishedTicketsContextProvider } from "./context/FinishedTicketsContext";
 import { UserContextProvider } from "./context/userContext";
 import { SocketProvider } from "./context/socketContext";
 import { ClientContextProvider } from "./context/ClientContext";
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-  <React.StrictMode>
-    <ClientContextProvider>
-      <UserContextProvider>
-        <SocketProvider>
+  <ClientContextProvider>
+    <UserContextProvider>
+      <SocketProvider>
+        <FinishedTicketsContextProvider>
           <UnfinishedTicketsContextProvider>
             <App />
           </UnfinishedTicketsContextProvider>
-        </SocketProvider>
-      </UserContextProvider>
-    </ClientContextProvider>
-  </React.StrictMode>
+        </FinishedTicketsContextProvider>
+      </SocketProvider>
+    </UserContextProvider>
+  </ClientContextProvider>
 );
 
 // If you want to start measuring performance in your app, pass a function

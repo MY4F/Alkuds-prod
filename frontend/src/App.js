@@ -21,6 +21,7 @@ import "./styles/tailwind.css";
 import ModeratorMainPage from "./ModeratorPages/ModeratorMainPage";
 import WorkerMainPage from "./WorkerPages/WorkerMainPage";
 import ReceiptPrintPage, { GetOrder } from "./WorkerPages/ReceiptPrintPage";
+import FinishedOrders from "./SharedComponents/FinishedOrders";
 const LoginRoute = () => {
   const { user } = useUserContext();
   if (user === null) {
@@ -75,6 +76,10 @@ const router = createBrowserRouter([
         path: "settings",
         element: <Settings />,
       },
+      {
+        path: "finishedOrders",
+        element: <FinishedOrders />,
+      },
     ],
   },
   {
@@ -82,7 +87,7 @@ const router = createBrowserRouter([
     element: <LoginRoute />,
   },
   {
-    path: "/print/:id",
+    path: "/print/:isFinishedTicket/:id",
     element: <PrintLayout />,
     children: [
       {

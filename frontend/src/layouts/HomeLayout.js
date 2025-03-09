@@ -48,6 +48,9 @@ export default function RootLayout() {
               <NavLink className="text-center" to={"settings"}>
                 اعدادات
               </NavLink>
+              <NavLink className="text-center" to={"finishedOrders"}>
+                اوردرات منتهيه
+              </NavLink>
               <button onClick={handleLogout} className="iron-btn logout"> تسجيل خروج </button>
 
             </div>

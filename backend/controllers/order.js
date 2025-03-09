@@ -72,6 +72,31 @@ const getUnfinishedOrdersInfoGroupedByType = async (req, res) => {
     res.json({inOrders,outOrders});
 }
 
+const getFinishedOrdersInfoGroupedByType = async (req, res) => {
+    let orders;
+    let inOrders =[], outOrders = [];
+    try {
+        orders = await Order.find(
+            {
+               "state":"جاري انتظار الدفع"
+            }
+        )
+        for(let x of orders){
+            if(x.type === 'in'){
+                inOrders.push(x)
+            }
+            else{
+                outOrders.push(x)
+            }
+        }
+    }
+    catch (err) {
+        console.log(err)
+    }
+    res.json({inOrders,outOrders});
+}
+
+
 const getSpecificTicket = async(req, res) => {
     let { id } = req.params
     console.log(id)
@@ -186,7 +211,7 @@ const getSpecificClientOrders = async (req, res) => {
 
 }
 
-const OrderFinishState = async (req, res) => {
+const OrderFinishState = async (req, res) => { 
     const { orderId } = req.body;
     let updatedOrder
     try {
@@ -306,5 +331,6 @@ module.exports = {
     EditOrderTicket,
     getSpecificClientOrders,
     ticketUpdateTransaction,
-    EditOrderFirstWeight
+    EditOrderFirstWeight,
+    getFinishedOrdersInfoGroupedByType
 }

@@ -6,7 +6,7 @@ import Modal from "@mui/material/Modal";
 import TicketDetails from "./TicketDetails";
 import { useClientContext } from "../hooks/useClientContext";
 import { useUnfinishedTicketsContext } from "../hooks/useUnfinishedTicketsContext";
-const InOrders = ({ order, orderContextIdx}) => {
+const InOrders = ({isFinishedTicket, order, orderContextIdx}) => {
   const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -35,7 +35,7 @@ const InOrders = ({ order, orderContextIdx}) => {
 
   return (
     <>
-      <div className="order-container">
+      <div className="order-container" style={{"borderColor": isFinishedTicket? "greenyellow":"red"}}>
         <h2> {client[order.clientId].name} </h2>
         <p>
           توقيت الاوردر <br /> {order.date}
@@ -49,7 +49,7 @@ const InOrders = ({ order, orderContextIdx}) => {
           aria-describedby="modal-modal-description"
         >
           <Box sx={style}>
-              <TicketDetails orderContextIdx={orderContextIdx} order={order}/>
+              <TicketDetails isFinishedTicket={isFinishedTicket} orderContextIdx={orderContextIdx} order={order}/>
           </Box>
         </Modal>
       </div>

@@ -22,7 +22,7 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === 'local') {
   app.use(express.static(path.join(__dirname, '../frontend/build')))
 }
 
@@ -44,6 +44,11 @@ io.on("connection", (socket) => {
     socket.on("send_message", (data) => {
       console.log(data.room)
       socket.to(data.room).emit("receive_message", data);
+    });
+
+    socket.on("send_order_update", (data) => {
+      console.log(data)
+      socket.to(data.room).emit("receive_order_finish_state", data);
     });
   });
 
@@ -93,7 +98,8 @@ let readData;
 //     res.json(readData);
 // });
 
-if (process.env.NODE_ENV === 'production') {
+
+if (process.env.NODE_ENV === 'local') {
   console.log("here")
   app.get('*', (req, res) => {
       res.sendFile(path.join(__dirname, '../frontend/build/index.html'));
@@ -101,4 +107,4 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 
-server.listen(process.env.PORT, () => console.log("running on port 8000"));
+server.listen(process.env.PORT, () => console.log("running on port: "+process.env.PORT));
