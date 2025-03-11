@@ -35,9 +35,9 @@ const WorkerMainPage = () => {
       <div className="in-orders">
         <div className="orders-holder">
           {unfinishedTickets.inOrders && alignment ==="in" &&
-          unfinishedTickets.inOrders.map((i, idx) => <InOrders  isFinishedTickets={false} order={i} orderContextIdx={idx} />)}
+          unfinishedTickets.inOrders.map((i, idx) => <InOrders  isFinishedTicket={false} order={i} orderContextIdx={idx} />)}
           {unfinishedTickets.outOrders && alignment ==="out" &&
-          unfinishedTickets.outOrders.map((i, idx) => <InOrders isFinishedTickets={true} order={i} orderContextIdx={idx} />)}
+          unfinishedTickets.outOrders.map((i, idx) => <InOrders isFinishedTicket={false} order={i} orderContextIdx={idx} />)}
         </div>
       </div>
     </div>

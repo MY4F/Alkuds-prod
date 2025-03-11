@@ -16,6 +16,7 @@ import Settings from "./SharedComponents/Settings";
 import MainPage from "./SharedComponents/MainPage";
 import ModeratorLayout from "./layouts/ModeratorLayout";
 import { useUserContext } from "./hooks/useUserContext";
+import OrdersPage from "./components/OrdersPage/index"
 import Login from "./SharedComponents/Login";
 import "./styles/tailwind.css";
 import ModeratorMainPage from "./ModeratorPages/ModeratorMainPage";
@@ -105,10 +106,26 @@ const router = createBrowserRouter([
         index: true,
         element: <ModeratorMainPage />,
       },
-      // {
-      //   path: "impexp",
-      //   element: <Impexp />,
-      // },
+      {
+        path: "orders/:category",
+        element: < OrdersPage/>,
+      },
+      {
+        path: "finishedOrders",
+        element: <FinishedOrders />,
+      },
+      {
+        path: "impexp",
+        element: <Impexp />,
+      },
+      {
+        path: "day",
+        element: <Day />,
+      },
+      {
+        path: "storage",
+        element: <Storage />,
+      },
       // {
       //   path: "day",
       //   element: <Day />,

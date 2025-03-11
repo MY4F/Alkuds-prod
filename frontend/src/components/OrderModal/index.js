@@ -1,57 +1,76 @@
 import React, { useEffect, useState } from "react";
-import Seperator from "../Seperator";
+import Seperator from "../Seperator/index";
 
-const OrderModal = ({ onClose }) => {
-  const [ticketNumber, setTicketNumber] = useState(1);
+const OrderModal = ({ onClose, type }) => {
+  const [selectedClient, setSelectedClient] = useState("");
   const [clientInfo, setClientsInfo] = useState([]);
-  const [ironInfo, setIronInfo] = useState([]);
-  const [ironRadius, setIronRadius] = useState();
+  const ironNames = ["حديدنا", "عز", "المصريين"];
+  const [price, setPrice] = useState(0);
+  const [date, setDate] = useState();
+  const [tickets, setTickets] = useState([
+    { ironName: "", radius: "", neededWeight: "", totalPrice: "" },
+  ]);
+
   useEffect(() => {
     const getClientsInfo = async () => {
-      const response = await fetch(
-        "http://localhost:8000/clients/getClientsInfo",
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await fetch("/clients/getClientsInfo", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
       const json = await response.json();
       setClientsInfo(json);
     };
-    const getIronStorage = async () => {
-      const response = await fetch(
-        "http://localhost:8000/irons/getIronStorage",
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      const json = await response.json();
-      setIronInfo(json);
-    };
+
     getClientsInfo();
-    getIronStorage();
   }, []);
+  const HandleFormSubmission = async (e) => {
+    e.preventDefault();
+    const data = {
+      clientId: selectedClient,
+      totalPrice: price,
+      date: date,
+      ticket: tickets,
+      type: type,
+    };
+    console.log(data);
+    try {
+      const response = await fetch("/order/addOrder", {
+        // Update port if different
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) throw new Error("Failed to add order");
+
+      const result = await response.json();
+      //TODO: add any user interaction here instead of clg
+      console.log("Order added:", result);
+    } catch (error) {
+      console.error("Error submitting order:", error);
+    }
+  };
   return (
-    <div dir="rtl" className="modal">
-      <span
-        className="displayHidden"
-        onClick={onClose}
-        style={{ fontSize: "30px", cursor: "pointer" }}
-      >
-        &times;
-      </span>
-      <Seperator text="بيانات اوردر خارج" />
-      <form className="w-full px-4 pt-6">
+    <div dir="rtl">
+      <Seperator text={`بيانات طلب ${type}`} />
+      <form className="w-full px-4 pt-6" onSubmit={HandleFormSubmission}>
         <div className="w-full flex md:flex-row flex-col gap-5 pb-6">
           <div className="md:w-[50%] w-full flex justify-center">
-            <div className="flex flex-col gap-2 ">
+            <div className="flex flex-col gap-2 w-full max-w-[300px]">
               <label className="text-center">أسم العميل</label>
-              <select className="w-full md:w-[300px]">
+              <select
+                req
+                uired
+                value={selectedClient}
+                onChange={(e) => {
+                  setSelectedClient(e.target.value);
+                }}
+                className="w-full md:w-[300px]"
+              >
                 <option value="">أسم العميل</option>
                 {clientInfo.map((client) => (
                   <option key={client.id} value={client.id}>
@@ -62,36 +81,59 @@ const OrderModal = ({ onClose }) => {
             </div>
           </div>
           <div className="md:w-[50%] w-full flex justify-center">
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 w-full max-w-[300px]">
               <label className="text-center">التاريخ </label>
-              <input type="date" className="w-full md:w-[300px]" />
+              <input
+                required
+                value={date}
+                onChange={(e) => {
+                  setDate(e.target.value);
+                }}
+                type="date"
+                className="w-full md:w-[300px]"
+              />
             </div>
           </div>
         </div>
-        {Array.from({ length: ticketNumber }, (_, index) => (
+        {tickets.map((_, index) => (
           <div key={index}>
-            <Seperator text={`وزنة رقم ${index + 1}`} />
-            <div className="w-full flex md:flex-row flex-col gap-5 pb-6">
+            <Seperator text={`تذكرة رقم ${index + 1}`} />
+            <div className="w-full flex md:flex-row flex-col gap-5 py-6">
               <div className="md:w-[50%] w-full flex justify-center">
-                <div className="flex flex-col gap-2 ">
+                <div className="flex flex-col gap-2 w-full max-w-[300px]">
                   <label className="text-center">نوع الحديد</label>
-                  <select className="w-full md:w-[300px]">
+                  <select
+                    required
+                    className="w-full md:w-[300px]"
+                    value={tickets[index].ironName}
+                    onChange={(e) => {
+                      const updatedTickets = [...tickets];
+                      updatedTickets[index].ironName = e.target.value;
+                      setTickets(updatedTickets);
+                    }}
+                  >
                     <option value="">نوع الحديد</option>
-                    {ironInfo.map((client) => (
-                      <option key={ironInfo.id} value={ironInfo.name}>
-                        {ironInfo.name}
+                    {ironNames.map((iron) => (
+                      <option key={iron} value={iron}>
+                        {iron}
                       </option>
                     ))}
                   </select>
                 </div>
               </div>
               <div className="md:w-[50%] w-full flex justify-center">
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2 w-full max-w-[300px]">
                   <label className="text-center">القطر </label>
-                  {/* <input type="date" className="w-full md:w-[300px]" /> */}
+
                   <select
-                    value={ironRadius}
-                    onChange={(e) => setIronRadius(e.target.value)}
+                    required
+                    className="w-full"
+                    value={tickets[index].radius}
+                    onChange={(e) => {
+                      const updatedTickets = [...tickets];
+                      updatedTickets[index].radius = e.target.value;
+                      setTickets(updatedTickets);
+                    }}
                   >
                     <option>اختر قطر</option>
                     <option>6</option>
@@ -109,8 +151,71 @@ const OrderModal = ({ onClose }) => {
                 </div>
               </div>
             </div>
+            <div className="w-full flex md:flex-row flex-col gap-5 py-6">
+              <div className="md:w-[50%] w-full flex justify-center">
+                <div className="flex flex-col gap-2 w-full max-w-[300px]">
+                  <label className="text-center">الوزن المطلوب</label>
+                  <input
+                    required
+                    type="text"
+                    placeholder="الوزن المطلوب"
+                    value={tickets[index].neededWeight}
+                    onChange={(e) => {
+                      const updatedTickets = [...tickets];
+                      updatedTickets[index].neededWeight = e.target.value;
+                      setTickets(updatedTickets);
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="md:w-[50%] w-full flex justify-center">
+                <div className="flex flex-col gap-2 w-full max-w-[300px]">
+                  <label className="text-center">السعر</label>
+                  <input
+                    required
+                    type="text"
+                    placeholder=" السعر"
+                    value={tickets[index].totalPrice}
+                    onChange={(e) => {
+                      const updatedTickets = [...tickets];
+                      updatedTickets[index].totalPrice = e.target.value;
+                      setTickets(updatedTickets);
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+            {tickets.length > 1 && (
+              <button
+                className="iron-btn remove"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setTickets((prev) => prev.filter((_, i) => i !== index));
+                }}
+              >
+                ازاله تذكرة رقم {index + 1}
+              </button>
+            )}{" "}
           </div>
         ))}
+        <button
+          className="iron-btn add-btn"
+          onClick={(e) => {
+            e.preventDefault();
+            setTickets((prev) => [
+              ...prev,
+              { ironName: "", radius: "", neededWeight: "", price: "" },
+            ]);
+          }}
+        >
+          اضافه تذكرة
+        </button>
+        <button
+          type="submit"
+          className="iron-btn max-w-[300px] bg-[greenyellow]"
+        >
+          انشاء طلب
+        </button>
       </form>
     </div>
   );

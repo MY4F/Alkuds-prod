@@ -214,7 +214,8 @@ label {
   left: 4%;
   /* border-radius: 30px; */
   overflow-y: auto;
-  height: 80vh;
+  height: 90vh;
+  
   width: 90%;
   background: white;
   box-shadow: 2px 2px 15px rgba(0, 0, 0, 0.9);

@@ -12,6 +12,7 @@ import "./assets/css/workerMainPage.css";
 import App from "./App";
 import { UnfinishedTicketsContextProvider } from "./context/UnfinishedTicketsContext";
 import { FinishedTicketsContextProvider } from "./context/FinishedTicketsContext";
+import { AwaitForPaymentTicketsContextProvider } from "./context/AwaitForPaymentTicketsContext";
 import { UserContextProvider } from "./context/userContext";
 import { SocketProvider } from "./context/socketContext";
 import { ClientContextProvider } from "./context/ClientContext";
@@ -20,11 +21,13 @@ root.render(
   <ClientContextProvider>
     <UserContextProvider>
       <SocketProvider>
-        <FinishedTicketsContextProvider>
-          <UnfinishedTicketsContextProvider>
-            <App />
-          </UnfinishedTicketsContextProvider>
-        </FinishedTicketsContextProvider>
+        <AwaitForPaymentTicketsContextProvider>
+          <FinishedTicketsContextProvider>
+            <UnfinishedTicketsContextProvider>
+              <App />
+            </UnfinishedTicketsContextProvider>
+          </FinishedTicketsContextProvider>
+        </AwaitForPaymentTicketsContextProvider>
       </SocketProvider>
     </UserContextProvider>
   </ClientContextProvider>
