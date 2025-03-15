@@ -7,7 +7,7 @@ import LocalPrintshopIcon from '@mui/icons-material/LocalPrintshop';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import { useSocketContext } from "../hooks/useSocket";
 import swal from 'sweetalert';
-const OrderView = ({ order }) => {
+const OrderView = ({ order, isFinishedTicket }) => {
   const [firstWeight, setFirstWeight] = useState(0)
   const [firstTime, setFirstTime] = useState(0);
   const [firstDate, setFirstDate] = useState(0);
@@ -27,11 +27,15 @@ const OrderView = ({ order }) => {
   });
   }, [weight, time, date, netWeight, isLoading,firstWeight,firstDate,firstTime,socket]);
 
-
+  const handleSubmit = (e) =>{
+    e.preventDefault()
+    window.open("http://localhost:3000/print/"+ isFinishedTicket.toString() + "/" + order._id,"_blank")
+    // window.open("https://alkuds-cd6a685335ea.herokuapp.com/print/"+ order._id,"_blank")
+  }
  
   return (
     <div>
-      <form className="w-full px-4 pt-6" >
+      <form className="w-full px-4 pt-6"onSubmit={e=>handleSubmit(e)}>
         <div className="w-full flex md:flex-row flex-col gap-5 pb-6">
           <div className="md:w-[50%] w-full flex justify-center">
             <div className="flex flex-col gap-2 ">
@@ -48,7 +52,7 @@ const OrderView = ({ order }) => {
           <div className="md:w-[50%] w-full flex justify-center">
             <div className="flex flex-col gap-2 ">
               <label>الوزنه الاولي</label>
-              <input name="weight" type="text" value={firstWeight!= 0?firstWeight: order.firstWeight.weight} />
+              <input name="weight" type="text" value={order.firstWeight.weight} readOnly />
             </div>
           </div>
         </div>
@@ -91,7 +95,7 @@ const OrderView = ({ order }) => {
               <div className="md:w-[50%] w-full flex justify-center">
                 <div className="flex flex-col gap-2 ">
                   <label>الوزنه بعد التحميل</label>
-                  <input name="weight" type="text" value={order.ticket[idx].weightAfter} />
+                  <input name="weight" type="text" value={order.ticket[idx].weightAfter} readOnly/>
                 </div>
               </div>
             </div>
@@ -102,7 +106,25 @@ const OrderView = ({ order }) => {
                   <input name="weight" type="text" value={order.ticket[idx].netWeight} readOnly />
                 </div>
               </div>
+              <div className="md:w-[50%] w-full flex justify-center">
+                <div className="flex flex-col gap-2 w-full max-w-[300px]">
+                  <label className="text-center">السعر</label>
+                  <input
+                    readOnly
+                    type="text"
+                    placeholder=" السعر"
+                    value={order.ticket[idx].unitPrice}
+                    // onChange={(e) => {
+                    //   const updatedTickets = [...tickets];
+                    //   updatedTickets[index].totalPrice = e.target.value;
+                    //   setTickets(updatedTickets);
+                    // }}
+                  />
+                </div>
+              </div>
             </div>
+            
+            
           </>
         ))}
         <button type="submit" className=" print-submit"> انشاء اذن استلام <ReceiptIcon/> </button>

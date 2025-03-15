@@ -5,7 +5,7 @@ import Button from "@mui/material/Button";
 import Modal from "@mui/material/Modal";
 import { useClientContext } from "../hooks/useClientContext";
 import OrderView from "../SharedComponents/OrderView";
-const OrdersViewHolder = ({order}) => {
+const OrdersViewHolder = ({order, isFinishedTicket}) => {
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -29,7 +29,7 @@ const OrdersViewHolder = ({order}) => {
 
   if (!client) {
     console.log("here")
-    return <div>Loading...</div>; // Prevents rendering until data is available
+    return <div>Loading...</div>;
   }
   console.log("heeereee")
   console.log(order)
@@ -50,7 +50,7 @@ const OrdersViewHolder = ({order}) => {
           aria-describedby="modal-modal-description"
         >
           <Box sx={style}>
-            <OrderView order={order} />
+            <OrderView order={order} isFinishedTicket={isFinishedTicket} />
           </Box>
         </Modal>
       </div>

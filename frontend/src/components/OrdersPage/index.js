@@ -47,15 +47,15 @@ const OrdersPage = () => {
         <div className="orders-holder">
           {
           category ==="progress-load" && unfinishedTickets[`${typeObj[alignment]}`] &&
-          unfinishedTickets[`${typeObj[alignment]}`].map((i, idx) => <OrdersViewHolder  order={i} />)
+          unfinishedTickets[`${typeObj[alignment]}`].map((i, idx) => <OrdersViewHolder isFinishedTicket={false}  order={i} />)
           }
           {
           category ==="progress-pay" && awaitForPaymentTickets[`${typeObj[alignment]}`] &&
-          awaitForPaymentTickets[`${typeObj[alignment]}`].map((i, idx) => <OrdersViewHolder  order={i} />)
+          awaitForPaymentTickets[`${typeObj[alignment]}`].map((i, idx) => <OrdersViewHolder isFinishedTicket={true} order={i} />)
           }
           {
           category ==="done" && finishedTickets[`${typeObj[alignment]}`] &&
-          finishedTickets[`${typeObj[alignment]}`].map((i, idx) => <OrdersViewHolder  order={i} />)
+          finishedTickets[`${typeObj[alignment]}`].map((i, idx) => <OrdersViewHolder isFinishedTicket={true} order={i} />)
           }
         </div>
       </div>

@@ -83,7 +83,7 @@ const ReceiptPrintPage = () => {
   const handlePrint = async () => {
     if (window.confirm("هل تريد طباعه التيكيت") === true) {
       try {
-        if (order.state === "progress") {
+        if (order.state === "progress" && !isFinishedTicket) {
           const orderStateUpdateFetch = await fetch("/order/orderFinishState", {
             method: "POST",
             headers: {

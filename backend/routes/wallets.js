@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { addTransaction  } = require('../controllers/wallets'); 
+const { addTransaction, getSpecificClientTransactions  } = require('../controllers/wallets'); 
 
+router.get("/getSpecificClientTransactions/:id", getSpecificClientTransactions)
 router.post("/addTransaction", addTransaction)
 
 

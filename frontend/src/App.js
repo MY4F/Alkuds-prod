@@ -23,6 +23,7 @@ import ModeratorMainPage from "./ModeratorPages/ModeratorMainPage";
 import WorkerMainPage from "./WorkerPages/WorkerMainPage";
 import ReceiptPrintPage, { GetOrder } from "./WorkerPages/ReceiptPrintPage";
 import FinishedOrders from "./SharedComponents/FinishedOrders";
+import ClientBill from "./ModeratorPages/ClientBill";
 const LoginRoute = () => {
   const { user } = useUserContext();
   if (user === null) {
@@ -109,6 +110,10 @@ const router = createBrowserRouter([
       {
         path: "orders/:category",
         element: < OrdersPage/>,
+      },
+      {
+        path: "clientbill",
+        element: < ClientBill/>,
       },
       {
         path: "finishedOrders",

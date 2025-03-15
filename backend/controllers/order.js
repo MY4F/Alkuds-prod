@@ -218,16 +218,15 @@ const addOrder = async (req, res) => {
 }
 
 const getClientOrders = async (req, res) => {
-    console.log("first")
-    const { clientId } = req.body;
+    const { id } = req.params;
     let orders;
     try {
-        orders = await Order.find({ "clientId": clientId })
+        orders = await Order.find({ "clientId": id })
     }
     catch (err) {
         console.log(err)
     }
-
+    console.log(orders)
     res.json(orders)
 
 }
@@ -340,6 +339,38 @@ const TicketDelete = (req, res) => {
 
 }
 
+const addOrderStatement = async(req,res) =>{
+    const { orderId, bankName, amount } = req.body
+    let statement, order, walletTransaction, walletId;
+    try{
+        let order = await Order.findById(orderId);
+        walletTransaction = new Wallet(
+            {
+                amount,bankName, "clientId" : order.clientId, orderId
+            }
+        )
+        await walletTransaction.save().then(wallet => {
+            walletId = wallet._id
+        })
+        order.statement.push(
+            {
+                "paidAmount":amount,
+                "clientId": order.clientId,
+                "bankName" : bankName,
+                "date": new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' }),
+                walletId
+            }
+        )
+        
+        statement = await Order.findOneAndUpdate({_id:order._id},{statement:order.statement},{ returnDocument: 'after' } )
+    }
+    catch(err){
+        console.log(err)
+    }
+
+    res.json(statement)
+}
+
 module.exports = {
     getUnfinishedOrdersInfoGroupedByClientId,
     getUnfinishedOrdersInfoGroupedByType,
@@ -353,5 +384,7 @@ module.exports = {
     ticketUpdateTransaction,
     EditOrderFirstWeight,
     getFinishedOrdersInfoGroupedByType,
-    getAwaitForPaymentOrdersGroupedByType
+    getAwaitForPaymentOrdersGroupedByType,
+    getClientOrders,
+    addOrderStatement
 }

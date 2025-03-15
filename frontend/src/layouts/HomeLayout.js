@@ -27,7 +27,7 @@ export default function RootLayout() {
           <div className="nav-container  w-full gap-4 flex md:flex-col flex-row-reverse   justify-center  py-4 overflow-y-auto">
             <div
               style={{
-                "scrollbar-width": "none",
+                "sscrollbarWidth": "none",
                 "-ms-overflow-style": "none",
               }}
               className="gap-4 flex md:flex-col flex-row-reverse  overflow-y-auto md:overflow-hidden px-6"

@@ -371,6 +371,17 @@ label {
   color: white;
 }
 
+.name-filter{
+  margin: 20px 0;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+.name-filter select{
+  width: 70%;
+}
 
 @media print{
   .print-btn{
