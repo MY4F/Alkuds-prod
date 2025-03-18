@@ -4,7 +4,6 @@ import Seperator from "../Seperator/index";
 const OrderModal = ({ onClose, type }) => {
   const [selectedClient, setSelectedClient] = useState("");
   const [clientInfo, setClientsInfo] = useState([]);
-  const ironNames = ["حديدنا", "عز", "المصريين"];
   const [price, setPrice] = useState(0);
   const [date, setDate] = useState();
   const [tickets, setTickets] = useState([
@@ -113,11 +112,24 @@ const OrderModal = ({ onClose, type }) => {
                     }}
                   >
                     <option value="">نوع الحديد</option>
-                    {ironNames.map((iron) => (
-                      <option key={iron} value={iron}>
-                        {iron}
-                      </option>
-                    ))}
+                    <option value="السويس للصلب">السويس للصلب</option>
+                    <option value="الجارحي">الجارحي</option>
+                    <option value="عز">عز</option>
+                    <option value="مصريين">مصريين</option>
+                    <option value="بشاي">بشاي</option>
+                    <option value="مركبي">مركبي</option>
+                    <option value="المدينة">المدينة</option>
+                    <option value="العلا">العلا</option>
+                    <option value="جيوشي">جيوشي</option>
+                    <option value="عنتر">عنتر</option>
+                    <option value="مصر ستيل">مصر ستيل</option>
+                    <option value="العربيه">العربيه</option>
+                    <option value="بيانكو">بيانكو</option>
+                    <option value="عشري">عشري</option>
+                    <option value="عياد">عياد</option>
+                    <option value="اركو ستيل">اركو ستيل</option>
+                    <option value="اكتوبر ستيل">اكتوبر ستيل</option>
+                    <option value="الكومي">الكومي</option>
                   </select>
                 </div>
               </div>

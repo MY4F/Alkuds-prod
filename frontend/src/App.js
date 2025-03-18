@@ -24,6 +24,7 @@ import WorkerMainPage from "./WorkerPages/WorkerMainPage";
 import ReceiptPrintPage, { GetOrder } from "./WorkerPages/ReceiptPrintPage";
 import FinishedOrders from "./SharedComponents/FinishedOrders";
 import ClientBill from "./ModeratorPages/ClientBill";
+import PurchaseBill from "./ModeratorPages/PurchaseBill";
 const LoginRoute = () => {
   const { user } = useUserContext();
   if (user === null) {
@@ -97,6 +98,18 @@ const router = createBrowserRouter([
         element: <ReceiptPrintPage />,
         loader: GetOrder
       }
+    ]
+  },
+  ,
+  {
+    path: "/print/purchasebill/:id",
+    element: <PrintLayout />,
+    children: [
+      {
+        index: true,
+        element: < PurchaseBill/>,
+        loader: GetOrder
+      },
     ]
   },
   {

@@ -279,6 +279,10 @@ label {
   margin: 2px 0;
 }
 
+.print-content span {
+  padding: 0px 10px;
+}
+
 .client-print-data {
   width: 100%;
   display: flex;
@@ -333,7 +337,7 @@ label {
 }
 
 .total-weight {
-  width: 100%;
+  width: 50%;
   text-align: center;
 }
 

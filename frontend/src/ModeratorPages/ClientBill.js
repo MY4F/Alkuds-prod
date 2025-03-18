@@ -49,13 +49,13 @@ const Row = (props) => {
         <TableCell component="th" scope="row">
           {row.orderId}
         </TableCell>
-        <TableCell component="th" scope="row" align="right">{row.type}</TableCell>
+        <TableCell component="th" scope="row" align="right">{(row.type === "in")? "وارد":"خارج"}</TableCell>
         <TableCell component="th" scope="row" align="right">{row.state}</TableCell>
         <TableCell component="th" scope="row" align="right">{row.totalPrice}</TableCell>
         <TableCell component="th" scope="row" align="right">{row.paidAmount}</TableCell>
         <TableCell component="th" scope="row" align="right">{row.date}</TableCell>
       </TableRow>
-      <TableRow>
+      <TableRow style={{verticalAlign:"baseline"}}>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box sx={{ margin: 1 }}>
@@ -63,7 +63,7 @@ const Row = (props) => {
                 variant="h6"
                 gutterBottom
                 component="div"
-                style={{ direction: "rtl" }}
+                style={{ direction: "rtl", textAlign:"right" }}
               >
                 طلبيات
               </Typography>
@@ -79,15 +79,10 @@ const Row = (props) => {
                 <TableBody>
                   {row.tickets.map((ticketRow) => (
                     <TableRow key={ticketRow.ironName}>
-                      <TableCell component="th" scope="row">
-                        {ticketRow.ironName}
-                      </TableCell>
-                      <TableCell>{ticketRow.radius}</TableCell>
-                      <TableCell>{ticketRow.netWeight}</TableCell>
-                      <TableCell align="right">{ticketRow.price}</TableCell>
-                      <TableCell align="right">
-                        {ticketRow.statementId}
-                      </TableCell>
+                      <TableCell component="th" scope="row">{ticketRow.ironName} </TableCell>
+                      <TableCell  component="th" scope="row">{ticketRow.radius}</TableCell>
+                      <TableCell  component="th" scope="row">{ticketRow.netWeight}</TableCell>
+                      <TableCell  component="th" scope="row" align="right">{ticketRow.price}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -102,7 +97,7 @@ const Row = (props) => {
                 variant="h6"
                 gutterBottom
                 component="div"
-                style={{ direction: "rtl" }}
+                style={{ direction: "rtl", textAlign:"right"  }}
               >
                 مدفوعات
               </Typography>
@@ -116,16 +111,16 @@ const Row = (props) => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {row.statements.map((statementRow) => (
+                  {row.statements.length>0? row.statements.map((statementRow) => (
                     <TableRow key={statementRow.walletId}>
-                      <TableCell>{statementRow.walletId}</TableCell>
+                      <TableCell  component="th" scope="row">{statementRow.walletId}</TableCell>
                       <TableCell component="th" scope="row">
                         {statementRow.bankName}
                       </TableCell>
-                      <TableCell>{statementRow.paidAmount}</TableCell>
-                      <TableCell>{statementRow.date}</TableCell>
+                      <TableCell  component="th" scope="row">{statementRow.paidAmount}</TableCell>
+                      <TableCell  component="th" scope="row">{statementRow.date}</TableCell>
                     </TableRow>
-                  ))}
+                  )): "لا يوجد تحويلات"}
                 </TableBody>
               </Table>
             </Box>
@@ -267,7 +262,7 @@ const ClientBill = () => {
               <TableCell align="right">التاريخ</TableCell>
             </TableRow>
           </TableHead>
-          <TableBody>
+          <TableBody >
             {!isLoading ? (
               rows.map((row) => <Row key={row.name} row={row} />)
             ) : (
@@ -276,15 +271,15 @@ const ClientBill = () => {
             <TableRow>
 
               <TableCell colSpan={2}>اجمالي قيمه الاصناف</TableCell>
-              <TableCell align="right">{totalPrice}</TableCell>
+              <TableCell component="th" scope="row" align="right">{totalPrice}</TableCell>
             </TableRow>
             <TableRow>
               <TableCell colSpan={2}>اجمالي الدفعات</TableCell>
-              <TableCell align="right">{totalPaid}</TableCell>
+              <TableCell component="th" scope="row" align="right">{totalPaid}</TableCell>
             </TableRow>
             <TableRow>
               <TableCell colSpan={2}>الرصيد</TableCell>
-              <TableCell align="right">{balance}</TableCell>
+              <TableCell component="th" scope="row" align="right">{balance}</TableCell>
             </TableRow>
           </TableBody>
         </Table>

@@ -20,8 +20,14 @@ const OrderView = ({ order, isFinishedTicket }) => {
   const { socket } = useSocketContext();
   useEffect(() => {
     socket.on("receive_order_finish_state", (info) => {
-      if(info.order === null)
-        swal ( info.message ,  "تم طباعه اذن الاستلام بنجاح ." ,  "success" )
+      if(info.order === null){
+        if(info.message === "Purchase Bill Printed Successfully"){
+          swal ( info.message ,  "تم طباعه فاتوره المبيعات بنجاح ." ,  "success" )
+        }
+        else{
+          swal ( info.message ,  "تم طباعه اذن الاستلام بنجاح ." ,  "success" )
+        }
+      }
       else
         swal ( info.message ,  "تم طباعه اذن الاستلام بنجاح و ايضا تغير حاله الاوردر لجاري انتظار الدفع." ,  "success" )
   });
@@ -29,8 +35,14 @@ const OrderView = ({ order, isFinishedTicket }) => {
 
   const handleSubmit = (e) =>{
     e.preventDefault()
-    window.open("http://localhost:3000/print/"+ isFinishedTicket.toString() + "/" + order._id,"_blank")
-    // window.open("https://alkuds-cd6a685335ea.herokuapp.com/print/"+ order._id,"_blank")
+    // window.open("http://localhost:3000/print/"+ isFinishedTicket.toString() + "/" + order._id,"_blank")
+    window.open("https://alkuds-cd6a685335ea.herokuapp.com/print/"+ isFinishedTicket.toString() + "/" + order._id,"_blank")
+  }
+
+  const handlePurchaseBill = (e) =>{
+    e.preventDefault()
+    // window.open("http://localhost:3000/print/purchasebill/" + order._id,"_blank")
+    window.open("https://alkuds-cd6a685335ea.herokuapp.com/print/purchasebill/"+ order._id,"_blank")
   }
  
   return (
@@ -127,7 +139,8 @@ const OrderView = ({ order, isFinishedTicket }) => {
             
           </>
         ))}
-        <button type="submit" className=" print-submit"> انشاء اذن استلام <ReceiptIcon/> </button>
+        <button type="submit" className="print-submit"> انشاء اذن استلام <ReceiptIcon/> </button>
+        <button onClick={e => handlePurchaseBill(e)} className="print-submit"> انشاء فاتوره مبيعات <ReceiptIcon/> </button>
       </form>
     </div>
   );
