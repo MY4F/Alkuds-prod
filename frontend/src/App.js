@@ -25,6 +25,7 @@ import ReceiptPrintPage, { GetOrder } from "./WorkerPages/ReceiptPrintPage";
 import FinishedOrders from "./SharedComponents/FinishedOrders";
 import ClientBill from "./ModeratorPages/ClientBill";
 import PurchaseBill from "./ModeratorPages/PurchaseBill";
+import MoneyVault from "./ModeratorPages/MoneyVault";
 const LoginRoute = () => {
   const { user } = useUserContext();
   if (user === null) {
@@ -127,6 +128,10 @@ const router = createBrowserRouter([
       {
         path: "clientbill",
         element: < ClientBill/>,
+      },
+      {
+        path: "moneyvault",
+        element: < MoneyVault/>,
       },
       {
         path: "finishedOrders",

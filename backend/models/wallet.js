@@ -1,21 +1,35 @@
 const mongoose = require('mongoose');
 const WalletSchema = new mongoose.Schema({
-    amount: {
+    totalAmount: {
         type: Number,
-        required: true 
+        default: 0 
     },
     bankName: {
         type: String,
         required: true
     },
-    clientId: {
-        type: String,
-        required: true
-    },
-    orderId: {
-        type: String,
-        default: ""
-    }
+    transactions:[{
+        amount: {
+            type: Number,
+            required: true
+        },
+        clientId: {
+            type: String,
+            required: true
+        },
+        type: {
+            type: String,
+            default: ""
+        },
+        orderId: {
+            type: String,
+            default: ""
+        },
+        date: {
+            type: Date,
+            default: new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' })
+        }
+    }]
 });
 
 const Wallet = mongoose.model('Wallet', WalletSchema);

@@ -310,12 +310,14 @@ const ticketUpdateTransaction = async (req, res) => {
             paidAmount, bankName, clientId
         }
         newOrder = await Order.findOneAndUpdate({ "_id": orderId }, { $push: { statement: newStatement }, $inc: { totalPaid: paidAmount } }, { returnDocument: 'after' })
-        newTransaction = await Wallet(
+        newTransaction = await Wallet.findOneAndUpdate(
             {
-                amount: paidAmount, bankName, clientId, orderId
+                bankName
+            },
+            {
+                $psuh : { transactions:{ amount: paidAmount, clientId, type, orderId}}
             }
         )
-        newTransaction.save()
     }
     catch (err) {
         console.log(err)
@@ -340,25 +342,28 @@ const TicketDelete = (req, res) => {
 }
 
 const addOrderStatement = async(req,res) =>{
-    const { orderId, bankName, amount } = req.body
+    const { orderId, bankName, amount, type } = req.body
     let statement, order, walletTransaction, walletId;
     try{
         let order = await Order.findById(orderId);
-        walletTransaction = new Wallet(
+        walletTransaction = new Wallet.findOneAndUpdate(
             {
-                amount,bankName, "clientId" : order.clientId, orderId
+                bankName
+            },
+            {
+                $psuh : { transactions:{ amount: paidAmount, clientId : order.clientId, type, orderId}}
+            },
+            {
+                returnDocument:'after' 
             }
         )
-        await walletTransaction.save().then(wallet => {
-            walletId = wallet._id
-        })
         order.statement.push(
             {
                 "paidAmount":amount,
                 "clientId": order.clientId,
                 "bankName" : bankName,
                 "date": new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' }),
-                walletId
+                "walletId" : walletTransaction.transactions[walletTransaction.transactions.length-1]._id
             }
         )
         

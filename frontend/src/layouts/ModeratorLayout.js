@@ -54,6 +54,10 @@ export default function ModeratorLayout() {
                 كشفات الحسابات
               </NavLink>
 
+              <NavLink className="text-center" to={"moneyvault"}>
+                الخزنه
+              </NavLink>
+
               <button onClick={handleLogout} className="iron-btn logout"> تسجيل خروج </button>
 
             </div>
