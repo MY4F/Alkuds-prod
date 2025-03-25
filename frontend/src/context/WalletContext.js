@@ -13,8 +13,10 @@ export const WalletReducer = (state, action) => {
         wallet: [action.payload, ...state.wallet],
       };
     case "UPDATE_WALLET":
+      let newWallet = state.wallet
+      newWallet[action.payload.bankName] = action.payload
       return {
-        wallet: [...action.payload],
+        wallet: newWallet
       };
     case "DELETE_TICKET":
       return {

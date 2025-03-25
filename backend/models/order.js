@@ -28,7 +28,7 @@ const OrderSchema = new mongoose.Schema({
         date: { type: String, default: "" }
     }],
     statement: [{
-        walletId:  { type: String, required: true },
+        walletTransactionId:  { type: String, required: true },
         paidAmount: { type: Number, required: true },
         bankName: { type: String, required: true },
         clientId: { type: String, required: true },

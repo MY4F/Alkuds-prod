@@ -363,7 +363,7 @@ const addOrderStatement = async(req,res) =>{
                 "clientId": order.clientId,
                 "bankName" : bankName,
                 "date": new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' }),
-                "walletId" : walletTransaction.transactions[walletTransaction.transactions.length-1]._id
+                "walletTransactionId" : walletTransaction.transactions[walletTransaction.transactions.length-1]._id
             }
         )
         

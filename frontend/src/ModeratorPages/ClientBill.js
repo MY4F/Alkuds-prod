@@ -23,7 +23,7 @@ const Row = (props) => {
 
   return (
     <Fragment>
-      <TableRow sx={{ "& > *": { borderBottom: "unset" } }}>
+      <TableRow sx={{ "& > *": { borderBottom: "unset" }  }}>
         <TableCell>
           <IconButton
             aria-label="expand row"
@@ -46,7 +46,7 @@ const Row = (props) => {
             )}
           </IconButton>
         </TableCell>
-        <TableCell component="th" scope="row">
+        <TableCell align="right" component="th" scope="row">
           {row.orderId}
         </TableCell>
         <TableCell component="th" scope="row" align="right">{(row.type === "in")? "وارد":"خارج"}</TableCell>
@@ -79,10 +79,10 @@ const Row = (props) => {
                 <TableBody>
                   {row.tickets.map((ticketRow) => (
                     <TableRow key={ticketRow.ironName}>
-                      <TableCell component="th" scope="row">{ticketRow.ironName} </TableCell>
-                      <TableCell  component="th" scope="row">{ticketRow.radius}</TableCell>
-                      <TableCell  component="th" scope="row">{ticketRow.netWeight}</TableCell>
-                      <TableCell  component="th" scope="row" align="right">{ticketRow.price}</TableCell>
+                      <TableCell align="right" component="th" scope="row">{ticketRow.ironName} </TableCell>
+                      <TableCell align="right" component="th" scope="row">{ticketRow.radius}</TableCell>
+                      <TableCell align="right" component="th" scope="row">{ticketRow.netWeight}</TableCell>
+                      <TableCell align="right" component="th" scope="row">{ticketRow.price}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -113,12 +113,12 @@ const Row = (props) => {
                 <TableBody>
                   {row.statements.length>0? row.statements.map((statementRow) => (
                     <TableRow key={statementRow.walletId}>
-                      <TableCell  component="th" scope="row">{statementRow.walletId}</TableCell>
-                      <TableCell component="th" scope="row">
+                      <TableCell align="right" component="th" scope="row">{statementRow.walletId}</TableCell>
+                      <TableCell align="right" component="th" scope="row">
                         {statementRow.bankName}
                       </TableCell>
-                      <TableCell  component="th" scope="row">{statementRow.paidAmount}</TableCell>
-                      <TableCell  component="th" scope="row">{statementRow.date}</TableCell>
+                      <TableCell align="right" component="th" scope="row">{statementRow.paidAmount}</TableCell>
+                      <TableCell align="right" component="th" scope="row">{statementRow.date}</TableCell>
                     </TableRow>
                   )): "لا يوجد تحويلات"}
                 </TableBody>
@@ -139,7 +139,7 @@ const ClientBill = () => {
   const [totalPrice, setTotalPrice] = useState(0);
   const [totalPaid, setTotalPaid] = useState(0);
   const [balance, setBalance] = useState(0);
-  useEffect(() => {}, [clients, rows, isLoading]);
+  useEffect(() => {console.log("here")}, [clients, rows, isLoading, client]);
 
   if (!client) {
     console.log("here");
@@ -182,7 +182,7 @@ const ClientBill = () => {
           }
           for (let j = 0; j < getClientOrder[i]["statement"].length; j++) {
             statements.push({
-              walletId: getClientOrder[i]["statement"][j].walletId,
+              walletId: getClientOrder[i]["statement"][j]._id,
               bankName: getClientOrder[i]["statement"][j].bankName,
               paidAmount: getClientOrder[i]["statement"][j].paidAmount,
               date: getClientOrder[i]["statement"][j].date,
@@ -204,7 +204,7 @@ const ClientBill = () => {
         }
         console.log(orders);
         setRows([...orders]);
-        setBalance(totalPrice - totalPaid);
+        setBalance(client[e.target.value].balance);
         setTotalPaid(paid);
         setTotalPrice(price);
       }
@@ -251,8 +251,8 @@ const ClientBill = () => {
         <Table style={{ direction: "rtl" }} aria-label="collapsible table">
           <TableHead>
             <TableRow>
-              <TableCell />
-              <TableCell />
+              <TableCell align="right">طلبيات</TableCell>
+              <TableCell align="right">مدفوعات</TableCell>
 
               <TableCell align="right">رقم الاوردر</TableCell>
               <TableCell align="right">النوع</TableCell>

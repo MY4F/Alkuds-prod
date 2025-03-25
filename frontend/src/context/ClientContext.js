@@ -4,7 +4,7 @@ export const ClientContext = createContext();
 
 export const ClientReducer = (state, action) => {
   switch (action.type) {
-    case "SET_TICKETS":
+    case "SET_CLIENTS":
       return {
         client: action.payload,
       };
@@ -12,9 +12,11 @@ export const ClientReducer = (state, action) => {
       return {
         client: [action.payload, ...state.client],
       };
-    case "UPDATE_TICKET":
+    case "UPDATE_CLIENT":
+      let newClient = state.client
+      newClient[action.payload.clientId] = action.payload
       return {
-        client: [...action.payload],
+        client: newClient,
       };
     case "DELETE_TICKET":
       return {
@@ -45,7 +47,7 @@ export const ClientContextProvider = ({ children }) => {
       let jsonAns = await response.json();
       if (response.ok) {
         console.log(jsonAns)
-        dispatch({ type: "SET_TICKETS", payload: jsonAns });
+        dispatch({ type: "SET_CLIENTS", payload: jsonAns });
       }
     };
     getClients();

@@ -24,7 +24,7 @@ const addClients = async (req , res) => {
                 name,
                 address,
                 ticketsIds:[],
-                clientId:2
+                clientId:4
             }
         )
 

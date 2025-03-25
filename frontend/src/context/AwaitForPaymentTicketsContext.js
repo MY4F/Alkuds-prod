@@ -17,28 +17,18 @@ export const AwaitForPaymentTicketsReducer = (state, action) => {
         "in":"inOrders",
         "out":"outOrders"
       }
-      console.log(state.awaitForPaymentTickets[`${typeObj[action.payload.type]}`][0])
       let newArr = []
-      for(let i = 0 ;i<state.awaitForPaymentTickets[`${typeObj[action.payload.type]}`].length;i++){
-        if(state.awaitForPaymentTickets[`${typeObj[action.payload.type]}`][i]._id === action.payload._id){
-          newArr.push(action.payload)
+      let usedArrObj = state.awaitForPaymentTickets
+      for(let j of action.payload){
+        for(let i = 0 ;i<usedArrObj[`${typeObj[j.type]}`].length;i++){
+          if(usedArrObj[`${typeObj[j.type]}`][i]._id === j._id){
+            usedArrObj[`${typeObj[j.type]}`][i] = j
+          }
         }
-        else{
-          newArr.push(state.awaitForPaymentTickets[`${typeObj[action.payload.type]}`][i])
-        }
       }
-      if(typeObj[action.payload.type] === "in")
-      {
-        return {
-            awaitForPaymentTickets: {"inOrders": newArr, "outOrders":state.awaitForPaymentTickets["outOrders"] },
-        };
-      }
-      else
-      {
-        return {
-            awaitForPaymentTickets: {"outOrders": newArr, "inOrders":state.awaitForPaymentTickets["inOrders"] },
-        };
-      }
+      return {
+          awaitForPaymentTickets: usedArrObj
+      };
     case "DELETE_TICKET":
       return {
         awaitForPaymentTickets: [

@@ -9,6 +9,16 @@ const WalletSchema = new mongoose.Schema({
         required: true
     },
     transactions:[{
+        isDivided:[{
+            amount: {
+                type: Number,
+                required: true
+            },
+            orderId: {
+                type: String,
+                default: ""
+            },
+        }],
         amount: {
             type: Number,
             required: true
@@ -19,9 +29,13 @@ const WalletSchema = new mongoose.Schema({
         },
         type: {
             type: String,
-            default: ""
+            default: true
         },
         orderId: {
+            type: String,
+            default: ""
+        },
+        notes: {
             type: String,
             default: ""
         },

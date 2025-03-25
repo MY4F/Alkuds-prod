@@ -408,6 +408,15 @@ label {
   width: 70%;
 }
 
+.walletsHolder{
+  margin-top: 20px;
+  width: 100%;
+}
+
+.walletsHolder th{
+  font-size: 17px !important;
+}
+
 @media print{
   .print-btn{
     display: none;
