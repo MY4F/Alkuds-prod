@@ -9,9 +9,19 @@ export const AwaitForPaymentTicketsReducer = (state, action) => {
         awaitForPaymentTickets: action.payload,
       };
     case "ADD_TICKET":
-      return {
-        awaitForPaymentTickets: [action.payload, ...state.awaitForPaymentTickets],
-      };
+      {
+        let typeObj = {
+          "in":"inOrders",
+          "out":"outOrders"
+        }
+        let usedArrObj = state.awaitForPaymentTickets
+        for(let j of action.payload){
+          usedArrObj[`${typeObj[j.type]}`].push(j)
+        }
+        return {
+            awaitForPaymentTickets: usedArrObj
+        };
+      }
     case "UPDATE_TICKET":
       let typeObj = {
         "in":"inOrders",

@@ -195,12 +195,12 @@ const addOrder = async (req, res) => {
     try {
         newOrder = new Order(
             {
-                "state": "New", type, clientId, driverId, carId, ticket, totalPrice
+                "state": "جديد", type, clientId, driverId, carId, ticket, totalPrice, deliveryFees
             }
         )
 
         newOrder.save().then(async (data) => {
-            await Client.updateOne({ "_id": clientId },
+            await Client.updateOne({ clientId },
                 {
                     $push: {
                         'ticketsIds': data._id.toString()
@@ -243,62 +243,92 @@ const OrderFinishState = async (req, res) => {
 
     let totalProfitForOrder = 0;
     const orderTickets = updatedOrder.ticket
-    for (let i = 0; i < orderTickets.length; i++) {
-        let ironData = await Iron.findOne({
-            $and: [
-                { "name": orderTickets[i].ironName },
-                { "radius": orderTickets[i].radius }
-            ]
-        });
-        let profit = 0, totalCostForTicket = 0;
-        for (let j = 0; j < ironData.costPerWeight.length; j++) {
-            let totalInventoryWeight = ironData.costPerWeight[j].weight;
-            let totalNeededWeight = orderTickets[i].netWeightForProcessing;
-            let differenceBetweenNeededAndInventory = totalInventoryWeight - totalNeededWeight;
-            if (totalInventoryWeight > 0) {
-                if (differenceBetweenNeededAndInventory >= 0) {
-                    ironData.costPerWeight[j].weight = differenceBetweenNeededAndInventory
+    if(updatedOrder.type === "out"){
+        for (let i = 0; i < orderTickets.length; i++) {
+            let ironData = await Iron.findOne({
+                $and: [
+                    { "name": orderTickets[i].ironName },
+                    { "radius": orderTickets[i].radius }
+                ]
+            });
+            let profit = 0, totalCostForTicket = 0;
+            for (let j = 0; j < ironData.costPerWeight.length; j++) {
+                let totalInventoryWeight = ironData.costPerWeight[j].weight;
+                let totalNeededWeight = orderTickets[i].netWeightForProcessing;
+                let differenceBetweenNeededAndInventory = totalInventoryWeight - totalNeededWeight;
+                if (totalInventoryWeight > 0) {
+                    if (differenceBetweenNeededAndInventory >= 0) {
+                        ironData.costPerWeight[j].weight = differenceBetweenNeededAndInventory
 
-                    totalCostForTicket = ironData.costPerWeight[j].unitCostPerTon * parseFloat((totalNeededWeight / 1000))
-                    profit = (orderTickets[i].unitPrice * parseFloat((totalNeededWeight / 1000))) - totalCostForTicket
-                    orderTickets[i].profit += profit
-                    orderTickets[i].netWeightForProcessing = 0;
-                    orderTickets[i].totalCost += totalCostForTicket
-                    orderTickets[i].usedUnitCostPerWeight.push({
-                        weight: totalNeededWeight,
-                        cost: ironData.costPerWeight[j].unitCostPerTon
-                    })
-                    break;
-                }
-                else {
-                    ironData.costPerWeight[j].weight = 0
-                    totalCostForTicket = (ironData.costPerWeight[j].unitCostPerTon * parseFloat((totalInventoryWeight / 1000)))
-                    profit = (orderTickets[i].unitPrice * parseFloat((totalInventoryWeight / 1000))) - totalCostForTicket
-                    orderTickets[i].totalCost += totalCostForTicket
-                    orderTickets[i].profit += profit
-                    orderTickets[i].netWeightForProcessing = orderTickets[i].netWeightForProcessing - totalInventoryWeight
-                    orderTickets[i].usedUnitCostPerWeight.push({
-                        weight: totalInventoryWeight,
-                        cost: ironData.costPerWeight[j].unitCostPerTon
-                    })
+                        totalCostForTicket = ironData.costPerWeight[j].unitCostPerTon * parseFloat((totalNeededWeight / 1000))
+                        profit = (orderTickets[i].unitPrice * parseFloat((totalNeededWeight / 1000))) - totalCostForTicket
+                        orderTickets[i].profit += profit
+                        orderTickets[i].netWeightForProcessing = 0;
+                        orderTickets[i].totalCost += totalCostForTicket
+                        orderTickets[i].usedUnitCostPerWeight.push({
+                            weight: totalNeededWeight,
+                            cost: ironData.costPerWeight[j].unitCostPerTon
+                        })
+                        break;
+                    }
+                    else {
+                        ironData.costPerWeight[j].weight = 0
+                        totalCostForTicket = (ironData.costPerWeight[j].unitCostPerTon * parseFloat((totalInventoryWeight / 1000)))
+                        profit = (orderTickets[i].unitPrice * parseFloat((totalInventoryWeight / 1000))) - totalCostForTicket
+                        orderTickets[i].totalCost += totalCostForTicket
+                        orderTickets[i].profit += profit
+                        orderTickets[i].netWeightForProcessing = orderTickets[i].netWeightForProcessing - totalInventoryWeight
+                        orderTickets[i].usedUnitCostPerWeight.push({
+                            weight: totalInventoryWeight,
+                            cost: ironData.costPerWeight[j].unitCostPerTon
+                        })
+                    }
                 }
             }
+
+            totalProfitForOrder += orderTickets[i].profit;
+            await Iron.updateOne({
+                $and: [
+                    { "name": orderTickets[i].ironName },
+                    { "radius": orderTickets[i].radius }
+                ]
+            }, {
+                costPerWeight: ironData.costPerWeight
+            })
+        }
+        let newUpdatedOrder = await Order.findOneAndUpdate({ _id: orderId }, { ticket: orderTickets, totalProfit: totalProfitForOrder }, { returnDocument: 'after' })
+        res.json(newUpdatedOrder);
+    }
+    else{
+        let realTotalPrice = 0;
+        for (let i = 0; i < orderTickets.length; i++) {
+            await Iron.updateOne(
+                {
+                    $and: [
+                        { "name": orderTickets[i].ironName },
+                        { "radius": orderTickets[i].radius }
+                    ]
+                }, 
+                {
+                    $push : 
+                    {
+                        costPerWeight: {
+                            unitCostPerTon : orderTickets[i].unitPrice,
+                            weight : orderTickets[i].netWeight
+                        }
+                    }
+                },
+                { upsert: true }
+            )
+
+            orderTickets[i].realTotalPrice = orderTickets[i].unitPrice * parseFloat((orderTickets[i].netWeight / 1000))
+            realTotalPrice += orderTickets[i].realTotalPrice
         }
 
-        totalProfitForOrder += orderTickets[i].profit;
-        await Iron.updateOne({
-            $and: [
-                { "name": orderTickets[i].ironName },
-                { "radius": orderTickets[i].radius }
-            ]
-        }, {
-            costPerWeight: ironData.costPerWeight
-        })
+        let newUpdatedOrder = await Order.findOneAndUpdate({ _id: orderId }, { ticket: orderTickets, realTotalPrice }, { returnDocument: 'after' })
+        res.json(newUpdatedOrder);
     }
 
-    let newUpdatedOrder = await Order.findOneAndUpdate({ _id: orderId }, { ticket: orderTickets, totalProfit: totalProfitForOrder }, { returnDocument: 'after' })
-
-    res.json(newUpdatedOrder);
 
 }
 
@@ -376,6 +406,20 @@ const addOrderStatement = async(req,res) =>{
     res.json(statement)
 }
 
+
+const OrderIronPriceUpdate = async(req,res)=>{
+    const { order } = req.body;
+    let newPriceUpdate;
+    try{
+        newPriceUpdate = await Order.findByIdAndUpdate({_id:order._id},{order},{returnDocument:"after"})
+    }
+    catch(err){
+        console.log(err)
+    }
+    res.json(newPriceUpdate)
+}
+
+
 module.exports = {
     getUnfinishedOrdersInfoGroupedByClientId,
     getUnfinishedOrdersInfoGroupedByType,
@@ -391,5 +435,6 @@ module.exports = {
     getFinishedOrdersInfoGroupedByType,
     getAwaitForPaymentOrdersGroupedByType,
     getClientOrders,
-    addOrderStatement
+    addOrderStatement,
+    OrderIronPriceUpdate
 }

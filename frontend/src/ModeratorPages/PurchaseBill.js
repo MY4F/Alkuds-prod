@@ -81,8 +81,8 @@ const PurchaseBill = () => {
   }, [socket]);
 
   if (!client) {
-    console.log("here");
-    return <div>Loading...</div>; // Prevents rendering until data is available
+    
+    return <div>Loading...</div>; 
   }
 
   const handlePrint = async () => {

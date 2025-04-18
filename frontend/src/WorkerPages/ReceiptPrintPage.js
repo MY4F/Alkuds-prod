@@ -83,7 +83,7 @@ const ReceiptPrintPage = () => {
   const handlePrint = async () => {
     if (window.confirm("هل تريد طباعه التيكيت") === true) {
       try {
-        if (order.state === "progress" && !isFinishedTicket) {
+        if (order.state === "progress" && isFinishedTicket ==="false") {
           const orderStateUpdateFetch = await fetch("/order/orderFinishState", {
             method: "POST",
             headers: {
@@ -91,8 +91,9 @@ const ReceiptPrintPage = () => {
             },
             body: JSON.stringify({ orderId: order._id }),
           });
-
+          
           const orderStateUpdate = await orderStateUpdateFetch.json();
+          console.log(orderStateUpdate)
           if (orderStateUpdateFetch.ok) {
             await socket.emit("send_order_update", {
               message: "Order Printed Successfully",

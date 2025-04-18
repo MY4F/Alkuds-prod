@@ -1,39 +1,30 @@
 import React, { useEffect, useState } from "react";
 import Seperator from "../Seperator/index";
-
+import { useClientContext } from "../../hooks/useClientContext";
+import swal from "sweetalert";
+import LoadingButton from "../../SharedComponents/LoadingButton";
 const OrderModal = ({ onClose, type }) => {
-  const [selectedClient, setSelectedClient] = useState("");
-  const [clientInfo, setClientsInfo] = useState([]);
   const [price, setPrice] = useState(0);
   const [date, setDate] = useState();
+  const [clients, setClients] = useState("اختر عميل");
+  const { client } = useClientContext();
+  const [adding, setAdding] = useState(false);
+  const [deliveryFees, setDeliveryFees] = useState();
   const [tickets, setTickets] = useState([
     { ironName: "", radius: "", neededWeight: "", totalPrice: "" },
   ]);
 
-  useEffect(() => {
-    const getClientsInfo = async () => {
-      const response = await fetch("/clients/getClientsInfo", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      const json = await response.json();
-      setClientsInfo(json);
-    };
-
-    getClientsInfo();
-  }, []);
   const HandleFormSubmission = async (e) => {
+    setAdding(true);
     e.preventDefault();
     const data = {
-      clientId: selectedClient,
+      clientId: clients,
       totalPrice: price,
       date: date,
       ticket: tickets,
       type: type,
+      deliveryFees: deliveryFees,
     };
-    console.log(data);
     try {
       const response = await fetch("/order/addOrder", {
         // Update port if different
@@ -47,39 +38,47 @@ const OrderModal = ({ onClose, type }) => {
       if (!response.ok) throw new Error("Failed to add order");
 
       const result = await response.json();
-      //TODO: add any user interaction here instead of clg
-      console.log("Order added:", result);
+      swal({
+        text: "تم انشاء طلب بنجاح",
+        icon: "success",
+      }).then(setAdding(false));
     } catch (error) {
-      console.error("Error submitting order:", error);
+      swal({
+        text: "حدث خطأ ما برجاء المحاولة مرة اخرى",
+        icon: "error",
+        buttons: "حاول مرة اخرى",
+      }).then(setAdding(false));
     }
   };
   return (
     <div dir="rtl">
-      <Seperator text={`بيانات طلب ${type}`} />
+      <Seperator text={`بيانات طلب ${type == "in" ? "وارد" : "خارج"}`} />
       <form className="w-full px-4 pt-6" onSubmit={HandleFormSubmission}>
         <div className="w-full flex md:flex-row flex-col gap-5 pb-6">
-          <div className="md:w-[50%] w-full flex justify-center">
+          <div className="md:w-[33%] w-full flex justify-center">
             <div className="flex flex-col gap-2 w-full max-w-[300px]">
               <label className="text-center">أسم العميل</label>
               <select
-                req
-                uired
-                value={selectedClient}
+                required
+                value={clients}
                 onChange={(e) => {
-                  setSelectedClient(e.target.value);
+                  setClients(e.target.value);
                 }}
                 className="w-full md:w-[300px]"
               >
                 <option value="">أسم العميل</option>
-                {clientInfo.map((client) => (
-                  <option key={client.id} value={client.id}>
-                    {client.name}
-                  </option>
-                ))}
+
+                {client &&
+                  [...Object.keys(client)].map((i, idx) => (
+                    <option value={client[i].clientId}>
+                      {" "}
+                      {client[i].name}{" "}
+                    </option>
+                  ))}
               </select>
             </div>
           </div>
-          <div className="md:w-[50%] w-full flex justify-center">
+          <div className="md:w-[33%] w-full flex justify-center">
             <div className="flex flex-col gap-2 w-full max-w-[300px]">
               <label className="text-center">التاريخ </label>
               <input
@@ -90,6 +89,24 @@ const OrderModal = ({ onClose, type }) => {
                 }}
                 type="date"
                 className="w-full md:w-[300px]"
+              />
+            </div>
+          </div>
+          <div className="md:w-[33%] w-full flex justify-center">
+            <div className="flex flex-col gap-2 w-full max-w-[300px]">
+              <label className="text-center">المشال</label>
+              <input
+                required
+                value={deliveryFees}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (/^\d*\.?\d*$/.test(value)) {
+                    setDeliveryFees(value);
+                  }
+                }}
+                type="text"
+                className="w-full md:w-[300px]"
+                placeholder="المشال"
               />
             </div>
           </div>
@@ -189,9 +206,12 @@ const OrderModal = ({ onClose, type }) => {
                     placeholder=" السعر"
                     value={tickets[index].totalPrice}
                     onChange={(e) => {
-                      const updatedTickets = [...tickets];
-                      updatedTickets[index].totalPrice = e.target.value;
-                      setTickets(updatedTickets);
+                      const value = e.target.value;
+                      if (/^\d*\.?\d*$/.test(value)) {
+                        const updatedTickets = [...tickets];
+                        updatedTickets[index].totalPrice = value;
+                        setTickets(updatedTickets);
+                      }
                     }}
                   />
                 </div>
@@ -222,12 +242,12 @@ const OrderModal = ({ onClose, type }) => {
         >
           اضافه تذكرة
         </button>
-        <button
-          type="submit"
-          className="iron-btn max-w-[300px] bg-[greenyellow]"
-        >
-          انشاء طلب
-        </button>
+        <LoadingButton
+          loading={adding}
+          defaultText="انشاء طلب"
+          loadingText="يتم انشاء الطلب ..."
+          className="bg-[greenyellow]"
+        />
       </form>
     </div>
   );

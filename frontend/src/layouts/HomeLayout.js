@@ -15,7 +15,7 @@ export default function RootLayout() {
   }
   return (
     <div className="background">
-      <div className="container h-[1px] max-w-[1900px] flex-col-reverse max-w-none md:max-[] md:flex-row gap-4 w-full md:p-7 p-0">
+      <div className="container  max-w-[1900px] flex-col-reverse max-w-none md:max-[] md:flex-row gap-4 w-full md:p-7 p-0">
         <div className="main-content min-h-[90vh]  md:min-h-[82vh] w-full rounded-none md:rounded-[50px]">
           <Outlet />
         </div>
@@ -44,9 +44,6 @@ export default function RootLayout() {
               </NavLink>
               <NavLink className="text-center" to={"storage"}>
                 مخزن
-              </NavLink>
-              <NavLink className="text-center" to={"settings"}>
-                اعدادات
               </NavLink>
               <NavLink className="text-center" to={"finishedOrders"}>
                 اوردرات منتهيه

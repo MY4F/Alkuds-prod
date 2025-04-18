@@ -26,12 +26,22 @@ import FinishedOrders from "./SharedComponents/FinishedOrders";
 import ClientBill from "./ModeratorPages/ClientBill";
 import PurchaseBill from "./ModeratorPages/PurchaseBill";
 import MoneyVault from "./ModeratorPages/MoneyVault";
+import AdminLayout from "./layouts/AdminLayout";
+import ProfitReport from "./ModeratorPages/ProfitReport";
 const LoginRoute = () => {
   const { user } = useUserContext();
   if (user === null) {
     return <Login />;
   } else {
-    return user.name === "Osama" ? <Navigate to="/up" /> : <Navigate to="/down" />;
+    if(user.name === "Osama"){
+      return <Navigate to="/up" /> 
+    }
+    else if (user.name === "Sobhy"){
+      return <Navigate to="/admin" />
+    }
+    else{
+      return <Navigate to="/down" />
+    }
   }
 };
 
@@ -54,6 +64,15 @@ const WorkerRoute = () => {
     return user.name === "Hassan" ? <HomeLayout /> : <Navigate to="/" />;
   }
 };
+
+const AdminRoute = () =>{
+  const { user } = useUserContext();
+  if (user === null) {
+    return <Navigate to="/" />;
+  } else {
+    return user.name === "Sobhy" ? <AdminLayout /> : <Navigate to="/" />;
+  }
+}
 
 const router = createBrowserRouter([
   {
@@ -144,11 +163,7 @@ const router = createBrowserRouter([
       {
         path: "day",
         element: <Day />,
-      },
-      {
-        path: "storage",
-        element: <Storage />,
-      },
+      }
       // {
       //   path: "day",
       //   element: <Day />,
@@ -161,6 +176,44 @@ const router = createBrowserRouter([
       //   path: "settings",
       //   element: <Settings />,
       // },
+    ],
+  },
+  {
+    path: "/admin",
+    element: <AdminRoute />,
+    children: [
+      {
+        index: true,
+        element: <ModeratorMainPage />,
+      },
+      {
+        path: "orders/:category",
+        element: < OrdersPage/>,
+      },
+      {
+        path: "clientbill",
+        element: < ClientBill/>,
+      },
+      {
+        path: "moneyvault",
+        element: < MoneyVault/>,
+      },
+      {
+        path: "finishedOrders",
+        element: <FinishedOrders />,
+      },
+      {
+        path: "impexp",
+        element: <Impexp />,
+      },
+      {
+        path: "day",
+        element: <Day />,
+      },
+      {
+        path: "profitreports",
+        element: <ProfitReport />,
+      }
     ],
   },
 ]);

@@ -9,6 +9,10 @@ const ClientSchema = new mongoose.Schema({
         required: true
     },
     ticketsIds:[],
+    purchasingNotes: [{
+        amount: { type: Number, required: true },
+        notes: {type: String, default: "لا يوجد ملاحظات"}
+    }],
     clientId: {
         type: String,
         required: true
@@ -32,7 +36,13 @@ const ClientSchema = new mongoose.Schema({
     isFactory: {
         type: Boolean,
         default:false
+    },
+    isKudsPersonnel: {
+        type: Boolean,
+        default:false
     }
+    
+
 });
 
 const Client = mongoose.model('Client', ClientSchema);

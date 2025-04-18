@@ -40,13 +40,30 @@ export const UnfinishedTicketsReducer = (state, action) => {
       }
       
     case "DELETE_TICKET":
-      return {
-        unfinishedTickets: [
-          ...state.unfinishedTickets.filter(
-            (w) => w._id !== action.payload._id
-          ),
-        ],
-      };
+      {
+        let typeObj = {
+          "in":"inOrders",
+          "out":"outOrders"
+        }
+        let newArr = []
+        for(let i = 0 ;i<state.unfinishedTickets[`${typeObj[action.payload.type]}`].length;i++){
+          if(state.unfinishedTickets[`${typeObj[action.payload.type]}`][i]._id !== action.payload._id){
+            newArr.push(state.unfinishedTickets[`${typeObj[action.payload.type]}`][i])
+          }
+        }
+        if(typeObj[action.payload.type] === "in")
+        {
+          return {
+            unfinishedTickets: {"inOrders": newArr, "outOrders":state.unfinishedTickets["outOrders"] },
+          };
+        }
+        else
+        {
+          return {
+            unfinishedTickets: {"outOrders": newArr, "inOrders":state.unfinishedTickets["inOrders"] },
+          };
+        }
+      }
     default:
       return state;
   }

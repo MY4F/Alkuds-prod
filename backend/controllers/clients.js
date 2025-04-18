@@ -3,7 +3,7 @@ const Client = require('../models/client')
 const getClientsInfo = async(req , res) => {
     let clients, clientsMap = {};
     try{
-        clients = await Client.find({});
+        clients = await Client.find();
         for(x of clients){
             clientsMap[x.clientId] = x
         }
@@ -16,7 +16,7 @@ const getClientsInfo = async(req , res) => {
 
 }
 const addClients = async (req , res) => {
-    const { name,address} = req.body
+    const { name,address, isKudsPersonnel, clientId} = req.body
     let newClient;
     try{
         newClient = new Client(
@@ -24,7 +24,8 @@ const addClients = async (req , res) => {
                 name,
                 address,
                 ticketsIds:[],
-                clientId:4
+                isKudsPersonnel,
+                clientId
             }
         )
 

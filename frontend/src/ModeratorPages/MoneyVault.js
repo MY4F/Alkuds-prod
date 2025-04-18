@@ -100,10 +100,13 @@ const Row = (props) => {
 
 const MoneyVault = () => {
   const [open, setOpen] = useState(false);
+  const [open2, setOpen2] = useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+  const handleOpen2 = () => setOpen2(true);
+  const handleClose2 = () => setOpen2(false);
   const { client } = useClientContext();
-  const { wallet } = useWalletContext();
+  const { wallet , dispatch} = useWalletContext();
   const [rows, setRows] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -134,7 +137,7 @@ const MoneyVault = () => {
       setRows([...walletsArr]);
       setIsLoading(false)
     }
-  }, [wallet, rows]);
+  }, [wallet,dispatch]);
 
   if (!client || !wallet) {
     return <div> Loading.... </div>;
@@ -164,13 +167,22 @@ const MoneyVault = () => {
 
   return (
     <div className="vault-container">
-      <Button
-        style={{ width: "80%", background: "black", color: "white" }}
-        className="cash-btn"
-        onClick={handleOpen}
-      >
-        اضافه عمليه ماليه
-      </Button>
+      <div style={{width : "100%", "display":"flex","flexDirection":"row"}}>
+        <Button
+          style={{ width: "30%", background: "black", color: "white" }}
+          className="cash-btn"
+          onClick={handleOpen}
+        >
+          اضافه عمليه ماليه
+        </Button>
+        <Button
+          style={{ width: "30%", background: "black", color: "white" }}
+          className="cash-btn"
+          onClick={handleOpen2}
+        >
+          اضافه شخصيه او نقديه ماليه
+        </Button>
+      </div>
       <Modal
         open={open}
         onClose={handleClose}
@@ -179,9 +191,24 @@ const MoneyVault = () => {
         aria-describedby="modal-modal-description"
       >
         <Box sx={style}>
-          <CashInput />
+          <CashInput isKudsPersonnel={false} />
         </Box>
       </Modal>
+
+      <Modal
+        open={open2}
+        onClose={handleClose2}
+        style={{ "overflow-y": "auto" }}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={style}>
+          <CashInput isKudsPersonnel={true} />
+        </Box>
+      </Modal>
+
+
+
 
       <div className="walletsHolder">
         <TableContainer component={Paper}>

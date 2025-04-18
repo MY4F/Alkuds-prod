@@ -81,6 +81,7 @@ app.use("/irons", require("./routes/irons"));
 app.use("/ticketId", require("./routes/ticketId"));
 app.use("/wallet", require("./routes/wallets"));
 app.use("/user", require("./routes/user"));
+app.use("/admin", require("./routes/admin"));
 
 let readData;
 // serialPort2.on("open", function () {

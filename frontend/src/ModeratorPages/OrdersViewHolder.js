@@ -5,14 +5,17 @@ import Button from "@mui/material/Button";
 import Modal from "@mui/material/Modal";
 import { useClientContext } from "../hooks/useClientContext";
 import OrderView from "../SharedComponents/OrderView";
-const OrdersViewHolder = ({order, isFinishedTicket}) => {
+import AddingPriceForm from "../components/AddingPriceForm";
+
+const OrdersViewHolder = ({ order, isFinishedTicket, alignment }) => {
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+  const [addingPrice, setAddingPrice] = useState(false);
+
   const { client } = useClientContext();
-  useEffect(() => {
-  }, []);
-  
+  useEffect(() => {}, []);
+
   const style = {
     position: "absolute",
     top: "50%",
@@ -23,37 +26,70 @@ const OrdersViewHolder = ({order, isFinishedTicket}) => {
     border: "2px solid #000",
     boxShadow: 24,
     p: 4,
-    height:"80vh",
-    'overflow-y':"auto"
+    height: "80vh",
+    "overflow-y": "auto",
   };
 
   if (!client) {
-    console.log("here")
+    console.log("here");
     return <div>Loading...</div>;
   }
-  console.log("heeereee")
-  console.log(order)
-  
+  console.log("heeereee");
+  console.log(order);
+
   return (
     <>
-      <div className="order-container">
-        <h2> {client[order.clientId].name} </h2>
-        <p>
-          توقيت الاوردر <br /> {order.date}
-        </p>
-        <Button onClick={handleOpen}>افتح الاوردر</Button>
-        <Modal
-          open={open}
-          onClose={handleClose}
-          style={{"overflow-y":"auto"}}
-          aria-labelledby="modal-modal-title"
-          aria-describedby="modal-modal-description"
-        >
-          <Box sx={style}>
-            <OrderView order={order} isFinishedTicket={isFinishedTicket} />
-          </Box>
-        </Modal>
-      </div>
+      
+      <button
+        dir="rtl"
+        onClick={handleOpen}
+        className="mb-4 sm:items-center items-start gap-5  !text-start !border-[2px] !bg-white border-[#e4e5e6] hover:border-[greenyellow] cursor-pointer !flex sm:flex-row flex-col  !p-4 sm:!justify-between !rounded w-full"
+      >
+        <div>
+          <h2> {client[order.clientId].name} </h2>
+          <p className="text-[#6c6f75]">{order.date}</p>
+        </div>
+        <div className="flex gap-6">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setAddingPrice(true);
+            }}
+            className="sm:h-[32px] h-auto m-0 pb-1 px-3 rounded  hover:bg-dark-green !w-auto bg-[#00756a] text-white   "
+          >
+            اضافة عملية دفع
+          </button>
+        </div>
+      </button>
+      <Modal
+        open={open}
+        onClose={handleClose}
+        style={{ "overflow-y": "auto" }}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={style}>
+          <OrderView
+            name={client[order.clientId].name}
+            order={order}
+            isFinishedTicket={isFinishedTicket}
+          />
+        </Box>
+      </Modal>
+      <Modal
+        className="popup-width"
+        open={addingPrice}
+        onClose={() => {
+          setAddingPrice(false);
+        }}
+        style={{ "overflow-y": "auto", width: "auto" }}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={style}>
+          <AddingPriceForm order={order} alignment={alignment} />
+        </Box>
+      </Modal>
     </>
   );
 };

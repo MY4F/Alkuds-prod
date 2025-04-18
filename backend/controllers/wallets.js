@@ -68,7 +68,7 @@ const addTransaction = async (req, res) => {
                                         }
                                 },
                                 $inc: {
-                                     totalPaid: i.amount
+                                    totalPaid: i.amount
                                 },
                                 state: ((j.totalPrice - j.totalPaid - i.amount) == 0)? "منتهي" : j.state
                             },
@@ -86,7 +86,7 @@ const addTransaction = async (req, res) => {
                     {
                         $inc: {
                             balance: amountProcessing
-                       },
+                    },
                     },
                     { 
                         returnDocument: 'after' 
@@ -101,6 +101,56 @@ const addTransaction = async (req, res) => {
     let returnedObj = {
         bank: newTransaction,
         orders: updatedOrders,
+        client: clientUpdate
+    }
+    res.json(returnedObj)
+}
+
+const addCompanyExpenses = async(req,res)=>{
+    const {amount, bankName, clientId, notes, type} = req.body
+    let clientUpdate, newTransaction, bankFactor = (type==="مدين")? 1 : -1 , clientFactor =  (type==="مدين") ? -1 : 1
+    try{
+        clientUpdate = await Client.findOneAndUpdate({ clientId },
+            {
+                $inc: {
+                    balance: amount * clientFactor
+                },
+                $push: {
+                    purchasingNotes: {
+                        amount,
+                        notes
+                    }
+                }
+            },
+            { 
+                returnDocument: 'after' 
+            } 
+        )
+
+        newTransaction = await Wallet.findOneAndUpdate(
+            {
+                bankName
+            },
+            {
+                $push: {
+                    'transactions': { 
+                        amount, 
+                        notes,
+                        clientId 
+                    }
+                },
+                $inc: { totalAmount: amount * bankFactor } 
+            },
+            {
+                returnDocument: 'after'
+            }
+        )
+    }
+    catch(err){
+        console.log(err)
+    }
+    let returnedObj = {
+        bank: newTransaction,
         client: clientUpdate
     }
     res.json(returnedObj)
@@ -181,5 +231,6 @@ module.exports = {
     addTransaction,
     getSpecificClientTransactions,
     getTransactionsGroupedByBank,
-    addBank
+    addBank,
+    addCompanyExpenses
 }

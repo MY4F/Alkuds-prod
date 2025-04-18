@@ -367,7 +367,8 @@ label {
 }
 
 .cash-btn{
-  margin: 0 auto !important;
+  font-size: 20px !important;
+  margin: 10px auto !important;
   transition: 0.5s !important;
 }
 

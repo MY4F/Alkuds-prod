@@ -1,23 +1,22 @@
-.main-content{
-    height: 1px;
-    width: 85%;
-    min-height: 85vh;
-    border-radius: 50px;
-    background-color: white;
-    color: black;
-    box-sizing: border-box;
-    padding: 20px;
-    text-align: right;
-    overflow-y: auto;
+.main-content {
+  width: 85%;
+  min-height: 85vh;
+  border-radius: 50px;
+  background-color: white;
+  color: black;
+  box-sizing: border-box;
+  padding: 20px;
+  text-align: right;
+  overflow-y: auto;
 }
-.operate-type{
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;    
+.operate-type {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.ticket-details{
-    text-align: center;
-    width: 100%;
+.ticket-details {
+  text-align: center;
+  width: 100%;
 }

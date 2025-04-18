@@ -5,17 +5,20 @@ import { useClientContext } from "../hooks/useClientContext";
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import InOrders from "../SharedComponents/InOrders";
+import { useAwaitForPaymentTicketsContext } from "../hooks/useAwaitForPaymentTicketsContext";
 
 const WorkerMainPage = () => {
   const { socket } = useSocketContext();
   const { unfinishedTickets } = useUnfinishedTicketsContext();
+  const { awaitForPaymentTickets } = useAwaitForPaymentTicketsContext
   const [alignment, setAlignment] = useState('out');
 
   const handleChange = async(event, newAlignment) => {
     setAlignment(newAlignment);
     await socket.emit("send_message", {message:"Hello from the other side",room:"123"});
   };
-  useEffect(() => {}, [socket, unfinishedTickets]);
+  
+  useEffect(() => {}, [socket, unfinishedTickets, useAwaitForPaymentTicketsContext]);
 
   return (
     <div className="worker-container">

@@ -8,6 +8,7 @@ const OrderSchema = new mongoose.Schema({
         weight: { type: Number, default: 0 },
         date: { type: String, default: "" }
     },
+    deliveryFees: { type: Number, required: true },
     ticket: [{
         ironName: { type: String, required: true },
         radius: { type: Number, required: true },
@@ -17,6 +18,7 @@ const OrderSchema = new mongoose.Schema({
         netWeight: { type: Number, default: 0 },
         unitPrice: { type: Number, default: 0  },
         totalPrice: { type: Number, default: 0 },
+        realTotalPrice: { type: Number, default: 0 },
         usedUnitCostPerWeight: [{
             weight: { type: Number, default: 0 },
             cost: { type: Number, default: 0 }
@@ -36,6 +38,7 @@ const OrderSchema = new mongoose.Schema({
     }],
     totalProfit: { type: Number, default: 0 },
     totalPrice: { type: Number, default: 0 },
+    realTotalPrice: { type: Number, default: 0 },
     totalPaid: { type: Number, default: 0 },
     type: {
         type: String,

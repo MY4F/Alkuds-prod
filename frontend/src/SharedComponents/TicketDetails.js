@@ -7,6 +7,7 @@ import LocalPrintshopIcon from '@mui/icons-material/LocalPrintshop';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import { useSocketContext } from "../hooks/useSocket";
 import swal from 'sweetalert';
+import { useAwaitForPaymentTicketsContext } from "../hooks/useAwaitForPaymentTicketsContext";
 const TicketDetails = ({ order, orderContextIdx, isFinishedTicket }) => {
   const [firstWeight, setFirstWeight] = useState(0)
   const [firstTime, setFirstTime] = useState(0);
@@ -17,6 +18,7 @@ const TicketDetails = ({ order, orderContextIdx, isFinishedTicket }) => {
   const [netWeight, setNetWeight] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const { unfinishedTickets, dispatch } = useUnfinishedTicketsContext();
+  const { awaitForPaymentTicketsContext, dispatch: awaitForPaymentTicketsContextUpdate } = useAwaitForPaymentTicketsContext();
   const { socket } = useSocketContext();
   useEffect(() => {
     socket.on("receive_order_finish_state", (info) => {
@@ -24,10 +26,12 @@ const TicketDetails = ({ order, orderContextIdx, isFinishedTicket }) => {
         swal ( info.message ,  "تم طباعه اذن الاستلام بنجاح ." ,  "success" )
       else
         swal ( info.message ,  "تم طباعه اذن الاستلام بنجاح و ايضا تغير حاله الاوردر لجاري انتظار الدفع." ,  "success" )
-      if(!isFinishedTicket)
-        dispatch({ type: "UPDATE_TICKET", payload: info.order });
+      if(!isFinishedTicket){
+        dispatch({ type: "DELETE_TICKET", payload: info.order });
+        awaitForPaymentTicketsContextUpdate({type: "ADD_TICKET", payload: [info.order] })
+      }
   });
-  }, [weight, time, date, netWeight, isLoading,firstWeight,firstDate,firstTime,socket]);
+  }, [unfinishedTickets,awaitForPaymentTicketsContext,awaitForPaymentTicketsContextUpdate,dispatch,weight, time, date, netWeight, isLoading,firstWeight,firstDate,firstTime,socket]);
 
 
   const handleSubmit = (e) =>{
@@ -66,6 +70,7 @@ const TicketDetails = ({ order, orderContextIdx, isFinishedTicket }) => {
       newTicket.weightAfter = newWeight 
       newTicket.netWeight =  newWeight - order.firstWeight.weight
     }
+    newTicket.netWeightForProcessing = newTicket.netWeight 
     setNetWeight(newTicket.netWeight)
 
     let d = new Date().toLocaleString("en-EG", { timeZone: "Africa/Cairo" });

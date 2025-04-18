@@ -3,6 +3,7 @@ import OrderModal from "../components/OrderModal/index";
 import { ReactComponent as NewIcon } from "../assets/icons/new.svg";
 import { ReactComponent as LoadIcon } from "../assets/icons/load.svg";
 import { ReactComponent as PayIcon } from "../assets/icons/pay.svg";
+import { ReactComponent as DoneIcon } from "../assets/icons/done.svg";
 import Seperator from "../components/Seperator";
 import { useNavigate } from "react-router-dom";
 import Box from "@mui/material/Box";
@@ -15,10 +16,10 @@ const ModeratorMainPage = () => {
   const [open, setOpen] = useState(false);
   const handleOpen = (x) => {
     if(x==1){
-      setType("خارج");
+      setType("out");
     }
     else{
-      setType("وارد");
+      setType("in");
     }
     setOpen(true)
   };
@@ -102,7 +103,7 @@ const ModeratorMainPage = () => {
           onClick={() => navigate(`orders/done`)}
           className="cursor-pointer p-5  hover:border-[greenyellow] flex border-[2px] flex-col items-center justify-center gap-4 rounded  md:flex-1 min-h-60"
         >
-          <PayIcon className="size-14" />
+          <DoneIcon className="size-14" />
           <h1 className="text-4xl">تم</h1>
         </button>
       </div>

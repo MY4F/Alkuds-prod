@@ -2,9 +2,22 @@
 import React, { useEffect, useState } from 'react'
 import inventory from '../assets/images/inventory_icon.PNG';
 import '../assets/css/impexp.css'
+import { useWalletContext } from '../hooks/useWalletContext';
+
+
+const DayExpenseRow = (props) =>{
+  const { bankData } = props
+  return (
+    <>
+      {/* <TransactionRow /> */}
+    </>
+  )
+}
+
 const Impexp = () => {
   const [dailyData, setDailyData] = useState([]);
   const [totalWeight, setTotalWeight] = useState(0);
+  const { wallet } = useWalletContext()
   useEffect(() => {
     const getDailyData = async () => {
       const response = await fetch('/irons/getIronStorage',
@@ -46,6 +59,11 @@ const Impexp = () => {
 
     getDailyData();
   }, [])
+
+  if(!wallet){
+    return <div> Loading... </div>
+  }
+
   return (
     <div style={{ "display": 'flex', "flexDirection": "column" }}>
       <div className='header'>
@@ -62,138 +80,13 @@ const Impexp = () => {
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr>
-            <tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr>
-            <tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr>
-            <tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr>
-            <tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr>
-            <tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr>
-            <tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr>
-            <tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr>
-            <tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr>
-            <tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr><tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr>
-            <tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr>
-            <tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr>
-            <tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr>
-            <tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr><tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr>
-            <tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr>
-            <tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr>
-            <tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr>
-            <tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr><tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr>
-            <tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr>
-            <tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr>
-            <tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr>
-            <tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr><tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr>
-            <tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr>
-            <tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr>
-            <tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr>
-            <tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr>
-            <tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr>
-            <tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr>
-            <tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr>
-            <tr>
-              <td>  </td>
-              <td className='left-table'> </td>
-            </tr>
+            {wallet &&
+                [...Object.keys(wallet)].map((i, idx) => (
+                  <>
+                    <DayExpenseRow bankData = {wallet[i]}/>
+                  </>
+                ))}
+           
           </tbody>
 
         </table>
