@@ -55,24 +55,34 @@ const isBeforeByMonthYear = (date1, date2) => {
     return false;
 }
 
+const isSameMonth = (date1Str, date2Str) => {
+    const date1 = new Date(date1Str);
+    const date2 = new Date(date2Str);
+    return (
+      date1.getFullYear() === date2.getFullYear() &&
+      date1.getMonth() === date2.getMonth() 
+    );
+}
+
 const getProfitReportDataBasedOnDate = async(req,res)=>{
     let { monthAndYear } = req.body
+    console.log(monthAndYear)
     let soldOrders, iron,soldProfit = 0, purchasedPrice = 0, beginningOfMonthIronPrice = 0, endingOfMonthIronPrice = 0, totalProfitWithoutExpenses = 0, overAllTotalProfit = 0;
+    let retObj;
     try{
         iron = await Iron.find()
         soldOrders = await Order.find(
             {
-                $and: [
-                    { "state": "جاري انتظار الدفع" }
+                $or: [
+                    { "state": "جاري انتظار الدفع" },
+                    { "state": "منتهي" }
                 ]
             }
-        )
+        ) 
+        console.log(soldOrders.length)
 
         for(let order of soldOrders){
-            let dateArr = order.date.split(',');
-            let monthYearSplit = dateArr[0].split('/')
-            let monthYear = monthYearSplit[0] + "/" + monthYearSplit[2]
-            if(monthYear === monthAndYear ){
+            if(order.date === monthAndYear ){
                 if(order.type === "out"){
                     soldProfit += order.totalProfit
                 }
@@ -82,8 +92,8 @@ const getProfitReportDataBasedOnDate = async(req,res)=>{
             }
         }
 
-        let formattedSentMonthAndYear = monthAndYear.split('/')[0] + "/1/" + monthAndYear.split('/')[1] + ", 1:38:44 PM"
-
+        let formattedSentMonthAndYear = monthAndYear
+        console.log(formattedSentMonthAndYear)
         for(let i of iron){
             for(let j of i.costPerWeight){
                 let monthBefore = subtractOneMonth(formattedSentMonthAndYear)
@@ -96,14 +106,28 @@ const getProfitReportDataBasedOnDate = async(req,res)=>{
             }
         }
 
+        let companyExpensesDoc = await Client.findOne({"clientId":"4"})
+        console.log(companyExpensesDoc["purchasingNotes"])
+        let companyExpenses = 0
+        for(let i of companyExpensesDoc["purchasingNotes"]){
+            if(isSameMonth(i.date,monthAndYear)){
+                companyExpenses+=i.amount
+            }
+        }
+
         totalProfitWithoutExpenses = (soldProfit + endingOfMonthIronPrice) - (purchasedPrice + beginningOfMonthIronPrice) 
+        overAllTotalProfit = totalProfitWithoutExpenses - companyExpenses
 
-
+        let totalDeficitAndSurplusOfGoods = 0
+        retObj = {
+            totalDeficitAndSurplusOfGoods,soldProfit,purchasedPrice,beginningOfMonthIronPrice,endingOfMonthIronPrice,totalProfitWithoutExpenses,overAllTotalProfit
+        }
 
     }
     catch(err){
         console.log(err)
     }
+    res.json(retObj)
 
 }
 

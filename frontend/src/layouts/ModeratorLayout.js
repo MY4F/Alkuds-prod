@@ -1,9 +1,50 @@
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import kuds from "../assets/images/kuds.png";
 import useLogout from "../hooks/useLogout";
+import { useSocketContext } from "../hooks/useSocket";
+import { useUnfinishedTicketsContext } from "../hooks/useUnfinishedTicketsContext";
+import { useAwaitForPaymentTicketsContext } from "../hooks/useAwaitForPaymentTicketsContext";
+import { ToastContainer, toast, cssTransition } from 'react-toastify';
+import { useClientContext } from "../hooks/useClientContext";
 
 export default function ModeratorLayout() {
+
+  const { socket } = useSocketContext();
+  const { unfinishedTickets, dispatch } = useUnfinishedTicketsContext();
+  const { awaitForPaymentTickets, dispatch: awaitForPaymentTicketsUpdate } = useAwaitForPaymentTicketsContext()
+  useEffect(()=>{
+    socket.on("receive_order_new_state", (info) => {
+      if(info.order === null){
+        toast.warn('حدث عطل في تعديل الاوردر', {
+          position: "top-right",
+          autoClose: false,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          });
+      }
+      else{
+        toast.success('تم تعديل حاله اوردر عميل بأسم ', {
+          position: "top-right",
+          autoClose: false,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          });
+          dispatch({type:"DELETE_TICKET",payload: info.order})
+          awaitForPaymentTicketsUpdate({type:"ADD_TICKET",payload: [info.order]})
+      }
+    });
+  },[dispatch,awaitForPaymentTicketsUpdate])
+
+
   const checkNav = (e) => {
     const user = window.confirm("هل تريد الذهاب من هذه الصفحه؟");
     if (!user) {
@@ -14,10 +55,13 @@ export default function ModeratorLayout() {
   const handleLogout = () => {
     logout();
   };
+
+
   return (
     <div className="background ">
       <div className="container  max-w-[1900px] flex-col-reverse max-w-none md:max-[] md:flex-row gap-4 w-full md:p-7 p-0">
         <div className="main-content min-h-[90vh]  md:min-h-[82vh] w-full rounded-none md:rounded-[50px]">
+          <ToastContainer/>
           <Outlet />
         </div>
 
@@ -39,12 +83,6 @@ export default function ModeratorLayout() {
               </NavLink>
               <NavLink className="text-center" to={"/up/day"}>
                 يوميه
-              </NavLink>
-              <NavLink className="text-center" to={"/up/storage"}>
-                مخزن
-              </NavLink>
-              <NavLink className="text-center" to={"finishedOrders"}>
-                اوردرات منتهيه
               </NavLink>
 
               <NavLink className="text-center" to={"clientbill"}>

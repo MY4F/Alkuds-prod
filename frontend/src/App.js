@@ -92,10 +92,6 @@ const router = createBrowserRouter([
         element: <Day />,
       },
       {
-        path: "storage",
-        element: <Storage />,
-      },
-      {
         path: "settings",
         element: <Settings />,
       },
@@ -151,10 +147,6 @@ const router = createBrowserRouter([
       {
         path: "moneyvault",
         element: < MoneyVault/>,
-      },
-      {
-        path: "finishedOrders",
-        element: <FinishedOrders />,
       },
       {
         path: "impexp",

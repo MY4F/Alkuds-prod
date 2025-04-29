@@ -46,9 +46,6 @@ const Row = (props) => {
             )}
           </IconButton>
         </TableCell>
-        <TableCell align="right" component="th" scope="row">
-          {row.orderId}
-        </TableCell>
         <TableCell component="th" scope="row" align="right">{(row.type === "in")? "وارد":"خارج"}</TableCell>
         <TableCell component="th" scope="row" align="right">{row.state}</TableCell>
         <TableCell component="th" scope="row" align="right">{row.totalPrice}</TableCell>
@@ -191,7 +188,6 @@ const ClientBill = () => {
 
           orders.push(
             createData(
-              getClientOrder[i]._id,
               getClientOrder[i].type,
               getClientOrder[i].state,
               getClientOrder[i].totalPrice,
@@ -215,7 +211,6 @@ const ClientBill = () => {
   };
 
   function createData(
-    orderId,
     type,
     state,
     totalPrice,
@@ -225,7 +220,6 @@ const ClientBill = () => {
     statements
   ) {
     return {
-      orderId,
       type,
       state,
       totalPrice,
@@ -254,7 +248,6 @@ const ClientBill = () => {
               <TableCell align="right">طلبيات</TableCell>
               <TableCell align="right">مدفوعات</TableCell>
 
-              <TableCell align="right">رقم الاوردر</TableCell>
               <TableCell align="right">النوع</TableCell>
               <TableCell align="right">الحاله</TableCell>
               <TableCell align="right">الاجمالي</TableCell>

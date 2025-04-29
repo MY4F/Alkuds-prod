@@ -227,10 +227,41 @@ const getTransactionsGroupedByBank = async(req,res) =>{
     res.json(walletsObj)
 }
 
+function isSameDay(date1Str, date2Str) {
+    const date1 = new Date(date1Str);
+    const date2 = new Date(date2Str);
+  
+    return (
+      date1.getFullYear() === date2.getFullYear() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getDate() === date2.getDate()
+    );
+}
+
+const getWalletInventoryByDate = async(req,res)=>{
+    let { startDate } = req.body, wallet, transactions = [];
+    try{
+        wallet = await Wallet.find()
+        for(let i of wallet){
+            for(let j of i.transactions){
+                // console.log(isDatesEqual(startDate,j.date))
+                if (isSameDay(startDate,j.date)){
+                    transactions.push(j)
+                }
+            }
+        }
+    }
+    catch(err){
+        console.log(err)
+    }
+    res.json(transactions)
+}
+
 module.exports = {
     addTransaction,
     getSpecificClientTransactions,
     getTransactionsGroupedByBank,
     addBank,
-    addCompanyExpenses
+    addCompanyExpenses,
+    getWalletInventoryByDate
 }

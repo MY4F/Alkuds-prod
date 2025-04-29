@@ -6,13 +6,43 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import Seperator from "../components/Seperator/index";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 const ProfitReport = () => {
   const [date, setDate] = useState();
-  const rows = [createData("Frozen yoghurt", 159, 6.0, 24, 4.0)];
+  const [rows, setRows] = useState([createData(0,0,0,0,0,0,0)]);
 
-  function createData(name, calories, fat, carbs, protein) {
-    return { name, calories, fat, carbs, protein };
+  function createData(x, y, z, w, a,b,c) {
+    return { x, y, z, w, a,b,c };
+  }
+  
+  useEffect(()=>{
+  },[rows,date])
+
+  const getProfit = async()=>{
+    console.log(date)
+    const response = await fetch('/admin/getProfitReportDataBasedOnDate',{
+      'method':"POST",
+      "body":JSON.stringify({"monthAndYear":date}),
+      'headers': {
+        'Content-Type': 'application/json'
+      }
+    })
+
+    const value = await response.json()
+    if(response.ok){
+      console.log(value)
+      setRows([createData(
+          value["totalDeficitAndSurplusOfGoods"],
+          value["soldProfit"],
+          value["purchasedPrice"],
+          value["beginningOfMonthIronPrice"],
+          value["endingOfMonthIronPrice"],
+          value["totalProfitWithoutExpenses"],
+          value["overAllTotalProfit"]
+        )
+      ]
+      )
+    }
   }
 
   return (
@@ -34,6 +64,7 @@ const ProfitReport = () => {
               className="iron-btn add-btn"
               onClick={(e) => {
                 e.preventDefault();
+                getProfit()
               }}
             >تحديث التقرير</button>
           </div>
@@ -57,25 +88,25 @@ const ProfitReport = () => {
             {rows.map((row) => (
               <TableRow component="th" key={row.name}>
                 <TableCell align="right" component="th" scope="row">
-                  {row.name}
+                  {row.x}
                 </TableCell>
                 <TableCell align="right" component="th">
-                  {row.calories}
+                  {row.y}
                 </TableCell>
                 <TableCell align="right" component="th">
-                  {row.fat}
+                  {row.z}
                 </TableCell>
                 <TableCell align="right" component="th">
-                  {row.carbs}
+                  {row.w}
                 </TableCell>
                 <TableCell align="right" component="th">
-                  {row.protein}
+                  {row.a}
                 </TableCell>
                 <TableCell align="right" component="th">
-                  {row.protein}
+                  {row.b}
                 </TableCell>
                 <TableCell align="right" component="th">
-                  {row.protein}
+                  {row.c}
                 </TableCell>
               </TableRow>
             ))}

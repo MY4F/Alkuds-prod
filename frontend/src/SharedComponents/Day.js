@@ -26,96 +26,87 @@ const OutTableRow = ({ name, raduis, w, ironName }) => {
 const Day = () => {
   const [inArrWeightArr, setInArrWeightArr] = useState([]);
   const [outArrWeightArr, setOutArrWeightArr] = useState([]);
+  const [startDate, setStartDate] = useState([]);
   const [totalOut, setTotalOut] = useState(0);
   const [totalIn, setTotalIn] = useState(0);
   const { client } = useClientContext();
-  useEffect(() => {
-    const getTicketsInfo = async () => {
-      const response = await fetch("/order/getTicketsForDay", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      const json = await response.json();
-      let tOut = 0,
-        tIn = 0;
-      if (response.ok) {
-        let d = new Date().toLocaleString();
-        let dateArr = d.split(",");
-        let inArr = [],
-          outArr = [];
-        for (let i of json) {
-          let orderDate = i.date.split(",")[0];
-          if (
-            orderDate === dateArr[0] &&
-            i.type === "in" &&
-            (i.state === "finished" || i.state == "Alkuds-Storage")
-          ) {
-            console.log(i);
-            for (let j = 0; j < i.ticket.length; j++) {
-              let kgDummy = i.ticket[j].netWeight / 1000;
-              let kgStr = kgDummy.toString();
-              let kgSplit;
-              let kgValue;
-              tIn += parseInt(i.ticket[j].netWeight);
-              if (kgStr.indexOf(".") !== -1) {
-                kgSplit = kgStr.split(".");
-                console.log(kgStr);
-                kgValue = parseInt(kgSplit[1].padEnd(3, "0"));
-              } else kgValue = 0;
-              let obj = {
-                name: client[i.clientId].name,
-                w: i.ticket[j].netWeight,
-                raduis: i.ticket[j].radius,
-                ironName: i.ticket[j].ironName,
-                field5: " ",
-                money: " ",
-              };
-              inArr.push(obj);
-            }
-          }
-          setOutArrWeightArr([...inArr]);
-          setTotalIn(tIn);
-        }
-        for (let i of json) {
-          let orderDate = i.date.split(",")[0];
-          if (
-            orderDate === dateArr[0] &&
-            i.type === "out" &&
-            (i.state === "finished" || i.state === "Alkuds-Storage")
-          ) {
-            for (let j = 0; j < i.ticket.length; j++) {
-              let kgDummy = i.ticket[j].netWeight / 1000;
-              let kgStr = kgDummy.toString();
-              let kgSplit = kgStr.split(".");
-              let kgValue;
-              tOut += Math.abs(parseInt(i.ticket[j].netWeight));
-              if (kgStr.indexOf(".") !== -1) {
-                kgValue = parseInt(kgSplit[1].padEnd(3, "0"));
-              } else {
-                kgValue = 0;
-              }
-              let obj = {
-                name: client[i.clientId].name,
-                ironName: i.ticket[j].ironName,
-                w: i.ticket[j].netWeight,
-                raduis: i.ticket[j].radius,
-              };
-              outArr.push(obj);
-            }
-          }
-          setInArrWeightArr([...outArr]);
-          setTotalOut(tOut);
-        }
-      }
-    };
-    getTicketsInfo();
-  }, []);
+  useEffect(() => {}, [inArrWeightArr, outArrWeightArr, totalOut, totalIn]);
 
   if (!client) {
     return <div>Loading...</div>; // Prevents rendering until data is available
   }
+
+  const getTicketsInfo = async (e) => {
+    e.preventDefault()
+    const response = await fetch("/order/getTicketsForDay", {
+      method: "POST",
+      body:JSON.stringify({startDate}),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const json = await response.json();
+    let tOut = 0,
+      tIn = 0;
+    if (response.ok) {
+      let inArr = [],outArr = [];
+      for (let i of json) {
+        if (i.type === "in") {
+          console.log(i);
+          for (let j = 0; j < i.ticket.length; j++) {
+            let kgDummy = i.ticket[j].netWeight / 1000;
+            let kgStr = kgDummy.toString();
+            let kgSplit;
+            let kgValue;
+            tIn += parseInt(i.ticket[j].netWeight);
+            if (kgStr.indexOf(".") !== -1) {
+              kgSplit = kgStr.split(".");
+              console.log(kgStr);
+              kgValue = parseInt(kgSplit[1].padEnd(3, "0"));
+            } else kgValue = 0;
+            let obj = {
+              name: client[i.clientId].name,
+              w: i.ticket[j].netWeight,
+              raduis: i.ticket[j].radius,
+              ironName: i.ticket[j].ironName,
+              field5: " ",
+              money: " ",
+            };
+            inArr.push(obj);
+          }
+        }
+        setOutArrWeightArr([...inArr]);
+        setTotalIn(tIn);
+        console.log(inArr)
+      }
+      for (let i of json) {
+        if (i.type === "out") {
+          for (let j = 0; j < i.ticket.length; j++) {
+            let kgDummy = i.ticket[j].netWeight / 1000;
+            let kgStr = kgDummy.toString();
+            let kgSplit = kgStr.split(".");
+            let kgValue;
+            tOut += Math.abs(parseInt(i.ticket[j].netWeight));
+            if (kgStr.indexOf(".") !== -1) {
+              kgValue = parseInt(kgSplit[1].padEnd(3, "0"));
+            } else {
+              kgValue = 0;
+            }
+            let obj = {
+              name: client[i.clientId].name,
+              ironName: i.ticket[j].ironName,
+              w: i.ticket[j].netWeight,
+              raduis: i.ticket[j].radius,
+            };
+            outArr.push(obj);
+          }
+        }
+        setInArrWeightArr([...outArr]);
+        setTotalOut(tOut);
+        console.log(outArr)
+      }
+    }
+  };
 
   const MMDDYYYYDate = () => {
     let d = new Date().toLocaleString();
@@ -124,13 +115,29 @@ const Day = () => {
     let e = d.split("/");
     return e[1] + "/" + e[0] + "/" + e[2];
   };
-  console.log(MMDDYYYYDate());
   return (
     <>
       <p style={{ margin: "0", textAlign: "center" }}>
         {" "}
         {MMDDYYYYDate()} / {new Date().toLocaleTimeString()}
       </p>
+      <form
+        className="flex lg:flex-col items-center flex-col gap-2 lg:gap-4"
+        onSubmit={(e) => getTicketsInfo(e)}
+      >
+        <div className="flex items-center gap-2">
+          <input
+            required
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+          />
+        </div>
+        <button type="submit" className="iron-btn search-btn">
+          {" "}
+          بحث{" "}
+        </button>
+      </form>
       <div className="daily-table-holder">
         <table className="in-table" align="right">
           <thead>

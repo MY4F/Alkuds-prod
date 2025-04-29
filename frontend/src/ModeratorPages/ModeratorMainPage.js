@@ -48,7 +48,7 @@ const ModeratorMainPage = () => {
         aria-describedby="modal-modal-description"
       >
         <Box sx={style}>
-          <OrderModal type={type} />
+          <OrderModal type={type} closeFun={handleClose} />
         </Box>
       </Modal>
       <div

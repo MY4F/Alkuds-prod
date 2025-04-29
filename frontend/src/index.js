@@ -17,19 +17,22 @@ import { UserContextProvider } from "./context/userContext";
 import { SocketProvider } from "./context/socketContext";
 import { ClientContextProvider } from "./context/ClientContext";
 import { WalletContextProvider } from "./context/WalletContext";
+import { NewTicketsContextProvider } from "./context/NewTicketsContext";
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <ClientContextProvider>
     <UserContextProvider>
       <SocketProvider>
         <WalletContextProvider>
-          <AwaitForPaymentTicketsContextProvider>
-            <FinishedTicketsContextProvider>
-              <UnfinishedTicketsContextProvider>
-                <App />
-              </UnfinishedTicketsContextProvider>
-            </FinishedTicketsContextProvider>
-          </AwaitForPaymentTicketsContextProvider>
+          <NewTicketsContextProvider>
+            <AwaitForPaymentTicketsContextProvider>
+              <FinishedTicketsContextProvider>
+                <UnfinishedTicketsContextProvider>
+                  <App />
+                </UnfinishedTicketsContextProvider>
+              </FinishedTicketsContextProvider>
+            </AwaitForPaymentTicketsContextProvider>
+          </NewTicketsContextProvider>
         </WalletContextProvider>
       </SocketProvider>
     </UserContextProvider>

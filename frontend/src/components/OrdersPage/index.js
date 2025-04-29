@@ -7,6 +7,7 @@ import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import OrdersViewHolder from "../../ModeratorPages/OrdersViewHolder";
 import Seperator from "../Seperator";
+import { useNewTicketsContext } from "../../hooks/userNewTicketsContext";
 const OrdersPage = () => { 
   const { category } = useParams();
   const [alignment, setAlignment] = useState("out");
@@ -19,11 +20,12 @@ const OrdersPage = () => {
   const { unfinishedTickets} = useUnfinishedTicketsContext();
   const { finishedTickets} = useFinishedTicketsContext();
   const { awaitForPaymentTickets} = useAwaitForPaymentTicketsContext();
-
+  const { newTickets } = useNewTicketsContext();
   useEffect(() => {}, [
     unfinishedTickets,
     finishedTickets,
-    awaitForPaymentTickets
+    awaitForPaymentTickets,
+    newTickets
   ]);
 
   const handleChange = async (event, newAlignment) => {
@@ -53,6 +55,11 @@ const OrdersPage = () => {
       finishedTickets[`${typeObj[alignment]}`]
     ) {
       return [...finishedTickets[`${typeObj[alignment]}`]];
+    }else if (
+      category === "new" &&
+      newTickets[`${typeObj[alignment]}`]
+    ){
+      return [...newTickets[`${typeObj[alignment]}`]];
     }
   };
   const list = assignList();

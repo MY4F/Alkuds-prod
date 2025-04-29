@@ -3,7 +3,8 @@ import Seperator from "../Seperator/index";
 import { useClientContext } from "../../hooks/useClientContext";
 import swal from "sweetalert";
 import LoadingButton from "../../SharedComponents/LoadingButton";
-const OrderModal = ({ onClose, type }) => {
+import { useSocketContext } from "../../hooks/useSocket";
+const OrderModal = ({ onClose, type, closeFun }) => {
   const [price, setPrice] = useState(0);
   const [date, setDate] = useState();
   const [clients, setClients] = useState("اختر عميل");
@@ -11,15 +12,17 @@ const OrderModal = ({ onClose, type }) => {
   const [adding, setAdding] = useState(false);
   const [deliveryFees, setDeliveryFees] = useState();
   const [tickets, setTickets] = useState([
-    { ironName: "", radius: "", neededWeight: "", totalPrice: "" },
+    { ironName: "", radius: "", neededWeight: "", unitPrice: "" },
   ]);
+  const { socket } = useSocketContext();
+ 
 
   const HandleFormSubmission = async (e) => {
     setAdding(true);
     e.preventDefault();
     const data = {
       clientId: clients,
-      totalPrice: price,
+      totalPrice: 0,
       date: date,
       ticket: tickets,
       type: type,
@@ -38,16 +41,31 @@ const OrderModal = ({ onClose, type }) => {
       if (!response.ok) throw new Error("Failed to add order");
 
       const result = await response.json();
+      if(response.ok){
+        console.log("hereeee")
+        await socket.emit("send_order_creation", {
+          message: "Order Printed Successfully",
+          room: "123",
+          order: result,
+        });
+      }
       swal({
         text: "تم انشاء طلب بنجاح",
         icon: "success",
-      }).then(setAdding(false));
+      }).then(e=>{
+        setAdding(false)
+        closeFun()
+      });
     } catch (error) {
       swal({
         text: "حدث خطأ ما برجاء المحاولة مرة اخرى",
         icon: "error",
         buttons: "حاول مرة اخرى",
-      }).then(setAdding(false));
+      }).then(e=>{
+          setAdding(false)
+          closeFun()
+        }
+      );
     }
   };
   return (
@@ -129,6 +147,7 @@ const OrderModal = ({ onClose, type }) => {
                     }}
                   >
                     <option value="">نوع الحديد</option>
+                    <option value="حديدنا">حديدنا</option>
                     <option value="السويس للصلب">السويس للصلب</option>
                     <option value="الجارحي">الجارحي</option>
                     <option value="عز">عز</option>
@@ -204,12 +223,12 @@ const OrderModal = ({ onClose, type }) => {
                     required
                     type="text"
                     placeholder=" السعر"
-                    value={tickets[index].totalPrice}
+                    value={tickets[index].unitPrice}
                     onChange={(e) => {
                       const value = e.target.value;
                       if (/^\d*\.?\d*$/.test(value)) {
                         const updatedTickets = [...tickets];
-                        updatedTickets[index].totalPrice = value;
+                        updatedTickets[index].unitPrice = value;
                         setTickets(updatedTickets);
                       }
                     }}

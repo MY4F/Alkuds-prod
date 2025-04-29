@@ -1,8 +1,48 @@
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import kuds from "../assets/images/kuds.png";
 import useLogout from "../hooks/useLogout";
+import { useSocketContext } from "../hooks/useSocket";
+import { ToastContainer, toast, cssTransition } from 'react-toastify';
+import { useUnfinishedTicketsContext } from "../hooks/useUnfinishedTicketsContext";
+
 export default function RootLayout() {
+
+  const { socket } = useSocketContext();
+  const { unfinishedTickets, dispatch } = useUnfinishedTicketsContext();
+  
+  useEffect(()=>{
+    socket.on("receive_order_creation", (info) => {
+      console.log(info)
+      if(info.order === null){
+        toast.warn('حدث عطل في اضافه الاوردر', {
+          position: "top-right",
+          autoClose: false,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          });
+      }
+      else{
+        console.log("hereeeee")
+        toast.success('تم اضافه اوردر جديد', {
+          position: "top-right",
+          autoClose: false,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          });
+          dispatch({type:"ADD_TICKET",payload: [info.order]})
+      }
+    });
+  },[dispatch])
+
   const checkNav = (e) => {
     const user = window.confirm("هل تريد الذهاب من هذه الصفحه؟");
     if (!user) {
@@ -13,10 +53,16 @@ export default function RootLayout() {
   const handleLogout = () =>{
       logout()
   }
+
+
+
   return (
     <div className="background">
+      
       <div className="container  max-w-[1900px] flex-col-reverse max-w-none md:max-[] md:flex-row gap-4 w-full md:p-7 p-0">
         <div className="main-content min-h-[90vh]  md:min-h-[82vh] w-full rounded-none md:rounded-[50px]">
+        <ToastContainer/>
+
           <Outlet />
         </div>
 
@@ -41,9 +87,6 @@ export default function RootLayout() {
               </NavLink>
               <NavLink className="text-center" to={"day"}>
                 يوميه
-              </NavLink>
-              <NavLink className="text-center" to={"storage"}>
-                مخزن
               </NavLink>
               <NavLink className="text-center" to={"finishedOrders"}>
                 اوردرات منتهيه

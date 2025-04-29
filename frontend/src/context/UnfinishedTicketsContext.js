@@ -9,8 +9,18 @@ export const UnfinishedTicketsReducer = (state, action) => {
         unfinishedTickets: action.payload,
       };
     case "ADD_TICKET":
-      return {
-        unfinishedTickets: [action.payload, ...state.unfinishedTickets],
+      {
+        let typeObj = {
+          "in":"inOrders",
+          "out":"outOrders"
+        }
+        let usedArrObj = state.unfinishedTickets
+        for(let j of action.payload){
+          usedArrObj[`${typeObj[j.type]}`].push(j)
+        }
+        return {
+          unfinishedTickets: usedArrObj
+        };
       };
     case "UPDATE_TICKET":
       let typeObj = {

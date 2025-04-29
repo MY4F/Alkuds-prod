@@ -37,7 +37,8 @@ io.on("connection", (socket) => {
     console.log(`User Connected: ${socket.id}`);
   
     socket.on("join_room", (data) => {
-      console.log("here room info: ",data)
+      console.log(data.length)
+      console.log("here room info:",data)
       socket.join(data);
     });
   
@@ -47,8 +48,18 @@ io.on("connection", (socket) => {
     });
 
     socket.on("send_order_update", (data) => {
-      console.log(data)
+      console.log(data, "here")
       socket.to(data.room).emit("receive_order_finish_state", data);
+    });
+
+    socket.on("send_order_new_state", (data) => {
+      console.log(data, "here")
+      socket.to(data.room).emit("receive_order_new_state", data);
+    });
+
+    socket.on("send_order_creation", (data) => {
+      console.log(data, "here")
+      socket.to(data.room).emit("receive_order_creation", data);
     });
   });
 

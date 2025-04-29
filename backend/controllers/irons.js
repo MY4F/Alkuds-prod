@@ -1,5 +1,7 @@
 const { updateDatabaseByName, getDatabaseByName } = require("./databaseController")
 const Iron = require('../models/iron')
+const Order = require('../models/order')
+
 const addIron = async (req, res) => {
     const { name, weight, radius, cost } = req.body
     let newIron;
@@ -52,7 +54,20 @@ const subtractIronWeight = (req, res) => {
 
 }
 
+function isBeforeToday(dateString) {
+    const givenDate = new Date(dateString);
+    const today = new Date();
+  
+    // Remove time from both dates (set to midnight)
+    givenDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+  
+    return givenDate < today;
+}
+
 const getIronStorage = async(req, res) => {
+    let { startDate } = req.body
+    console.log(startDate)
     let ironList, ironMap = {};
     try {
         ironList = await Iron.find()
@@ -73,17 +88,44 @@ const getIronStorage = async(req, res) => {
         Object.keys(ironMap).forEach(key => {
             ironMap[key].sort((a, b) => Number(a.radius) - Number(b.radius));
         });
-        const ironArray = Object.entries(ironMap).map(([key, value]) => ({ [key]: value }));
+        let ironArray = Object.entries(ironMap).map(([key, value]) => ({ [key]: value }));
+        const orders = await Order.find({
+            state: { $in: ["جاري انتظار الدفع", "منتهي"] }
+        });
+        const wantedDate = new Date(startDate);
+        for(let order of orders){
+            let orderDate = new Date(order.date)
+            if(wantedDate>=orderDate && isBeforeToday(wantedDate)){
+                for(let ticket of order.ticket){
+                    for(let k = 0 ; k<ironArray.length ; k++){
+                        if(ticket.ironName in ironArray[k]){
+                            for(let l = 0 ; l<ironArray[k][ticket.ironName].length ; l ++){
+                                if(ironArray[k][ticket.ironName][l]["radius"] == ticket.radius){
+
+                                    if(order.type === "out"){
+                                        ironArray[k][ticket.ironName][l]["weight"] += ticket.netWeight
+                                    }
+                                    else{
+                                        ironArray[k][ticket.ironName][l]["weight"] -= ticket.netWeight
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
         res.json(ironArray)
     }
     catch(err){
         console.log(err)
     }
 }
-let x = 7600;
+
+let x = 1560;
 const getScaleWeight = (req, res) => {
     res.json({ "weight": x })
-
+    // x+= 1000
 
     // driver name
 
