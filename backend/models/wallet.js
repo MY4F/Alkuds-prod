@@ -12,7 +12,7 @@ const WalletSchema = new mongoose.Schema({
         isDivided:[{
             amount: {
                 type: Number,
-                required: true
+                default: 0
             },
             orderId: {
                 type: String,

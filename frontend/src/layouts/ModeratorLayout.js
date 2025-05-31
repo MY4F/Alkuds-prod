@@ -7,15 +7,19 @@ import { useUnfinishedTicketsContext } from "../hooks/useUnfinishedTicketsContex
 import { useAwaitForPaymentTicketsContext } from "../hooks/useAwaitForPaymentTicketsContext";
 import { ToastContainer, toast, cssTransition } from 'react-toastify';
 import { useClientContext } from "../hooks/useClientContext";
+import { useFinishedTicketsContext } from "../hooks/useFinishedTicketsContext";
 
 export default function ModeratorLayout() {
 
   const { socket } = useSocketContext();
   const { unfinishedTickets, dispatch } = useUnfinishedTicketsContext();
   const { awaitForPaymentTickets, dispatch: awaitForPaymentTicketsUpdate } = useAwaitForPaymentTicketsContext()
+  const { finishedTickets , dispatch: finishedTicketsUpdate} = useFinishedTicketsContext()
+  const { client , dispatch: updateClient } = useClientContext()
   useEffect(()=>{
-    socket.on("receive_order_new_state", (info) => {
-      if(info.order === null){
+    const handleReceiveOrderFinishState = (info) => {
+      console.log("i am heree");
+      if (info.order === null) {
         toast.warn('حدث عطل في تعديل الاوردر', {
           position: "top-right",
           autoClose: false,
@@ -25,10 +29,9 @@ export default function ModeratorLayout() {
           draggable: true,
           progress: undefined,
           theme: "light",
-          });
-      }
-      else{
-        toast.success('تم تعديل حاله اوردر عميل بأسم ', {
+        });
+      } else {
+        toast.success('تم تعديل حاله اوردر عميل بأسم ' + info.order.clientName, {
           position: "top-right",
           autoClose: false,
           hideProgressBar: false,
@@ -37,12 +40,33 @@ export default function ModeratorLayout() {
           draggable: true,
           progress: undefined,
           theme: "light",
-          });
-          dispatch({type:"DELETE_TICKET",payload: info.order})
-          awaitForPaymentTicketsUpdate({type:"ADD_TICKET",payload: [info.order]})
+        });
+  
+        if (info.order.state === "جاري انتظار التحميل") {
+          console.log("tahmeel");
+          dispatch({ type: "UPDATE_TICKET", payload: [info.order] });
+        } else if (info.order.state === "جاري انتظار الدفع") {
+          console.log("daf3");
+          dispatch({ type: "DELETE_TICKET", payload: [info.order] });
+          awaitForPaymentTicketsUpdate({ type: "ADD_TICKET", payload: [info.order] });
+        } else if (info.order.state === "منتهي") {
+          console.log("montahy");
+          dispatch({ type: "DELETE_TICKET", payload: [info.order] });
+          awaitForPaymentTicketsUpdate({ type: "DELETE_TICKET", payload: [info.order] });
+          finishedTicketsUpdate({ type: "ADD_TICKET", payload: [info.order] });
+        }
+  
+        updateClient({ type: "UPDATE_CLIENT", payload: info.client });
       }
-    });
-  },[dispatch,awaitForPaymentTicketsUpdate])
+    };
+  
+    socket.on("receive_order_finish_state", handleReceiveOrderFinishState);
+  
+    return () => {
+      socket.off("receive_order_finish_state", handleReceiveOrderFinishState); // Cleanup
+    };
+
+  },[dispatch, awaitForPaymentTicketsUpdate, socket, updateClient,finishedTicketsUpdate, awaitForPaymentTickets,finishedTickets, unfinishedTickets])
 
 
   const checkNav = (e) => {
@@ -88,7 +112,9 @@ export default function ModeratorLayout() {
               <NavLink className="text-center" to={"clientbill"}>
                 كشفات الحسابات
               </NavLink>
-
+              <NavLink className="text-center" to={"settings"}>
+                اعدادات
+              </NavLink>
               <NavLink className="text-center" to={"moneyvault"}>
                 الخزنه
               </NavLink>

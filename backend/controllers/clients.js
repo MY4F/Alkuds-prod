@@ -1,5 +1,6 @@
 const { getDatabaseByName, updateDatabaseByName } = require("./databaseController");
 const Client = require('../models/client')
+const User = require('../models/user')
 const getClientsInfo = async(req , res) => {
     let clients, clientsMap = {};
     try{
@@ -16,18 +17,21 @@ const getClientsInfo = async(req , res) => {
 
 }
 const addClients = async (req , res) => {
-    const { name,address, isKudsPersonnel, clientId} = req.body
-    let newClient;
+    const { name,address, clientId, isFactory} = req.body
+    let newClient, id;
     try{
+        id = await User.findById('67e8754822c838b9188ccae0')
         newClient = new Client(
             {
                 name,
                 address,
                 ticketsIds:[],
-                isKudsPersonnel,
-                clientId
+                clientId: id["ids"].toString(),
+                isFactory:isFactory === 'مورد' ? true:false
             }
         )
+        id.ids += 1
+        await id.save()
 
         newClient.save()
     }

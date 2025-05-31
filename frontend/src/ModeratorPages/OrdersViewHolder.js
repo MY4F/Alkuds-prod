@@ -73,6 +73,7 @@ const OrdersViewHolder = ({ order, isFinishedTicket, alignment }) => {
             name={client[order.clientId].name}
             order={order}
             isFinishedTicket={isFinishedTicket}
+            handleClose={handleClose}
           />
         </Box>
       </Modal>

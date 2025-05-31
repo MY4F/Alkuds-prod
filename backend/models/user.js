@@ -13,6 +13,10 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  ids: {
+    type: Number,
+    default: 0,
+  },
   logs: [
     {
       operation: { type: String, default: "" },

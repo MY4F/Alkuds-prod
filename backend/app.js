@@ -8,6 +8,7 @@ const app = express();
 const mongoose = require("mongoose");
 const { Server } = require("socket.io");
 const http = require("http")
+const session = require("express-session");
 const server = http.createServer(app);
 app.use(bodyParser.json()); // for JSON data
 
@@ -22,6 +23,14 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
+app.use(
+  session({
+    secret: process.env.SECRET,
+    resave: true,
+    saveUninitialized: true,
+  })
+);
+
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../frontend/build')))
 }
@@ -35,12 +44,16 @@ const io = new Server(server, {
 
 io.on("connection", (socket) => {
     console.log(`User Connected: ${socket.id}`);
-  
-    socket.on("join_room", (data) => {
-      console.log(data.length)
-      console.log("here room info:",data)
-      socket.join(data);
-    });
+    socket.join("123");
+    const roomSize = io.of("/").adapter.rooms.get("123")?.size || 0;
+    console.log(`Room ${"123"} has ${roomSize} clients`);
+    
+    // socket.on("join_room", (data) => {
+    //   console.log(data.length)
+    //   console.log("here room info:",data)
+    //   socket.join(data);
+
+    // });
   
     socket.on("send_message", (data) => {
       console.log(data.room)
@@ -48,19 +61,26 @@ io.on("connection", (socket) => {
     });
 
     socket.on("send_order_update", (data) => {
-      console.log(data, "here")
+      console.log(data, "here new update")
       socket.to(data.room).emit("receive_order_finish_state", data);
     });
 
     socket.on("send_order_new_state", (data) => {
-      console.log(data, "here")
+      console.log(data.room, "here new state")
       socket.to(data.room).emit("receive_order_new_state", data);
     });
 
+ 
     socket.on("send_order_creation", (data) => {
-      console.log(data, "here")
+      console.log(data.room, "here creation")
       socket.to(data.room).emit("receive_order_creation", data);
     });
+
+    socket.on("send_transaction", (data) => {
+      console.log(data.room, "here transactions")
+      socket.to(data.room).emit("receive_transaction", data);
+    });
+
   });
 
 mongoose

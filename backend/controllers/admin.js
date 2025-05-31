@@ -2,7 +2,9 @@ const Wallet = require('../models/wallet')
 const Order = require('../models/order')
 const Client = require('../models/client')
 const Iron = require('../models/iron')
+const requireAuth = require('../config/auth')
 
+const { isDateBetween } = require('../controllers/irons')
 const subtractOneMonth = (dateStr) => {
     let date = new Date(dateStr);
 
@@ -39,7 +41,7 @@ const formatDate = (date) => {
     return `${month}/${day}/${year}, ${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} ${ampm}`;
 }
 
-const isBeforeByMonthYear = (date1, date2) => {
+const isBeforeByMonthYearOrEqual = (date1, date2) => {
     let d1 = new Date(date1);
     let d2 = new Date(date2);
 
@@ -49,7 +51,7 @@ const isBeforeByMonthYear = (date1, date2) => {
     let year2 = d2.getFullYear();
     let month2 = d2.getMonth() + 1;
 
-    if (year2 < year1 || (year2 === year1 && month2 < month1)) {
+    if ((year2 <= year1 && month2 <= month1)) {
         return true;  
     }
     return false;
@@ -64,12 +66,122 @@ const isSameMonth = (date1Str, date2Str) => {
     );
 }
 
+const getBeginningOfMonthIronPrice = async(startDate) => {
+    console.log(startDate)
+    let ironList, ironMap = {};
+    try {
+        ironList = await Iron.find()
+        for(let i of ironList){
+            if(!(i.name in ironMap)){
+                ironMap[i.name] = {}
+            }
+            for(let j of i["costPerWeight"]){
+                if(i["radius"] in ironMap[i.name]){
+                    let obj = {}
+                    obj= {"weight":j["weight"],"unitCost":j["unitCostPerTon"],"id": j["_id"]}
+                    ironMap[i.name][`${i["radius"]}`].push(obj)
+                    
+                } 
+                else{
+                    let obj = {"weight":j["weight"],"unitCost":j["unitCostPerTon"],"id": j["_id"]}
+                    ironMap[i.name][`${i["radius"]}`] =[obj]
+                }
+            }
+        }
+        const orders = await Order.find({
+            state: { $in: ["جاري انتظار الدفع", "منتهي"] }
+        });
+        // res.json({ironStorage:ironMap , total:1})
+        const wantedDate = new Date(startDate);
+        for(let order of orders){
+            let orderDate = new Date(order.date)
+            if(isDateBetween(orderDate,wantedDate)){
+                console.log(order._id)
+                for(let ticket of order.ticket){
+                    for(let consumedUnitPerWeight of ticket.usedUnitCostPerWeight){
+                        let hasTheConsumedIron = false
+                        for(let k = 0 ; k<ironMap[ticket.ironName][ticket.radius].length ; k++){
+                            // console.log("ironId here: ",ironMap[ticket.ironName][ticket.radius][k] , "  order Id: ",order._id)
+                            console.log("OrderIronId: ",consumedUnitPerWeight, "  iron Id: ",ironMap[ticket.ironName][ticket.radius][k].id.toString())
+                            if( consumedUnitPerWeight.ironId === ironMap[ticket.ironName][ticket.radius][k].id.toString()){
+                                hasTheConsumedIron = true    
+                                if(order.type === "out"){
+                                    console.log("out before: ",ironMap[ticket.ironName][ticket.radius][k], "  ironName:  ", ticket.ironName,  "  radius:  ", ticket.radius)
+                                    ironMap[ticket.ironName][ticket.radius][k].weight += consumedUnitPerWeight.weight
+                                    console.log("out after: ",ironMap[ticket.ironName][ticket.radius][k])
+                                }
+                                else{
+                                    console.log("in before: ",ironMap[ticket.ironName][ticket.radius][k], "  ironName:  ", ticket.ironName,  "  radius:  ", ticket.radius)
+                                    ironMap[ticket.ironName][ticket.radius][k].weight -= consumedUnitPerWeight.weight
+                                    console.log("in after: ",ironMap[ticket.ironName][ticket.radius][k])
+                                }
+                            }                            
+                        }
+                        // if(!hasTheConsumedIron){
+                        //     ironMap[ticket.ironName][ticket.radius].push({"weight":consumedUnitPerWeight.weight,"unitCostPerTon":consumedUnitPerWeight.cost})
+                        // }
+                    }
+                }
+            }
+        }
+        let total = 0
+        for (const ironName in ironMap) {
+            const radii = ironMap[ironName];
+            for (const radius in radii) {
+              const items = radii[radius];
+              for (const item of items) {
+                if(item.weight>=0)
+                    total+= parseFloat(item.weight/1000) * item.unitCost 
+              }
+            }
+        }
+        console.log(total)
+        return total
+    }
+    catch(err){
+        console.log(err)
+    }
+}
+
+function convertToLastDayOfMonth(dateString) {
+    // Parse the input date string.
+    const date = new Date(dateString);
+  
+    // Check if the date is valid.
+    if (isNaN(date.getTime())) {
+      return null; // Return null for invalid date input.
+    }
+  
+    // Get the year and month.
+    const year = date.getFullYear();
+    const month = date.getMonth(); // Month is 0-indexed.
+  
+    // Create a new date object for the last day of the month.
+    // Passing '0' as the day to the Date constructor results in the last day of the *previous* month.
+    const lastDayOfMonth = new Date(year, month + 1, 0);
+  
+    // Convert the last day of the month back to ISO 8601 string format.
+    const lastDayOfMonthString = lastDayOfMonth.toISOString();
+    return lastDayOfMonthString;
+  }
+
 const getProfitReportDataBasedOnDate = async(req,res)=>{
     let { monthAndYear } = req.body
     console.log(monthAndYear)
-    let soldOrders, iron,soldProfit = 0, purchasedPrice = 0, beginningOfMonthIronPrice = 0, endingOfMonthIronPrice = 0, totalProfitWithoutExpenses = 0, overAllTotalProfit = 0;
-    let retObj;
+    let soldOrders, iron,soldProfit = 0, purchasedPrice = 0, beginningOfMonthIronPrice = 0, endingOfMonthIronPrice = 0, totalProfitWithoutExpenses = 0, overAllTotalProfit = 0, deliveryFees = 0;
+    let retObj, clients, totalDiscounts = 0;
     try{
+
+        clients = await Client.find()
+
+        for(let client of clients){
+            for(let transaction of client["transactionsHistory"]){
+                if(transaction.type === "خصم" && isSameMonth(transaction.date,monthAndYear)){
+                    totalDiscounts += transaction.amount
+                }
+            }
+        }
+
         iron = await Iron.find()
         soldOrders = await Order.find(
             {
@@ -82,9 +194,11 @@ const getProfitReportDataBasedOnDate = async(req,res)=>{
         console.log(soldOrders.length)
 
         for(let order of soldOrders){
-            if(order.date === monthAndYear ){
+            console.log(order.date, monthAndYear)
+            if(isSameMonth(order.date ,monthAndYear )){
                 if(order.type === "out"){
-                    soldProfit += order.totalProfit
+                    soldProfit += order.realTotalPrice
+                    deliveryFees += order.deliveryFees
                 }
                 if(order.type === "in"){
                     purchasedPrice+= order.realTotalPrice
@@ -93,30 +207,27 @@ const getProfitReportDataBasedOnDate = async(req,res)=>{
         }
 
         let formattedSentMonthAndYear = monthAndYear
-        console.log(formattedSentMonthAndYear)
+        let monthBefore = subtractOneMonth(formattedSentMonthAndYear)
         for(let i of iron){
             for(let j of i.costPerWeight){
-                let monthBefore = subtractOneMonth(formattedSentMonthAndYear)
-                if(isBeforeByMonthYear(formattedSentMonthAndYear, j.date)){
+                if(isBeforeByMonthYearOrEqual(monthAndYear, j.date)){
                     endingOfMonthIronPrice += (parseFloat((j.weight / 1000)) * j.unitCostPerTon)
-                }
-                if(isBeforeByMonthYear(monthBefore, j.date)){
-                    beginningOfMonthIronPrice += (parseFloat((j.weight / 1000)) * j.unitCostPerTon)
                 }
             }
         }
+        let formattedDay = convertToLastDayOfMonth(monthBefore)
+        beginningOfMonthIronPrice = await getBeginningOfMonthIronPrice(formattedDay)
 
         let companyExpensesDoc = await Client.findOne({"clientId":"4"})
-        console.log(companyExpensesDoc["purchasingNotes"])
         let companyExpenses = 0
         for(let i of companyExpensesDoc["purchasingNotes"]){
             if(isSameMonth(i.date,monthAndYear)){
                 companyExpenses+=i.amount
             }
         }
-
-        totalProfitWithoutExpenses = (soldProfit + endingOfMonthIronPrice) - (purchasedPrice + beginningOfMonthIronPrice) 
-        overAllTotalProfit = totalProfitWithoutExpenses - companyExpenses
+       
+        totalProfitWithoutExpenses = ((soldProfit + endingOfMonthIronPrice) - (purchasedPrice + beginningOfMonthIronPrice)) 
+        overAllTotalProfit = (totalProfitWithoutExpenses - companyExpenses) - totalDiscounts
 
         let totalDeficitAndSurplusOfGoods = 0
         retObj = {

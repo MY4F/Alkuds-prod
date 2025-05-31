@@ -27,13 +27,16 @@ const Row = (props) => {
     <Fragment>
       <TableRow sx={{ "& > *": { borderBottom: "unset" } }}>
         <TableCell>
-          <IconButton
-            aria-label="expand row"
-            size="small"
-            onClick={() => setOpen(!open)}
-          >
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-          </IconButton>
+          <div className="flex gap-4 items-center">
+            <p className="text-xl">العمليات</p>
+            <IconButton
+              aria-label="expand row"
+              size="small"
+              onClick={() => setOpen(!open)}
+            >
+              {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+            </IconButton>
+          </div>
         </TableCell>
         <TableCell align="right" component="th" scope="row">
           {row.bankName}
@@ -46,50 +49,46 @@ const Row = (props) => {
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box sx={{ margin: 1 }}>
-              <Typography
-                variant="h6"
-                gutterBottom
-                component="div"
-                style={{ direction: "rtl", textAlign: "right" }}
-              >
-                العمليات
-              </Typography>
-              <Table size="small" aria-label="purchases">
-                <TableHead>
-                  <TableRow>
-                    <TableCell align="right">اسم العميل</TableCell>
-                    <TableCell align="right">رقم الاوردر</TableCell>
-                    <TableCell align="right">النوع</TableCell>
-                    <TableCell align="right">ملاحظات</TableCell>
-                    <TableCell align="right">المبلغ</TableCell>
-                    <TableCell align="right">التاريخ</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {row.transactions.map((transactionRow) => (
-                    <TableRow key={transactionRow.clientName}>
-                      <TableCell align="right" component="th" scope="row">
-                        {transactionRow.clientName}
-                      </TableCell>
-                      <TableCell align="right" component="th" scope="row">
-                        {transactionRow.orderId}
-                      </TableCell>
-                      <TableCell align="right" component="th" scope="row">
-                        {(transactionRow.type  === "in")? "وارد":"خارج"}
-                      </TableCell>
-                      <TableCell align="right" component="th" scope="row">
-                        {transactionRow.notes}
-                      </TableCell>
-                      <TableCell align="right" component="th" scope="row">
-                        {transactionRow.amount}
-                      </TableCell>
-                      <TableCell align="right" component="th" scope="row">
-                        {transactionRow.date}
-                      </TableCell>
+              {row.transactions.length > 0 ? (
+                <Table size="small" aria-label="purchases">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell align="right">اسم العميل</TableCell>
+                      <TableCell align="right">رقم الاوردر</TableCell>
+                      <TableCell align="right">النوع</TableCell>
+                      <TableCell align="right">ملاحظات</TableCell>
+                      <TableCell align="right">المبلغ</TableCell>
+                      <TableCell align="right">التاريخ</TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHead>
+                  <TableBody>
+                    {row.transactions.map((transactionRow) => (
+                      <TableRow key={transactionRow.clientName}>
+                        <TableCell align="right" component="th" scope="row">
+                          {transactionRow.clientName}
+                        </TableCell>
+                        <TableCell align="right" component="th" scope="row">
+                          {transactionRow.orderId}
+                        </TableCell>
+                        <TableCell align="right" component="th" scope="row">
+                          {transactionRow.type === "in" ? "وارد" : "خارج"}
+                        </TableCell>
+                        <TableCell align="right" component="th" scope="row">
+                          {transactionRow.notes}
+                        </TableCell>
+                        <TableCell align="right" component="th" scope="row">
+                          {transactionRow.amount.toLocaleString()}
+                        </TableCell>
+                        <TableCell align="right" component="th" scope="row">
+                          {transactionRow.date}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <p className="w-full text-center text-xl">لا يوجد عمليات</p>
+              )}
             </Box>
           </Collapse>
         </TableCell>
@@ -99,6 +98,7 @@ const Row = (props) => {
 };
 
 const MoneyVault = () => {
+  const [isSearching, setIsSearching] = useState(false);
   const [open, setOpen] = useState(false);
   const [open2, setOpen2] = useState(false);
   const handleOpen = () => setOpen(true);
@@ -106,17 +106,19 @@ const MoneyVault = () => {
   const handleOpen2 = () => setOpen2(true);
   const handleClose2 = () => setOpen2(false);
   const { client } = useClientContext();
-  const { wallet , dispatch} = useWalletContext();
+  const { wallet, dispatch } = useWalletContext();
   const [rows, setRows] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-
+  const [transactionMonth, setTransactionMonth] = useState();
+  const [filteredRows, setFilteredRows] = useState([]);
   useEffect(() => {
     if (wallet && client) {
-      setIsLoading(true)
+      setIsLoading(true);
       let wallets = [...Object.keys(wallet)],
         walletsArr = [];
       for (let i of wallets) {
-        let transactionObj, transactionsArr = []
+        let transactionObj,
+          transactionsArr = [];
         for (let j of wallet[i].transactions) {
           console.log(j);
           transactionObj = {
@@ -126,18 +128,24 @@ const MoneyVault = () => {
             notes: j.notes,
             amount: j.amount,
             date: j.date,
-          }
-          transactionsArr.push(transactionObj)
+          };
+          transactionsArr.push(transactionObj);
         }
         walletsArr.push(
-          createData(wallet[i]._id,i, wallet[i].totalAmount, transactionsArr)
+          createData(
+            wallet[i]._id,
+            i,
+            wallet[i].totalAmount.toLocaleString(),
+            transactionsArr
+          )
         );
       }
-      console.log(walletsArr);
+
       setRows([...walletsArr]);
-      setIsLoading(false)
+      setFilteredRows([...walletsArr]);
+      setIsLoading(false);
     }
-  }, [wallet,dispatch]);
+  }, [wallet, dispatch]);
 
   if (!client || !wallet) {
     return <div> Loading.... </div>;
@@ -164,10 +172,33 @@ const MoneyVault = () => {
       transactions,
     };
   }
+  const handleMonthSubmit = (e) => {
+    e.preventDefault();
+    setIsSearching(true);
+    let tempRows = JSON.parse(JSON.stringify(rows));
+    let TempFilteredRows = tempRows.map((row) => {
+      let filteredTxns = row.transactions.filter((txn) => {
+        if (new Date(txn.date.slice(0, 7)) > new Date(transactionMonth)) {
+          row.totalAmount = row.totalAmount.toString();
+          row.totalAmount = row.totalAmount.replaceAll(",", "");
+          console.log(parseFloat(row.totalAmount));
+          row.totalAmount = parseFloat(row.totalAmount) - txn.amount;
+        }
+        return txn.date.slice(0, 7) === transactionMonth;
+      });
+
+      return {
+        ...row,
+        transactions: filteredTxns,
+      };
+    });
+
+    setFilteredRows(TempFilteredRows);
+  };
 
   return (
     <div className="vault-container">
-      <div style={{width : "100%", "display":"flex","flexDirection":"row"}}>
+      <div style={{ width: "100%", display: "flex", flexDirection: "row" }}>
         <Button
           style={{ width: "30%", background: "black", color: "white" }}
           className="cash-btn"
@@ -207,10 +238,41 @@ const MoneyVault = () => {
         </Box>
       </Modal>
 
-
-
-
-      <div className="walletsHolder">
+      <div className="walletsHolder flex-col gap-3 justify-start">
+        <form
+          onSubmit={handleMonthSubmit}
+          dir="rtl"
+          className="w-full flex-col justify-center py-6 flex items-center gap-2"
+        >
+          <div>
+            <label> عمليات شهر : </label>
+            <input
+              required
+              type="month"
+              value={transactionMonth}
+              onChange={(e) => setTransactionMonth(e.target.value)}
+            />
+          </div>
+          <div className="w-full flex-col flex space-y-4 items-center">
+            <button type="submit" className="iron-btn search-btn w-auto">
+              {" "}
+              بحث{" "}
+            </button>
+            {isSearching && (
+              <button
+                className="iron-btn remove w-auto"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setTransactionMonth("");
+                  setIsSearching(false);
+                  setFilteredRows(rows);
+                }}
+              >
+                الغاء البحث
+              </button>
+            )}
+          </div>
+        </form>
         <TableContainer component={Paper}>
           <Table style={{ direction: "rtl" }} aria-label="collapsible table">
             <TableHead>
@@ -222,7 +284,7 @@ const MoneyVault = () => {
             </TableHead>
             <TableBody>
               {!isLoading ? (
-                rows.map((row) => <Row key={row.walletId} row={row} />)
+                filteredRows.map((row) => <Row key={row.walletId} row={row} />)
               ) : (
                 <CircularProgress />
               )}

@@ -8,6 +8,7 @@ import ReceiptIcon from '@mui/icons-material/Receipt';
 import { useSocketContext } from "../hooks/useSocket";
 import swal from 'sweetalert';
 import { useAwaitForPaymentTicketsContext } from "../hooks/useAwaitForPaymentTicketsContext";
+import { useUserContext } from "../hooks/useUserContext";
 const TicketDetails = ({ order, orderContextIdx, isFinishedTicket }) => {
   const [firstWeight, setFirstWeight] = useState(0)
   const [firstTime, setFirstTime] = useState(0);
@@ -20,24 +21,19 @@ const TicketDetails = ({ order, orderContextIdx, isFinishedTicket }) => {
   const { unfinishedTickets, dispatch } = useUnfinishedTicketsContext();
   const { awaitForPaymentTicketsContext, dispatch: awaitForPaymentTicketsContextUpdate } = useAwaitForPaymentTicketsContext();
   const { socket } = useSocketContext();
+  const {user} = useUserContext()
   useEffect(() => {
-    socket.on("receive_order_finish_state", async(info) => {
+    socket.on("receive_order_new_state", async(info) => {
       console.log(info)
       if(info.order === null){
         swal ( info.message ,  "تم طباعه اذن الاستلام بنجاح ." ,  "success" )
       }
       else{
-        console.log("hereeeee")
-        await socket.emit("send_order_new_state", {
-          message: "Order Printed Successfully",
-          room: "123",
-          order: info.order,
-        });
         swal ( info.message ,  "تم طباعه اذن الاستلام بنجاح و ايضا تغير حاله الاوردر لجاري انتظار الدفع." ,  "success" )
       }
       if(!isFinishedTicket){
         console.log("here", info.order)
-        dispatch({ type: "DELETE_TICKET", payload: info.order });
+        dispatch({ type: "DELETE_TICKET", payload: [info.order] });
         awaitForPaymentTicketsContextUpdate({type: "ADD_TICKET", payload: [info.order] })
       }
     });
@@ -55,6 +51,7 @@ const TicketDetails = ({ order, orderContextIdx, isFinishedTicket }) => {
       method:"POST",
       headers: {
         "Content-Type": "application/json",
+          'Authorization': `Bearer ${user.token}`
       },
       body:JSON.stringify({orderId: order._id,firstWeight:weight})
     })
@@ -93,6 +90,7 @@ const TicketDetails = ({ order, orderContextIdx, isFinishedTicket }) => {
       method:"POST",
       headers: {
         "Content-Type": "application/json",
+          'Authorization': `Bearer ${user.token}`
       },
       body:JSON.stringify({orderId: order._id,ticket:newOrder.ticket})
     })
@@ -112,6 +110,7 @@ const TicketDetails = ({ order, orderContextIdx, isFinishedTicket }) => {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+          'Authorization': `Bearer ${user.token}`
       },
     });
 
@@ -134,6 +133,7 @@ const TicketDetails = ({ order, orderContextIdx, isFinishedTicket }) => {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+          'Authorization': `Bearer ${user.token}`
       },
     });
     

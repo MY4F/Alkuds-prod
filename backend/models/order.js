@@ -4,6 +4,10 @@ const OrderSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    clientName: {
+        type: String,
+        required: true
+    },
     firstWeight:{
         weight: { type: Number, default: 0 },
         date: { type: String, default: "" }
@@ -21,20 +25,21 @@ const OrderSchema = new mongoose.Schema({
         realTotalPrice: { type: Number, default: 0 },
         usedUnitCostPerWeight: [{
             weight: { type: Number, default: 0 },
-            cost: { type: Number, default: 0 }
+            cost: { type: Number, default: 0 },
+            ironId: { type: String, default: 0 },
         }],
         totalCost: { type: Number, default: 0 },
         netWeightForProcessing: { type: Number, default: 0 },
         isProcessed: { type: Boolean, default: false },
         profit: { type: Number, default: 0 },
-        date: { type: String, default: "" }
+        date: { type: String, default: new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' }) }
     }],
     statement: [{
-        walletTransactionId:  { type: String, required: true },
+        walletTransactionId:  { type: String, default:"" },
         paidAmount: { type: Number, required: true },
-        bankName: { type: String, required: true },
+        bankName: { type: String, default:"" },
         clientId: { type: String, required: true },
-        date: { type: String, default: new Date().toLocaleString() }
+        date: { type: String, default: new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' }) }
     }],
     totalProfit: { type: Number, default: 0 },
     totalPrice: { type: Number, default: 0 },

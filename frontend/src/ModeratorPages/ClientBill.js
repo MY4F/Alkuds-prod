@@ -12,9 +12,11 @@ import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import TablePagination from '@mui/material/TablePagination';
 import { Fragment, useEffect, useState } from "react";
 import { useClientContext } from "../hooks/useClientContext";
 import CircularProgress from "@mui/material/CircularProgress";
+import { useUserContext } from "../hooks/useUserContext";
 
 const Row = (props) => {
   const { row } = props;
@@ -48,8 +50,9 @@ const Row = (props) => {
         </TableCell>
         <TableCell component="th" scope="row" align="right">{(row.type === "in")? "وارد":"خارج"}</TableCell>
         <TableCell component="th" scope="row" align="right">{row.state}</TableCell>
-        <TableCell component="th" scope="row" align="right">{row.totalPrice}</TableCell>
-        <TableCell component="th" scope="row" align="right">{row.paidAmount}</TableCell>
+        <TableCell component="th" scope="row" align="right">{row.totalPrice.toLocaleString()}</TableCell>
+        <TableCell component="th" scope="row" align="right">{row.paidAmount.toLocaleString()}</TableCell>
+        <TableCell component="th" scope="row" align="right">{(row.totalPrice - row.paidAmount).toLocaleString()}</TableCell>
         <TableCell component="th" scope="row" align="right">{row.date}</TableCell>
       </TableRow>
       <TableRow style={{verticalAlign:"baseline"}}>
@@ -79,7 +82,7 @@ const Row = (props) => {
                       <TableCell align="right" component="th" scope="row">{ticketRow.ironName} </TableCell>
                       <TableCell align="right" component="th" scope="row">{ticketRow.radius}</TableCell>
                       <TableCell align="right" component="th" scope="row">{ticketRow.netWeight}</TableCell>
-                      <TableCell align="right" component="th" scope="row">{ticketRow.price}</TableCell>
+                      <TableCell align="right" component="th" scope="row">{ticketRow.price.toLocaleString()}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -114,7 +117,7 @@ const Row = (props) => {
                       <TableCell align="right" component="th" scope="row">
                         {statementRow.bankName}
                       </TableCell>
-                      <TableCell align="right" component="th" scope="row">{statementRow.paidAmount}</TableCell>
+                      <TableCell align="right" component="th" scope="row">{statementRow.paidAmount.toLocaleString()}</TableCell>
                       <TableCell align="right" component="th" scope="row">{statementRow.date}</TableCell>
                     </TableRow>
                   )): "لا يوجد تحويلات"}
@@ -131,78 +134,113 @@ const Row = (props) => {
 const ClientBill = () => {
   const [clients, setClients] = useState("اختر عميل");
   const { client } = useClientContext();
+  const [selectedClient, setSelectedClient] = useState('')
   const [rows, setRows] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [totalPrice, setTotalPrice] = useState(0);
   const [totalPaid, setTotalPaid] = useState(0);
   const [balance, setBalance] = useState(0);
-  useEffect(() => {console.log("here")}, [clients, rows, isLoading, client]);
+  const [totalProfit, setTotalProfit] = useState(0)
+  const [transactionMonth, setTransactionMonth] = useState();
+  const [statementRows, setStatementRows] = useState([])
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [previousBalance, setPreviousBalance] = useState(0)
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(+event.target.value);
+    setPage(0);
+  };
+  const { user } = useUserContext();
+  useEffect(() => {
+    const getPreviousMonthBalance = async() =>{
+      
+
+    }
+    if(selectedClient!=="")
+      getPreviousMonthBalance()
+  }, [clients, rows, isLoading, client, selectedClient]);
+  
+  const columns = [
+    { id: 'id', label: 'رقم المستند', minWidth: 170 },
+    { id: 'date', label: 'التاريخ', minWidth: 100 },
+    {
+      id: 'bankName',
+      label: 'جهه الدفع',
+      minWidth: 170,
+      align: 'right',
+      format: (value) => value,
+    },
+    {
+      id: 'amount',
+      label: 'المبلغ',
+      minWidth: 170,
+      align: 'right',
+      format: (value) => value.toLocaleString(),
+    },
+  ];
 
   if (!client) {
     console.log("here");
     return <div>Loading...</div>; // Prevents rendering until data is available
   }
   const handleChange = async (e) => {
+    e.preventDefault()
     setIsLoading(true);
-    setClients(client[e.target.value].name);
-    const clientData = e.target.value;
     try {
+      console.log(transactionMonth)
       const getClientOrderFetch = await fetch(
-        "/order/getClientOrders/" + clientData,
+        "/order/getClientOrders",
         {
-          method: "GET",
+          method: "POST",
+          body:JSON.stringify({"date":transactionMonth,"id":selectedClient}),
           headers: {
             "Content-Type": "application/json",
+          'Authorization': `Bearer ${user.token}`
           },
         }
       );
 
       const getClientOrder = await getClientOrderFetch.json();
-      console.log(getClientOrder);
-      if (getClientOrderFetch.ok) {
-        let orders = [],
-          price = 0,
-          paid = 0;
-        for (let i = 0; i < getClientOrder.length; i++) {
-            console.log(getClientOrder[i].totalPaid, i)
-          price += getClientOrder[i].totalPrice;
-          paid += getClientOrder[i].totalPaid;
-          let tickets = [],
-            statements = [];
-          for (let j = 0; j < getClientOrder[i]["ticket"].length; j++) {
-            tickets.push({
-              ironName: getClientOrder[i]["ticket"][j].ironName,
-              radius: getClientOrder[i]["ticket"][j].radius,
-              netWeight: getClientOrder[i]["ticket"][j].netWeight,
-              price: getClientOrder[i]["ticket"][j].unitPrice,
-            });
-          }
-          for (let j = 0; j < getClientOrder[i]["statement"].length; j++) {
-            statements.push({
-              walletId: getClientOrder[i]["statement"][j]._id,
-              bankName: getClientOrder[i]["statement"][j].bankName,
-              paidAmount: getClientOrder[i]["statement"][j].paidAmount,
-              date: getClientOrder[i]["statement"][j].date,
-            });
-          }
 
-          orders.push(
-            createData(
-              getClientOrder[i].type,
-              getClientOrder[i].state,
-              getClientOrder[i].totalPrice,
-              getClientOrder[i].totalPaid,
-              getClientOrder[i].date,
-              tickets,
-              statements
-            )
-          );
+      const getClientTransactionsFetch = await fetch(
+        "/wallet/getSpecificClientTransactions",
+        {
+          method: "POST",
+          body:JSON.stringify({"date":transactionMonth,"clientId":selectedClient}),
+          headers: {
+            "Content-Type": "application/json",
+          'Authorization': `Bearer ${user.token}`
+          },
         }
-        console.log(orders);
-        setRows([...orders]);
-        setBalance(client[e.target.value].balance);
-        setTotalPaid(paid);
-        setTotalPrice(price);
+      );
+
+      const getClientTransactions = await getClientTransactionsFetch.json();
+
+      const previousMonthBalanceFetch = await fetch('/wallet/getOldClientBalance',{
+        'method':'POST',
+        'body':JSON.stringify({"date":transactionMonth,"clientId":selectedClient}),
+        'headers': {
+            "Content-Type": "application/json",
+          'Authorization': `Bearer ${user.token}`
+        },
+      })
+
+      const previousMonthBalance = await previousMonthBalanceFetch.json()
+
+      console.log(previousMonthBalance);
+      if (getClientOrderFetch.ok && getClientTransactionsFetch.ok && previousMonthBalanceFetch.ok) {
+        console.log(getClientOrder.orders);
+        setRows([...getClientOrder.orders]);
+        setBalance(client[selectedClient].balance);
+        setTotalPaid(getClientOrder.paid);
+        setTotalPrice(getClientOrder.price);
+        setTotalProfit(getClientOrder.profit)
+        setStatementRows([...getClientTransactions])
+        setPreviousBalance(previousMonthBalance)
       }
     } catch (err) {
       console.log(err);
@@ -210,38 +248,45 @@ const ClientBill = () => {
     setIsLoading(false);
   };
 
-  function createData(
-    type,
-    state,
-    totalPrice,
-    paidAmount,
-    date,
-    tickets,
-    statements
-  ) {
-    return {
-      type,
-      state,
-      totalPrice,
-      paidAmount,
-      date,
-      tickets,
-      statements,
-    };
-  }
+  
 
   return (
     <div>
       <div className="name-filter">
-        <select  onChange={(e) => handleChange(e)}>
-        <option value={1}> اختر عميل </option>
-          {client &&
-            [...Object.keys(client)].map((i, idx) => (
-              <option value={client[i].clientId}> {client[i].name} </option>
-            ))}
-        </select>
+      <form
+          onSubmit={e=>handleChange(e)}
+          dir="rtl"
+          className="w-full flex-col justify-center py-6 flex items-center gap-2"
+        >
+          <div>
+            <label> عمليات شهر : </label>
+            <input
+              required
+              type="date"
+              value={transactionMonth}
+              onChange={(e) => setTransactionMonth(e.target.value)}
+            />
+          </div>
+          <select  onChange={(e) => {
+                setClients(client[e.target.value].name);
+                setSelectedClient(e.target.value)
+          }} required>
+            <option value="" disabled selected> اختر عميل </option>
+              {client &&
+                [...Object.keys(client)].map((i, idx) => {
+                  { return (!client[i].isKudsPersonnel) && <option value={client[i].clientId}> {client[i].name} </option>}
+                })}
+          </select>
+          <button type="submit" className="iron-btn search-btn w-auto">
+            {" "}
+            بحث{" "}
+          </button>
+        </form>
       </div>
-      <TableContainer component={Paper}>
+      <div style={{"display":"flex","flexDirection":"column","gap":"50px"}}>
+      
+    
+    <TableContainer component={Paper}>
         <Table style={{ direction: "rtl" }} aria-label="collapsible table">
           <TableHead>
             <TableRow>
@@ -252,6 +297,7 @@ const ClientBill = () => {
               <TableCell align="right">الحاله</TableCell>
               <TableCell align="right">الاجمالي</TableCell>
               <TableCell align="right">المسدد</TableCell>
+              <TableCell align="right">المتبقي</TableCell>
               <TableCell align="right">التاريخ</TableCell>
             </TableRow>
           </TableHead>
@@ -264,20 +310,79 @@ const ClientBill = () => {
             <TableRow>
 
               <TableCell colSpan={2}>اجمالي قيمه الاصناف</TableCell>
-              <TableCell component="th" scope="row" align="right">{totalPrice}</TableCell>
+              <TableCell style={{ direction: "ltr" }} component="th" scope="row" align="right">{totalPrice.toLocaleString()}</TableCell>
             </TableRow>
             <TableRow>
               <TableCell colSpan={2}>اجمالي الدفعات</TableCell>
-              <TableCell component="th" scope="row" align="right">{totalPaid}</TableCell>
+              <TableCell style={{ direction: "ltr" }} component="th" scope="row" align="right">{totalPaid.toLocaleString()}</TableCell>
             </TableRow>
             <TableRow>
-              <TableCell colSpan={2}>الرصيد</TableCell>
-              <TableCell component="th" scope="row" align="right">{balance}</TableCell>
+              <TableCell colSpan={2}>رصيد الشهر الماضي </TableCell>
+              <TableCell style={{ direction: "ltr" }} component="th" scope="row" align="right">{previousBalance}</TableCell>
             </TableRow>
+            <TableRow>
+              <TableCell colSpan={2}>الرصيد </TableCell>
+              <TableCell style={{ direction: "ltr" }} component="th" scope="row" align="right">{balance.toLocaleString()}</TableCell>
+            </TableRow>
+            { user.user.msg.name === "Sobhy" && <TableRow>
+              <TableCell colSpan={2}>صافي الربح</TableCell>
+              <TableCell component="th" scope="row" align="right">{totalProfit.toLocaleString()}</TableCell>
+            </TableRow>}
+          </TableBody>
+        </Table>
+    </TableContainer>
+
+    <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+      <TableContainer sx={{ maxHeight: 440 }}>
+        <Table stickyHeader aria-label="sticky table">
+          <TableHead>
+            <TableRow>
+              {columns.map((column) => (
+                <TableCell
+                  key={column.id}
+                  align={column.align}
+                  style={{ minWidth: column.minWidth }}
+                >
+                  {column.label}
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {statementRows
+              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              .map((row) => {
+                return (
+                  <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
+                    {columns.map((column) => {
+                      const value = row[column.id];
+                      return (
+                        <TableCell key={column.id} align={column.align}>
+                          {column.format && typeof value === 'number'
+                            ? column.format(value)
+                            : value}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                );
+              })}
           </TableBody>
         </Table>
       </TableContainer>
+      <TablePagination
+        rowsPerPageOptions={[5, 10, 15]}
+        component="div"
+        count={statementRows.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+      />
+    </Paper>
     </div>
+    </div>
+
   );
 };
 

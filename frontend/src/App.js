@@ -7,13 +7,9 @@ import {
 import "./App.css";
 import HomeLayout from "./layouts/HomeLayout";
 import PrintLayout from "./layouts/PrintLayout";
-import OutWeighs from "./SharedComponents/OutWeighs";
-import InWeights from "./SharedComponents/InWeights";
 import Impexp from "./SharedComponents/Impexp";
 import Day from "./SharedComponents/Day";
-import Storage from "./SharedComponents/Storage";
 import Settings from "./SharedComponents/Settings";
-import MainPage from "./SharedComponents/MainPage";
 import ModeratorLayout from "./layouts/ModeratorLayout";
 import { useUserContext } from "./hooks/useUserContext";
 import OrdersPage from "./components/OrdersPage/index"
@@ -28,16 +24,22 @@ import PurchaseBill from "./ModeratorPages/PurchaseBill";
 import MoneyVault from "./ModeratorPages/MoneyVault";
 import AdminLayout from "./layouts/AdminLayout";
 import ProfitReport from "./ModeratorPages/ProfitReport";
+import PersonalAccountStatement from "./ModeratorPages/PersonalAccountStatement";
+import OwnerLayout from "./layouts/OwnerLayout";
 const LoginRoute = () => {
   const { user } = useUserContext();
+  console.log(user)
   if (user === null) {
     return <Login />;
   } else {
-    if(user.name === "Osama"){
+    if(user.user.msg.name === "Osama"){
       return <Navigate to="/up" /> 
     }
-    else if (user.name === "Sobhy"){
+    else if (user.user.msg.name === "Ziad"){
       return <Navigate to="/admin" />
+    }
+    else if (user.user.msg.name === "Sobhy"){
+      return <Navigate to="/owner" />
     }
     else{
       return <Navigate to="/down" />
@@ -51,7 +53,7 @@ const ModeratorRoute = () => {
   if (user === null) {
     return <Navigate to="/" />;
   } else {
-    return user.name === "Osama" ? <ModeratorLayout /> : <Navigate to="/" />;
+    return user.user.msg.name === "Osama" ? <ModeratorLayout /> : <Navigate to="/" />;
   }
 };
 
@@ -61,7 +63,7 @@ const WorkerRoute = () => {
   if (user === null) {
     return <Navigate to="/" />;
   } else {
-    return user.name === "Hassan" ? <HomeLayout /> : <Navigate to="/" />;
+    return user.user.msg.name === "Hassan" ? <HomeLayout /> : <Navigate to="/" />;
   }
 };
 
@@ -70,7 +72,16 @@ const AdminRoute = () =>{
   if (user === null) {
     return <Navigate to="/" />;
   } else {
-    return user.name === "Sobhy" ? <AdminLayout /> : <Navigate to="/" />;
+    return user.user.msg.name === "Ziad" ? <AdminLayout /> : <Navigate to="/" />;
+  }
+}
+
+const OwnerRoute = () =>{
+  const { user } = useUserContext();
+  if (user === null) {
+    return <Navigate to="/" />;
+  } else {
+    return user.user.msg.name === "Sobhy" ? <OwnerLayout /> : <Navigate to="/" />;
   }
 }
 
@@ -149,13 +160,21 @@ const router = createBrowserRouter([
         element: < MoneyVault/>,
       },
       {
+        path: "personal-account-statement",
+        element: < PersonalAccountStatement/>,
+      },
+      {
         path: "impexp",
         element: <Impexp />,
       },
       {
         path: "day",
         element: <Day />,
-      }
+      },
+      {
+        path: "settings",
+        element: <Settings />,
+      },
       // {
       //   path: "day",
       //   element: <Day />,
@@ -165,9 +184,6 @@ const router = createBrowserRouter([
       //   element: <Storage />,
       // },
       // {
-      //   path: "settings",
-      //   element: <Settings />,
-      // },
     ],
   },
   {
@@ -191,8 +207,42 @@ const router = createBrowserRouter([
         element: < MoneyVault/>,
       },
       {
-        path: "finishedOrders",
-        element: <FinishedOrders />,
+        path: "settings",
+        element: < Settings/>,
+      },
+      {
+        path: "personal-account-statement",
+        element: < PersonalAccountStatement/>,
+      },
+      {
+        path: "impexp",
+        element: <Impexp />,
+      },
+      {
+        path: "day",
+        element: <Day />,
+      },
+      {
+        path: "profitreports",
+        element: <ProfitReport />,
+      }
+    ],
+  },
+  {
+    path: "/owner",
+    element: <OwnerRoute />,
+    children: [
+      {
+        index: true,
+        element: <ModeratorMainPage />,
+      },
+      {
+        path: "orders/:category",
+        element: < OrdersPage/>,
+      },
+      {
+        path: "moneyvault",
+        element: < MoneyVault/>,
       },
       {
         path: "impexp",

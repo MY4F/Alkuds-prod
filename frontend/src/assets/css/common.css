@@ -20,3 +20,23 @@
   text-align: center;
   width: 100%;
 }
+
+.container-table{
+  width: auto !important;
+}
+
+.setting-holder{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+}
+
+.setting-holder-form{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}

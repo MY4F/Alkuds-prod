@@ -1,5 +1,7 @@
 import { createContext, useReducer } from "react";
 import { useEffect } from "react";
+import useLogout from "../hooks/useLogout";
+
 export const WalletContext = createContext();
 
 export const WalletReducer = (state, action) => {
@@ -14,6 +16,7 @@ export const WalletReducer = (state, action) => {
       };
     case "UPDATE_WALLET":
       let newWallet = state.wallet
+      console.log(state.wallet)
       newWallet[action.payload.bankName] = action.payload
       return {
         wallet: newWallet
@@ -36,12 +39,17 @@ export const WalletContextProvider = ({ children }) => {
     wallet: null,
   });
 
+  const {logout} = useLogout();
+
+
   useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user'))
     const getWallets = async () => {
       const response = await fetch("/wallet/getTransactionsGroupedByBank", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          'Authorization': `Bearer ${user.token}`
         },
       });
       let jsonAns = await response.json();
@@ -49,7 +57,12 @@ export const WalletContextProvider = ({ children }) => {
         console.log(jsonAns)
         dispatch({ type: "SET_WALLET", payload: jsonAns });
       }
+      else{
+        localStorage.removeItem('user');
+        logout()
+      }
     };
+    if(user)
     getWallets();
   }, [dispatch]);
 

@@ -1,13 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const { getWalletInventoryByDate,addCompanyExpenses, addBank, getTransactionsGroupedByBank, addTransaction, getSpecificClientTransactions  } = require('../controllers/wallets'); 
+const requireAuth = require('../config/auth')
+const { getOldClientBalance, getWalletInventoryByDate,addCompanyExpenses, addBank, getTransactionsGroupedByBank, addTransaction, getSpecificClientTransactions  } = require('../controllers/wallets'); 
 
-router.get("/getSpecificClientTransactions/:id", getSpecificClientTransactions)
-router.get("/getTransactionsGroupedByBank", getTransactionsGroupedByBank)
-router.post("/addTransaction", addTransaction)
-router.post("/addCompanyExpenses", addCompanyExpenses)
-router.post("/addBank", addBank)
-router.post("/getWalletInventoryByDate", getWalletInventoryByDate)
+router.post("/getSpecificClientTransactions",requireAuth, getSpecificClientTransactions)
+router.get("/getTransactionsGroupedByBank", requireAuth, getTransactionsGroupedByBank)
+router.post("/addTransaction",requireAuth, addTransaction)
+router.post("/addCompanyExpenses",requireAuth, addCompanyExpenses)
+router.post("/addBank",requireAuth, addBank)
+router.post("/getWalletInventoryByDate",requireAuth, getWalletInventoryByDate)
+router.post("/getOldClientBalance",requireAuth, getOldClientBalance)
 
 
 

@@ -18,11 +18,11 @@ export const useLogin = () => {
       }
     })
     const json = await response.json();
-    if(response.ok && json.status ==="success"){
+    if(response.ok && json.user.status ==="success"){
       console.log(json)
-      localStorage.setItem("user", JSON.stringify(json.msg));
+      localStorage.setItem("user", JSON.stringify(json));
       // update the auth context
-      dispatch({ type: "LOGIN", payload: json.msg });
+      dispatch({ type: "LOGIN", payload: json });
       setIsLoading(false);
     }
     else{

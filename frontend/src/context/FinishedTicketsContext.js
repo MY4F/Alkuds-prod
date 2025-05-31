@@ -1,5 +1,7 @@
 import { createContext, useReducer } from "react";
 import { useEffect } from "react";
+import useLogout from "../hooks/useLogout";
+
 export const FinishedTicketsContext = createContext();
 
 export const FinishedTicketsReducer = (state, action) => {
@@ -9,44 +11,57 @@ export const FinishedTicketsReducer = (state, action) => {
         finishedTickets: action.payload,
       };
     case "ADD_TICKET":
-      return {
-        finishedTickets: [action.payload, ...state.finishedTickets],
-      };
-    case "UPDATE_TICKET":
-      let typeObj = {
-        "in":"inOrders",
-        "out":"outOrders"
-      }
-      console.log(state.finishedTickets[`${typeObj[action.payload.type]}`][0])
-      let newArr = []
-      for(let i = 0 ;i<state.finishedTickets[`${typeObj[action.payload.type]}`].length;i++){
-        if(state.finishedTickets[`${typeObj[action.payload.type]}`][i]._id === action.payload._id){
-          newArr.push(action.payload)
-        }
-        else{
-          newArr.push(state.finishedTickets[`${typeObj[action.payload.type]}`][i])
-        }
-      }
-      if(typeObj[action.payload.type] === "in")
       {
+        let typeObj = {
+          "in":"inOrders",
+          "out":"outOrders"
+        }
+        let usedArrObj = state.finishedTickets
+        for(let j of action.payload){
+          usedArrObj[`${typeObj[j.type]}`].push(j)
+        }
         return {
-          finishedTickets: {"inOrders": newArr, "outOrders":state.finishedTickets["outOrders"] },
+            finishedTickets: usedArrObj
         };
       }
-      else
-      {
+    case "UPDATE_TICKET":
+      {  
+        let typeObj = {
+          "in":"inOrders",
+          "out":"outOrders"
+        }
+        let newArr = []
+        let usedArrObj = state.finishedTickets
+        for(let j of action.payload){
+          for(let i = 0 ;i<usedArrObj[`${typeObj[j.type]}`].length;i++){
+            if(usedArrObj[`${typeObj[j.type]}`][i]._id === j._id){
+              usedArrObj[`${typeObj[j.type]}`][i] = j
+            }
+          }
+        }
         return {
-          finishedTickets: {"outOrders": newArr, "inOrders":state.finishedTickets["inOrders"] },
+          finishedTickets: usedArrObj
         };
       }
     case "DELETE_TICKET":
-      return {
-        finishedTickets: [
-          ...state.finishedTickets.filter(
-            (w) => w._id !== action.payload._id
-          ),
-        ],
-      };
+      {
+        let typeObj = {
+          "in":"inOrders",
+          "out":"outOrders"
+        }
+        let newArr = []
+        let usedArrObj = state.finishedTickets
+        for(let j of action.payload){
+          for(let i = 0 ;i<usedArrObj[`${typeObj[j.type]}`].length;i++){
+            if(usedArrObj[`${typeObj[j.type]}`][i]._id === j._id){
+              usedArrObj[`${typeObj[j.type]}`].splice(i,1)
+            }
+          }
+        }
+        return {
+          finishedTickets: usedArrObj
+        };
+      }
     default:
       return state;
   }
@@ -57,12 +72,17 @@ export const FinishedTicketsContextProvider = ({ children }) => {
     finishedTickets: {},
   });
 
+  const {logout} = useLogout();
+
+
   useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user'))
     const getFinishedTickets = async () => {
       const response = await fetch("/order/getFinishedOrdersInfoGroupedByType", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          'Authorization': `Bearer ${user.token}`
         },
       });
       let jsonAns = await response.json();
@@ -70,7 +90,12 @@ export const FinishedTicketsContextProvider = ({ children }) => {
         console.log(jsonAns)
         dispatch({ type: "SET_TICKETS", payload: jsonAns });
       }
+      else{
+        localStorage.removeItem('user');
+        logout()
+      }
     };
+    if(user)
     getFinishedTickets();
   }, [dispatch]);
 

@@ -4,16 +4,22 @@ import { useEffect, useState } from "react";
 import CircularProgress from "@mui/material/CircularProgress";
 import swal from 'sweetalert';
 import { useAwaitForPaymentTicketsContext } from "../hooks/useAwaitForPaymentTicketsContext";
+import { useSocketContext } from "../hooks/useSocket";
+import { useUnfinishedTicketsContext } from "../hooks/useUnfinishedTicketsContext";
+import { useFinishedTicketsContext } from "../hooks/useFinishedTicketsContext";
 const CashInput = (props) => {
   const { isKudsPersonnel } = props
   const [selectedClient, setSelectedClient] = useState("اختر عميل");
   const [selectedType, setSelectedType] = useState("نوع العمليه");
   const [notes, setNotes] = useState();
   const [amount, setAmount] = useState("");
+  const { socket } = useSocketContext()
   const [selectedBank, setSelectedBank] = useState("اختر البنك");
   const { client, dispatch: clientUpdate } = useClientContext();
   const { wallet, dispatch: walletUpdate } = useWalletContext();
   const { awaitForPaymentTickets, dispatch: awaitForPaymentTicketsUpdate} = useAwaitForPaymentTicketsContext();
+  const { unfinishedTickets, dispatch: unfinishedTicketsUpdate } = useUnfinishedTicketsContext()
+  const { finishedTickets , dispatch: finishedTicketsUpdate } = useFinishedTicketsContext()
   console.log(awaitForPaymentTickets,wallet,client)
   const [isLoading,setIsLoading] = useState(false)
   
@@ -21,6 +27,14 @@ const CashInput = (props) => {
   
   if(client == null || wallet == null){
     return <div> Loading....</div>
+  }
+
+  const socketTransactionNotification = async(transaction) =>{
+    await socket.emit("send_transaction", {
+      message: "Transaction Proccessed successfully",
+      room: "123",
+      transaction_details: transaction,
+    });
   }
 
   const handleKudsPersonnel = async(e) =>{
@@ -50,7 +64,8 @@ const CashInput = (props) => {
         setAmount("")
         setNotes("")
         clientUpdate({ type: "UPDATE_CLIENT", payload: addCompanyExpenseTransaction.client })
-        walletUpdate({ type: "UPDATE_WALLET", payload: addCompanyExpenseTransaction.bank })
+        if(addCompanyExpenseTransaction.bank !== null)
+          walletUpdate({ type: "UPDATE_WALLET", payload: addCompanyExpenseTransaction.bank })
     }
     else{
         swal ( "حدث عطل، الرجاء التآكد من الاتصال بالنت." , "حاول مجددا بعد قليل." ,  "error" )
@@ -61,7 +76,7 @@ const CashInput = (props) => {
     e.preventDefault()
     setIsLoading(true)
     let newTransaction = {
-        amount, notes,"orderId":" ","type" : selectedType === "مدين"? "in":"out", "clientId":selectedClient, "bankName":selectedBank 
+        amount, notes,"orderId":" ","type" : selectedType, "clientId":selectedClient, "bankName":selectedBank 
       }
       const addTransactionFetch = await fetch('/wallet/addTransaction',
         {
@@ -83,10 +98,41 @@ const CashInput = (props) => {
           setSelectedType("نوع العمليه")
           setAmount("")
           setNotes("")
-          awaitForPaymentTicketsUpdate({ type: "UPDATE_TICKET", payload: addTransaction.orders })
+          let awaitingOrders = [], unfinishedOrders = [], finishedOrders = []
+          for(let i of addTransaction.orders){
+            if(i.state === 'جاري انتظار التحميل'){
+              unfinishedOrders.push(i)
+            }
+            else if(i.state === 'جاري انتظار الدفع'){
+              awaitingOrders.push(i)
+            }
+            else if (i.state === 'منتهي'){
+              finishedOrders.push(i)
+            }
+          }
+
+          if(unfinishedOrders.length>0){
+            console.log("unfinishedOrders")
+            unfinishedTicketsUpdate({ type: "UPDATE_TICKET", payload: addTransaction.orders })
+          }
+          if(awaitForPaymentTickets.length> 0){
+            console.log("awaitForPaymentTickets")
+
+            unfinishedTicketsUpdate({ type: "DELETE_TICKET", payload: addTransaction.orders })
+            awaitForPaymentTicketsUpdate({ type: "UPDATE_TICKET", payload: addTransaction.orders })
+          }
+          if(finishedOrders.length>0){
+            console.log("finishedOrders")
+
+            unfinishedTicketsUpdate({ type: "DELETE_TICKET", payload: addTransaction.orders })
+            awaitForPaymentTicketsUpdate({ type: "DELETE_TICKET", payload: addTransaction.orders })
+            finishedTicketsUpdate({type:"UPDATE_TICKET", payload: addTransaction.orders})
+          }
           if (addTransaction.client !==null)
             clientUpdate({ type: "UPDATE_CLIENT", payload: addTransaction.client })
           walletUpdate({ type: "UPDATE_WALLET", payload: addTransaction.bank })
+
+          socketTransactionNotification(addTransaction.bank)
       }
       else{
           swal ( "حدث عطل، الرجاء التآكد من الاتصال بالنت." , "حااول مجددا بعد قليل." ,  "error" )
@@ -109,6 +155,24 @@ const CashInput = (props) => {
       >
         <div className="md:w-[50%] w-full flex justify-center">
           <div className="flex flex-col gap-2 w-full max-w-[300px]">
+            <label className="text-center">نوع العمليه</label>
+            <select
+              required
+              value={selectedType}
+              onChange={(e) => {
+                setSelectedType(e.target.value);
+              }}
+            >
+              <option value="">نوع العمليه</option>
+              <option value="استلام من">استلام من</option>
+              <option value="تحويل الي">تحويل الي</option>
+              { !isKudsPersonnel &&<option value="اكراميه">اكراميه</option>}
+              {!isKudsPersonnel && <option value="خصم">خصم</option>}
+            </select>
+          </div>
+        </div>
+        <div className="md:w-[50%] w-full flex justify-center">
+          <div className="flex flex-col gap-2 w-full max-w-[300px]">
             <label className="text-center">أسم العميل</label>
             <select
               required
@@ -122,22 +186,6 @@ const CashInput = (props) => {
                 [...Object.keys(client)].map((i, idx) => (
                   isKudsPersonnel ? client[i].isKudsPersonnel && <option value={client[i].clientId}> {client[i].name} </option> : !client[i].isKudsPersonnel && <option value={client[i].clientId}> {client[i].name} </option>
                 ))}
-            </select>
-          </div>
-        </div>
-        <div className="md:w-[50%] w-full flex justify-center">
-          <div className="flex flex-col gap-2 w-full max-w-[300px]">
-            <label className="text-center">نوع العمليه</label>
-            <select
-              required
-              value={selectedType}
-              onChange={(e) => {
-                setSelectedType(e.target.value);
-              }}
-            >
-              <option value="">نوع العمليه</option>
-              <option value="in">مدين</option>
-              <option value="out">دائن</option>
             </select>
           </div>
         </div>
@@ -159,13 +207,12 @@ const CashInput = (props) => {
           <div className="flex flex-col gap-2 w-full max-w-[300px]">
             <label className="text-center">البنك</label>
             <select
-              required
               value={selectedBank}
               onChange={(e) => {
                 setSelectedBank(e.target.value);
               }}
             >
-              <option value="">أسم البنك</option>
+              <option value="اختر البنك">أسم البنك</option>
               {wallet &&
                 [...Object.keys(wallet)].map((i, idx) => (
                   <option value={wallet[i].bankName}> {wallet[i].bankName} </option>

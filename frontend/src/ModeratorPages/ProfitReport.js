@@ -87,26 +87,26 @@ const ProfitReport = () => {
           <TableBody>
             {rows.map((row) => (
               <TableRow component="th" key={row.name}>
-                <TableCell align="right" component="th" scope="row">
-                  {row.x}
+                <TableCell style={{"direction":"ltr"}} align="right" component="th" scope="row">
+                  {row.x.toLocaleString()}
                 </TableCell>
-                <TableCell align="right" component="th">
-                  {row.y}
+                <TableCell style={{"direction":"ltr"}} align="right" component="th">
+                  {row.y.toLocaleString()}
                 </TableCell>
-                <TableCell align="right" component="th">
-                  {row.z}
+                <TableCell style={{"direction":"ltr"}} align="right" component="th">
+                  {row.z.toLocaleString()}
                 </TableCell>
-                <TableCell align="right" component="th">
-                  {row.w}
+                <TableCell style={{"direction":"ltr"}} align="right" component="th">
+                  {row.w.toLocaleString()}
                 </TableCell>
-                <TableCell align="right" component="th">
-                  {row.a}
+                <TableCell style={{"direction":"ltr"}} align="right" component="th">
+                  {row.a.toLocaleString()}
                 </TableCell>
-                <TableCell align="right" component="th">
-                  {row.b}
+                <TableCell style={{"direction":"ltr"}} align="right" component="th">
+                  {row.b.toLocaleString()}
                 </TableCell>
-                <TableCell align="right" component="th">
-                  {row.c}
+                <TableCell style={{"direction":"ltr"}} align="right" component="th">
+                  {row.c.toLocaleString()}
                 </TableCell>
               </TableRow>
             ))}

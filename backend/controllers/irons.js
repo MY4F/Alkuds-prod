@@ -16,7 +16,7 @@ const addIron = async (req, res) => {
         )
         if (newIron.length > 0) {
             let newCostPerWeightEntry = {
-                cost, weight
+                unitCostPerTon: cost, weight
             }
             let newObject = newIron[0]
             newObject.costPerWeight.push(newCostPerWeightEntry)
@@ -30,7 +30,7 @@ const addIron = async (req, res) => {
                     radius,
                     costPerWeight: [
                         {
-                            cost,
+                            unitCostPerTon: cost,
                             weight
                         }
                     ]
@@ -46,83 +46,114 @@ const addIron = async (req, res) => {
     res.json(newIron)
 }
 
-const addIronWeight = (req, res) => {
 
+
+const resetTime = (date) => {
+    date.setHours(0, 0, 0, 0);
+    return date;
 }
-
-const subtractIronWeight = (req, res) => {
-
-}
-
-function isBeforeToday(dateString) {
-    const givenDate = new Date(dateString);
-    const today = new Date();
   
-    // Remove time from both dates (set to midnight)
-    givenDate.setHours(0, 0, 0, 0);
-    today.setHours(0, 0, 0, 0);
-  
-    return givenDate < today;
+const isDateBetween = (target, end) => {
+    const targetDate = resetTime(new Date(target));
+    let tod = new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' })
+    const startDate = resetTime(new Date(tod))
+    const endDate = resetTime(new Date(end));
+    console.log("Today's date: ",startDate, "   Order Date:  ",targetDate,"    End Date: ", endDate)
+    return  startDate>= targetDate && endDate < targetDate;
 }
+  
+  
+  
 
-const getIronStorage = async(req, res) => {
+const getIronStorageAdmin = async(req, res) => {
     let { startDate } = req.body
-    console.log(startDate)
     let ironList, ironMap = {};
     try {
         ironList = await Iron.find()
         for(let i of ironList){
-            totalWeight = 0
-            for(j of i["costPerWeight"]){
-                totalWeight += j["weight"]
+            if(!(i.name in ironMap)){
+                ironMap[i.name] = {}
             }
-            if(i.name in ironMap){
-                ironMap[i.name].push({"radius":i["radius"],"weight":totalWeight})
-            }
-            else{
-                ironMap[i.name] = [
-                    {"radius":i["radius"],"weight":totalWeight}
-                ]
+            for(let j of i["costPerWeight"]){
+                if(i["radius"] in ironMap[i.name]){
+                    let obj = {}
+                    obj= {"weight":j["weight"],"unitCost":j["unitCostPerTon"],"id": j["_id"]}
+                    ironMap[i.name][`${i["radius"]}`].push(obj)
+                    
+                } 
+                else{
+                    let obj = {"weight":j["weight"],"unitCost":j["unitCostPerTon"],"id": j["_id"]}
+                    ironMap[i.name][`${i["radius"]}`] =[obj]
+                }
             }
         }
-        Object.keys(ironMap).forEach(key => {
-            ironMap[key].sort((a, b) => Number(a.radius) - Number(b.radius));
-        });
-        let ironArray = Object.entries(ironMap).map(([key, value]) => ({ [key]: value }));
         const orders = await Order.find({
             state: { $in: ["جاري انتظار الدفع", "منتهي"] }
         });
+        // res.json({ironStorage:ironMap , total:1})
         const wantedDate = new Date(startDate);
         for(let order of orders){
             let orderDate = new Date(order.date)
-            if(wantedDate>=orderDate && isBeforeToday(wantedDate)){
+            if(isDateBetween(orderDate,wantedDate)){
                 for(let ticket of order.ticket){
-                    for(let k = 0 ; k<ironArray.length ; k++){
-                        if(ticket.ironName in ironArray[k]){
-                            for(let l = 0 ; l<ironArray[k][ticket.ironName].length ; l ++){
-                                if(ironArray[k][ticket.ironName][l]["radius"] == ticket.radius){
-
-                                    if(order.type === "out"){
-                                        ironArray[k][ticket.ironName][l]["weight"] += ticket.netWeight
-                                    }
-                                    else{
-                                        ironArray[k][ticket.ironName][l]["weight"] -= ticket.netWeight
-                                    }
+                    for(let consumedUnitPerWeight of ticket.usedUnitCostPerWeight){
+                        for(let k = 0 ; k<ironMap[ticket.ironName][ticket.radius].length ; k++){
+                            if( consumedUnitPerWeight.ironId === ironMap[ticket.ironName][ticket.radius][k].id.toString()){
+                                if(order.type === "out"){
+                                    ironMap[ticket.ironName][ticket.radius][k].weight += consumedUnitPerWeight.weight
                                 }
-                            }
+                                else{
+                                    ironMap[ticket.ironName][ticket.radius][k].weight -= consumedUnitPerWeight.weight
+                                }
+                            }                            
                         }
                     }
                 }
             }
         }
-        res.json(ironArray)
+        console.log(ironMap)
+        let ironStorage = [], total = 0
+        for (const ironName in ironMap) {
+            const radii = ironMap[ironName];
+            for (const radius in radii) {
+              const items = radii[radius];
+              for (let i = 0 ; i < items.length ; i++) {
+                  if(i<items.length - 1 && items[i].weight >=0 && items[i+1].unitCost === items[i].unitCost){           
+                    total+=items[i].weight + items[i+1].weight
+                    let rowitem = {
+                        name: ironName,
+                        weight: items[i].weight + items[i+1].weight,
+                        radius: radius,
+                        price: items[i].unitCost.toLocaleString(),
+                        totalPrice: ((parseFloat(items[i].weight/1000) * items[i].unitCost) + (parseFloat(items[i+1].weight/1000) * items[i+1].unitCost)).toLocaleString(),
+                    };
+                    ironStorage.push(rowitem);
+                    i++;
+                }
+                else if(items[i].weight >=0){
+                    total+=items[i].weight
+                    let rowitem = {
+                        name: ironName,
+                        weight: items[i].weight,
+                        radius: radius,
+                        price: items[i].unitCost.toLocaleString(),
+                        totalPrice: (parseFloat(items[i].weight/1000) * items[i].unitCost).toLocaleString(),
+                    };
+                    ironStorage.push(rowitem);
+                }
+            }
+          }
+        }
+        total = total.toLocaleString()
+        res.json({ironStorage,total})
     }
     catch(err){
         console.log(err)
     }
 }
 
-let x = 1560;
+
+let x = 1000;
 const getScaleWeight = (req, res) => {
     res.json({ "weight": x })
     // x+= 1000
@@ -213,11 +244,10 @@ const handleChangePassword = (req, res) => {
 }
 
 module.exports = {
-    getIronStorage,
     addIron,
-    addIronWeight,
-    subtractIronWeight,
     changeIronWeight,
     getScaleWeight,
-    handleChangePassword
+    handleChangePassword,
+    getIronStorageAdmin,
+    isDateBetween
 }

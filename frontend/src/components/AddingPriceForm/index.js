@@ -1,16 +1,25 @@
 // import LoadingButton from "../SharedComponents/LoadingButton";
+import { useFinishedTicketsContext } from "../../hooks/useFinishedTicketsContext";
 import LoadingButton from "../../SharedComponents/LoadingButton";
 import { useWalletContext } from "../../hooks/useWalletContext";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useState } from "react";
 import swal from "sweetalert";
+import { useAwaitForPaymentTicketsContext } from "../../hooks/useAwaitForPaymentTicketsContext";
+import { useUserContext } from "../../hooks/useUserContext";
 
 function AddingPriceForm({ alignment, order }) {
   const [orderPaidAmount, setOrderPaidAmount] = useState();
   const [selectedBank, setSelectedBank] = useState("اختر البنك");
   const { wallet } = useWalletContext();
+  const { finishedTickets, dispatch } = useFinishedTicketsContext();
+  const { awaitForPaymentTickets, dispatch: awaitForPaymentTicketsUpdate } = useAwaitForPaymentTicketsContext()
   const [adding, setAdding] = useState(false);
+  const {user} = useUserContext()
+  useEffect(()=>{},[
+    dispatch,awaitForPaymentTicketsUpdate
+  ])
 
   const handleAddingMoney = async (e) => {
     e.preventDefault();
@@ -26,13 +35,19 @@ function AddingPriceForm({ alignment, order }) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          'Authorization': `Bearer ${user.token}`
         },
         body: JSON.stringify(data),
       });
 
-      if (!response.ok) throw new Error("Failed to add order");
-
       const result = await response.json();
+      if (!response.ok) throw new Error("Failed to add order");
+      else{
+        if(result.state === "منتهي"){
+          awaitForPaymentTicketsUpdate({type:"DELETE_TICKET", payload:result})
+          dispatch({type:"ADD_TICKET",payload:[result]})
+        }
+      }
 
       swal({ text: "تم الاضافة بنجاح", icon: "success" }).then(
         setAdding(false)

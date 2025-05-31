@@ -5,10 +5,16 @@ import ReceiptIcon from "@mui/icons-material/Receipt";
 import { useSocketContext } from "../hooks/useSocket";
 import swal from "sweetalert";
 import LoadingButton from "./LoadingButton";
-const OrderView = ({ order, isFinishedTicket, name }) => {
+import Switch from '@mui/material/Switch';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import CircularProgress from "@mui/material/CircularProgress";
+import { useUserContext } from "../hooks/useUserContext";
+
+const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
   const [ticketsPrices, setTicketsPrices] = useState(
     order.ticket.map((ticket) => ticket.unitPrice)
   );
+  const [orderTickets, setOrderTickets] = useState(order.ticket)
   const [firstWeight, setFirstWeight] = useState(0);
   const [firstTime, setFirstTime] = useState(0);
   const [firstDate, setFirstDate] = useState(0);
@@ -20,21 +26,23 @@ const OrderView = ({ order, isFinishedTicket, name }) => {
   const { unfinishedTickets, dispatch } = useUnfinishedTicketsContext();
   const { socket } = useSocketContext();
   const [saveLoading, setSaveLoading] = useState(false);
+  const [isManual, setIsManual] = useState(false)
+  const {user} = useUserContext()
   useEffect(() => {
-    socket.on("receive_order_finish_state", (info) => {
-      if (info.order === null) {
-        if (info.message === "Purchase Bill Printed Successfully") {
-          swal(info.message, "تم طباعه فاتوره المبيعات بنجاح .", "success");
-        } else {
-          swal(info.message, "تم طباعه اذن الاستلام بنجاح .", "success");
-        }
-      } else
-        swal(
-          info.message,
-          "تم طباعه اذن الاستلام بنجاح و ايضا تغير حاله الاوردر لجاري انتظار الدفع.",
-          "success"
-        );
-    });
+    // socket.on("receive_order_finish_state", (info) => {
+    //   if (info.order === null) {
+    //     if (info.message === "Purchase Bill Printed Successfully") {
+    //       swal(info.message, "تم طباعه فاتوره المبيعات بنجاح .", "success");
+    //     } else {
+    //       swal(info.message, "تم طباعه اذن الاستلام بنجاح .", "success");
+    //     }
+    //   } else
+    //     swal(
+    //       info.message,
+    //       "تم طباعه اذن الاستلام بنجاح و ايضا تغير حاله الاوردر لجاري انتظار الدفع.",
+    //       "success"
+    //     );
+    // });
   }, [
     weight,
     time,
@@ -45,18 +53,84 @@ const OrderView = ({ order, isFinishedTicket, name }) => {
     firstDate,
     firstTime,
     socket,
+    isManual
   ]);
 
-  const handleSubmit = (e) => {
+  const updateTicket = async(newWeight,ticketId)=>{
+    setIsLoading(true)
+    console.log(newWeight)
+    let newTicket = order.ticket[ticketId], newOrder = order
+    if(ticketId > 0){
+      newTicket.weightBefore = order.ticket[ticketId-1].weightAfter
+      newTicket.weightAfter = newWeight
+      newTicket.netWeight = Math.abs(newWeight - newTicket.weightBefore)
+    }
+    else{
+      newTicket.weightBefore = order.firstWeight.weight
+      newTicket.weightAfter = newWeight 
+      newTicket.netWeight =  Math.abs(newWeight - order.firstWeight.weight)
+    }
+    newTicket.netWeightForProcessing = newTicket.netWeight 
+    setNetWeight(newTicket.netWeight)
+
+    let d = new Date().toLocaleString("en-EG", { timeZone: "Africa/Cairo" });
+    let dateArr = d.split(",");
+    newTicket.date = dateArr[0] + "," + dateArr[1]
+
+    newOrder.ticket[ticketId] = newTicket
+
+    setOrderTickets([...newOrder.ticket]);
+
+    const ticketUpdateFetch = await fetch('/order/EditOrderTicket',{
+      method:"POST",
+      headers: {
+        "Content-Type": "application/json",
+          'Authorization': `Bearer ${user.token}`
+      },
+      body:JSON.stringify({orderId: order._id,ticket:newOrder.ticket})
+    })
+
+    const ticketUpdate = await ticketUpdateFetch.json()
+
+    if(ticketUpdateFetch.ok){
+      console.log("Ticket Updated: ",ticketUpdate)
+    setIsLoading(false)
+    }
+
+  }
+
+
+  const updateFirstWeight = async()=>{
+    setIsLoading(true)
+    const firstWeightUpdateFetch = await fetch('/order/EditOrderFirstWeight',{
+      method:"POST",
+      headers: {
+        "Content-Type": "application/json",
+          'Authorization': `Bearer ${user.token}`
+      },
+      body:JSON.stringify({orderId: order._id,firstWeight:firstWeight})
+    })
+
+    const firstWeightUpdate = await firstWeightUpdateFetch.json()
+    console.log(firstWeightUpdateFetch)
+    if(firstWeightUpdateFetch.ok){
+      console.log("Ticket Updated: ",firstWeightUpdate)
+      dispatch({ type: "SET_TICKETS", payload: {"outOrders":firstWeightUpdate.outOrders,"inOrders":firstWeightUpdate.inOrders} });
+      setIsLoading(false)  
+    }
+  }
+
+  const handleSubmit = async(e) => {
     e.preventDefault();
+
     // window.open(
     //   "http://localhost:3000/print/" +
     //     isFinishedTicket.toString() +
     //     "/" +
     //     order._id,
-    //   "_blank"
+    //   "_blank" 
     // );
-    window.open("https://alkuds-cd6a685335ea.herokuapp.com/print/"+  isFinishedTicket.toString() + "/" + order._id,"_blank")
+    window.open("https://alkuds-cd6a685335ea.herokuapp.com/print/"+isFinishedTicket.toString() +"/"+ order._id,"_blank")
   };
 
   const handlePurchaseBill = (e) => {
@@ -66,6 +140,7 @@ const OrderView = ({ order, isFinishedTicket, name }) => {
     //   "_blank"
     // );
     window.open("https://alkuds-cd6a685335ea.herokuapp.com/print/"+ order._id,"_blank")
+    handleClose()
   };
   const handleCancelChangePrice = (e, idx) => {
     e.preventDefault();
@@ -93,6 +168,7 @@ const OrderView = ({ order, isFinishedTicket, name }) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          'Authorization': `Bearer ${user.token}`
         },
         body: JSON.stringify({ order: newOrder }),
       });
@@ -114,11 +190,19 @@ const OrderView = ({ order, isFinishedTicket, name }) => {
       }).then(setSaveLoading(false));
     }
   };
+
+
   return (
     <div>
       <Seperator text={`"${name}" تفاصيل طلب`} />
       <form className="w-full px-4 pt-6" onSubmit={(e) => handleSubmit(e)}>
         <div className="w-full flex md:flex-row flex-col gap-5 pb-6">
+        { isManual && 
+              <div className="md:w-[50%] w-full flex justify-center items-end">
+                <div className="flex flex-col gap-2 ">
+                  <span onClick={e=>updateFirstWeight()}  className="iron-btn "> {isLoading ? <CircularProgress /> : " تحميل الوزن"}{" "} </span>
+                </div>
+            </div>}
           <div className="md:w-[50%] w-full flex justify-center">
             <div className="flex flex-col gap-2 ">
               <label htmlFor="date"> التاريخ </label>
@@ -155,13 +239,17 @@ const OrderView = ({ order, isFinishedTicket, name }) => {
               <input
                 name="weight"
                 type="text"
-                value={order.firstWeight.weight}
-                readOnly
+                value={isManual? firstWeight : order.firstWeight.weight}
+                onChange={e=> setFirstWeight(e.target.value)}
+                readOnly = {!isManual}
               />
             </div>
           </div>
         </div>
-        {order.ticket.map((i, idx) => (
+        <div style={{textAlign:"right"}}>
+          <FormControlLabel control={<Switch onChange={e=> setIsManual(!isManual)} defaultChecked />} label={ isManual? 'يدوي':"اتوماتيكي" } />
+        </div>
+        {orderTickets.map((i, idx) => (
           <>
             <Seperator text={idx + 1 + " تذكره رقم "} />
             <div className="w-full flex md:flex-row flex-col gap-5 pb-6">
@@ -192,9 +280,9 @@ const OrderView = ({ order, isFinishedTicket, name }) => {
                     name="date"
                     type="text"
                     value={
-                      order.ticket[idx].date
-                        ? order.ticket[idx].date.split(",")[0]
-                        : order.ticket[idx].date
+                      orderTickets[idx].date
+                        ? orderTickets[idx].date.split(",")[0]
+                        : orderTickets[idx].date
                     }
                     readOnly
                   />
@@ -207,9 +295,9 @@ const OrderView = ({ order, isFinishedTicket, name }) => {
                     name="time"
                     type="text"
                     value={
-                      order.ticket[idx].date
-                        ? order.ticket[idx].date.split(",")[1]
-                        : order.ticket[idx].date
+                      orderTickets[idx].date
+                        ? orderTickets[idx].date.split(",")[1]
+                        : orderTickets[idx].date
                     }
                     readOnly
                   />
@@ -221,8 +309,13 @@ const OrderView = ({ order, isFinishedTicket, name }) => {
                   <input
                     name="weight"
                     type="text"
-                    value={order.ticket[idx].weightAfter}
-                    readOnly
+                    value={orderTickets[idx].weightAfter}
+                    onChange={(e) => {
+                      const updatedTickets = [...orderTickets];
+                      updatedTickets[idx].weightAfter = e.target.value;
+                      setOrderTickets(updatedTickets);
+                    }}
+                    readOnly={!isManual}
                   />
                 </div>
               </div>
@@ -234,7 +327,7 @@ const OrderView = ({ order, isFinishedTicket, name }) => {
                   <input
                     name="weight"
                     type="text"
-                    value={order.ticket[idx].netWeight}
+                    value={orderTickets[idx].netWeight}
                     readOnly
                   />
                 </div>
@@ -253,7 +346,7 @@ const OrderView = ({ order, isFinishedTicket, name }) => {
                         setTicketsPrices(newPrices);
                       }}
                     />
-                    {ticketsPrices[idx] !== order.ticket[idx].unitPrice && (
+                    {ticketsPrices[idx] !== orderTickets[idx].unitPrice && (
                       <button
                         onClick={(e) => handleCancelChangePrice(e, idx)}
                         className="iron-btn remove w-[100px]"
@@ -265,6 +358,13 @@ const OrderView = ({ order, isFinishedTicket, name }) => {
                 </div>
               </div>
             </div>
+            { isManual && <div className="w-full flex md:flex-row flex-col gap-5 pb-6">
+              <div className="md:w-[100%] w-full flex justify-center">
+                <div className="flex flex-col gap-2 ">
+                  <span onClick={e=>updateTicket(orderTickets[idx].weightAfter, idx)}  className="iron-btn "> {isLoading ? <CircularProgress /> : " تحميل الوزن"}{" "} </span>
+                </div>
+              </div>
+            </div>}
           </>
         ))}
         <div className="w-full flex justify-center">

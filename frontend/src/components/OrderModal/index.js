@@ -4,18 +4,26 @@ import { useClientContext } from "../../hooks/useClientContext";
 import swal from "sweetalert";
 import LoadingButton from "../../SharedComponents/LoadingButton";
 import { useSocketContext } from "../../hooks/useSocket";
+import { useUnfinishedTicketsContext } from "../../hooks/useUnfinishedTicketsContext";
+import { useUserContext } from "../../hooks/useUserContext";
 const OrderModal = ({ onClose, type, closeFun }) => {
   const [price, setPrice] = useState(0);
   const [date, setDate] = useState();
+  const [selectedClientName, setSelectedClientName] = useState('');
   const [clients, setClients] = useState("اختر عميل");
   const { client } = useClientContext();
   const [adding, setAdding] = useState(false);
-  const [deliveryFees, setDeliveryFees] = useState();
+  const [deliveryFees, setDeliveryFees] = useState(0);
+  const { unfinishedTickets, dispatch } = useUnfinishedTicketsContext();
+  const {user} = useUserContext()
   const [tickets, setTickets] = useState([
     { ironName: "", radius: "", neededWeight: "", unitPrice: "" },
   ]);
   const { socket } = useSocketContext();
  
+  useEffect(()=>{},[
+
+  ])
 
   const HandleFormSubmission = async (e) => {
     setAdding(true);
@@ -27,6 +35,7 @@ const OrderModal = ({ onClose, type, closeFun }) => {
       ticket: tickets,
       type: type,
       deliveryFees: deliveryFees,
+      clientName: selectedClientName
     };
     try {
       const response = await fetch("/order/addOrder", {
@@ -34,6 +43,7 @@ const OrderModal = ({ onClose, type, closeFun }) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          'Authorization': `Bearer ${user.token}`
         },
         body: JSON.stringify(data),
       });
@@ -48,7 +58,9 @@ const OrderModal = ({ onClose, type, closeFun }) => {
           room: "123",
           order: result,
         });
+        dispatch({type:"ADD_TICKET",payload: [result]})
       }
+
       swal({
         text: "تم انشاء طلب بنجاح",
         icon: "success",
@@ -81,6 +93,9 @@ const OrderModal = ({ onClose, type, closeFun }) => {
                 value={clients}
                 onChange={(e) => {
                   setClients(e.target.value);
+                  const selectedIndex = e.target.selectedIndex;
+                  const selectedText = e.target.options[selectedIndex].text;
+                  setSelectedClientName(selectedText)
                 }}
                 className="w-full md:w-[300px]"
               >
@@ -110,7 +125,7 @@ const OrderModal = ({ onClose, type, closeFun }) => {
               />
             </div>
           </div>
-          <div className="md:w-[33%] w-full flex justify-center">
+          {type === 'out' && <div className="md:w-[33%] w-full flex justify-center">
             <div className="flex flex-col gap-2 w-full max-w-[300px]">
               <label className="text-center">المشال</label>
               <input
@@ -127,7 +142,7 @@ const OrderModal = ({ onClose, type, closeFun }) => {
                 placeholder="المشال"
               />
             </div>
-          </div>
+          </div>}
         </div>
         {tickets.map((_, index) => (
           <div key={index}>
@@ -153,7 +168,7 @@ const OrderModal = ({ onClose, type, closeFun }) => {
                     <option value="عز">عز</option>
                     <option value="مصريين">مصريين</option>
                     <option value="بشاي">بشاي</option>
-                    <option value="مركبي">مركبي</option>
+                    <option value="مراكبي">مراكبي</option>
                     <option value="المدينة">المدينة</option>
                     <option value="العلا">العلا</option>
                     <option value="جيوشي">جيوشي</option>

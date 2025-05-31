@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useClientContext } from "../hooks/useClientContext";
+import { useUserContext } from "../hooks/useUserContext";
 
 const InTableRow = ({ w, name, raduis, ironName }) => {
   return (
@@ -24,6 +25,7 @@ const OutTableRow = ({ name, raduis, w, ironName }) => {
 };
 
 const Day = () => {
+  const { user } = useUserContext()
   const [inArrWeightArr, setInArrWeightArr] = useState([]);
   const [outArrWeightArr, setOutArrWeightArr] = useState([]);
   const [startDate, setStartDate] = useState([]);
@@ -43,6 +45,7 @@ const Day = () => {
       body:JSON.stringify({startDate}),
       headers: {
         "Content-Type": "application/json",
+          'Authorization': `Bearer ${user.token}`
       },
     });
     const json = await response.json();
@@ -117,7 +120,7 @@ const Day = () => {
   };
   return (
     <>
-      <p style={{ margin: "0", textAlign: "center" }}>
+      <p className="mb-3" style={{ textAlign: "center" }}>
         {" "}
         {MMDDYYYYDate()} / {new Date().toLocaleTimeString()}
       </p>

@@ -1,20 +1,21 @@
 import React, { useState } from 'react'
-
+import swal from 'sweetalert';
 const Settings = () => {
 
   const [driverName, setDriverName] = useState("")
   const [driverNumber, setDriverNumber] = useState("")
   const [clientName, setClientName] = useState("")
   const [clientAddress, setClientAddress] = useState("")
-  const [factoryName, setFactoryName] = useState("")
-  const [factoryAddress, setFactoryAddress] = useState("")
+  const [clientType, setClientType] = useState("")
 
-  const handleClientAdd = async() =>{
+  const handleClientAdd = async(e) =>{
+    e.preventDefault()
     let obj = {
       "name": clientName,
-      "address":clientAddress
+      "address":clientAddress,
+      "isFactory": clientType
     }
-    const response = await fetch('http://localhost:7000/clients/addClient',
+    const response = await fetch('/client/addClient',
       {
         method: "POST",
         body: JSON.stringify(obj),
@@ -27,38 +28,18 @@ const Settings = () => {
     )
     const json = await response.json()
     console.log(json)
-    if(json["msg"] === "success")
-      window.alert("تم الاضافه")
+    if(response.ok)
+        swal ( "تم اضافعه عميل جديد بنجاح." ,"" ,  "success" )
   }
 
-  const handleFactoryAdd = async() =>{
-    let obj = {
-      "name": factoryName,
-      "address":factoryAddress
-    }
-    const response = await fetch('http://localhost:7000/factory/addFactory',
-      {
-        method: "POST",
-        body: JSON.stringify(obj),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }
 
-
-    )
-    const json = await response.json()
-    console.log(json)
-    if(json["msg"] === "success")
-      window.alert("تم الاضافه")
-  }
-
-  const handleDriverAdd = async() =>{
+  const handleDriverAdd = async(e) =>{
+    e.preventDefault()
     let obj = {
       "name": driverName,
       "mobile":driverNumber
     }
-    const response = await fetch('http://localhost:7000/driver/addDriver',
+    const response = await fetch('/driver/addDriver',
       {
         method: "POST",
         body: JSON.stringify(obj),
@@ -72,45 +53,42 @@ const Settings = () => {
     const json = await response.json()
     console.log(json)
     if(json["msg"] === "success")
-      window.alert("تم الاضافه")
+      swal ( "تم اضافعه العمليه بنجاح." ,  "تم تحديث البانات الماليه" ,  "success" )
   }
 
   return (
-    <div>
-      <div>
+    <div className='setting-holder'>
+      <form className='setting-holder-form' onSubmit={e=>handleDriverAdd(e)}>
         <div className="data-input">
-          <input name="name" type="text" value={driverName} onChange={e => setDriverName(e.target.value)} />
+          <input name="name" type="text" value={driverName} onChange={e => setDriverName(e.target.value)} required/>
           <label htmlFor="name"> اسم السائق </label>
         </div>
         <div className="data-input">
-          <input name="number" type="text" value={driverNumber} onChange={e => setDriverNumber(e.target.value)} />
+          <input name="number" type="text" value={driverNumber} onChange={e => setDriverNumber(e.target.value)} required/>
           <label htmlFor="number"> رقم السائق </label>
         </div>
-        <button onClick={handleDriverAdd} className="iron-btn"> اضافه سائق جديد</button>
+        <button type='submit' className="iron-btn"> اضافه سائق جديد</button>
 
-      </div>
-      <div>
+      </form>
+      <form className='setting-holder-form' onSubmit={e=>handleClientAdd(e)}>
+      <select required  onChange={(e) => {
+                setClientType(e.target.value);
+          }} >
+            <option disabled selected> اختر نوع  </option>
+            <option value="مورد"> مورد </option>
+            <option value="عميل"> عميل </option>
+             
+          </select>
         <div className="data-input">
-          <input name="name" type="text" value={clientName} onChange={e => setClientName(e.target.value)} />
+          <input name="name" type="text" value={clientName} onChange={e => setClientName(e.target.value)} required />
           <label htmlFor="name"> اسم العميل </label>
         </div>
         <div className="data-input">
-          <input name="address" type="text" value={clientAddress} onChange={e => setClientAddress(e.target.value)} />
+          <input name="address" type="text" value={clientAddress} onChange={e => setClientAddress(e.target.value)} required/>
           <label htmlFor="address"> عنوان العميل </label>
         </div>
-        <button onClick={handleClientAdd} className="iron-btn"> اضافه عميل جديد</button>
-      </div>
-      <div>
-        <div className="data-input">
-          <input name="name" type="text" value={factoryName} onChange={e => setFactoryName(e.target.value)} />
-          <label htmlFor="name"> اسم المورد </label>
-        </div>
-        <div className="data-input">
-          <input name="address" type="text" value={factoryAddress} onChange={e => setFactoryAddress(e.target.value)} />
-          <label htmlFor="address"> عنوان المورد </label>
-        </div>
-        <button onClick={handleFactoryAdd} className="iron-btn"> اضافه مورد جديد</button>
-      </div>
+        <button type='submit' className="iron-btn"> اضافه عميل جديد</button>
+      </form>
     </div>
   )
 }

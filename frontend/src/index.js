@@ -20,8 +20,8 @@ import { WalletContextProvider } from "./context/WalletContext";
 import { NewTicketsContextProvider } from "./context/NewTicketsContext";
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-  <ClientContextProvider>
-    <UserContextProvider>
+  <UserContextProvider>
+    <ClientContextProvider>
       <SocketProvider>
         <WalletContextProvider>
           <NewTicketsContextProvider>
@@ -35,8 +35,8 @@ root.render(
           </NewTicketsContextProvider>
         </WalletContextProvider>
       </SocketProvider>
-    </UserContextProvider>
-  </ClientContextProvider>
+    </ClientContextProvider>
+  </UserContextProvider>
 );
 
 // If you want to start measuring performance in your app, pass a function
