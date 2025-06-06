@@ -123,14 +123,14 @@ const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
   const handleSubmit = async(e) => {
     e.preventDefault();
 
-    // window.open(
-    //   "http://localhost:3000/print/" +
-    //     isFinishedTicket.toString() +
-    //     "/" +
-    //     order._id,
-    //   "_blank" 
-    // );
-    window.open("https://alkuds-cd6a685335ea.herokuapp.com/print/"+isFinishedTicket.toString() +"/"+ order._id,"_blank")
+    window.open(
+      "http://localhost:3000/print/" +
+        isFinishedTicket.toString() +
+        "/" +
+        order._id,
+      "_blank" 
+    );
+    window.open("https://alkuds-cd6a685335ea.herokuapp.com/print/"+ isFinishedTicket.toString() +  "/" + order._id,"_blank")
   };
 
   const handlePurchaseBill = (e) => {

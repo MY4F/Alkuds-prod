@@ -4,6 +4,7 @@ const UserV2 = require('../models/user')
 const requireAuth = async (req, res, next) => {
   // verify user is authenticated
   const { authorization } = req.headers
+  console.log("heeee")
   console.log(authorization)
   if (!authorization) {
     return res.status(401).json({error: 'Authorization token required'})
@@ -16,6 +17,8 @@ const requireAuth = async (req, res, next) => {
     const { _id } = jwt.verify(token, process.env.SECRET)
     console.log(_id)
     req.user = await UserV2.findOne({ _id })
+    console.log(req.session.userId)
+    console.log(req.user,"user is here")
     if(req.user && req.session.userId === _id){
       next()
     }

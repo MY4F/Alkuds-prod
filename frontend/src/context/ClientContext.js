@@ -1,6 +1,7 @@
 import { createContext, useReducer } from "react";
 import { useEffect } from "react";
 import useLogout from "../hooks/useLogout";
+import { useUserContext } from "../hooks/useUserContext";
 
 export const ClientContext = createContext();
 
@@ -39,7 +40,7 @@ export const ClientContextProvider = ({ children }) => {
   });
 
   const {logout} = useLogout();
-
+  const { user } = useUserContext()
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user'))
@@ -63,7 +64,7 @@ export const ClientContextProvider = ({ children }) => {
     };
     if(user)
     getClients();
-  }, [dispatch]);
+  }, [dispatch,user]);
 
   return (
     <ClientContext.Provider value={{ ...state, dispatch }}>

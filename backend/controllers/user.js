@@ -15,6 +15,7 @@ const Login = async (req, res) => {
         const token = createToken(user.msg.id)
         console.log(token)
         req.session.userId = user.msg.id;
+        console.log(req.session.userId,"pio")
         res.status(200).json({user, token})
     }
     catch (error) {

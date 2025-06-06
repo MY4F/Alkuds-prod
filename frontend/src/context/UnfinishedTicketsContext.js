@@ -1,6 +1,7 @@
 import { createContext, useReducer } from "react";
 import { useEffect } from "react";
 import useLogout from "../hooks/useLogout";
+import { useUserContext } from "../hooks/useUserContext";
 
 export const UnfinishedTicketsContext = createContext();
 
@@ -74,7 +75,7 @@ export const UnfinishedTicketsContextProvider = ({ children }) => {
   });
 
   const {logout} = useLogout();
-
+  const {user} = useUserContext()
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user'))
@@ -98,7 +99,7 @@ export const UnfinishedTicketsContextProvider = ({ children }) => {
     };
     if(user)
     getUnfinishedTickets();
-  }, [dispatch]);
+  }, [dispatch, user]);
 
   return (
     <UnfinishedTicketsContext.Provider value={{ ...state, dispatch }}>

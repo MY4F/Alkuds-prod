@@ -1,6 +1,7 @@
 import { createContext, useReducer } from "react";
 import { useEffect } from "react";
 import useLogout from "../hooks/useLogout";
+import { useUserContext } from "../hooks/useUserContext";
 export const AwaitForPaymentTicketsContext = createContext();
 
 export const AwaitForPaymentTicketsReducer = (state, action) => {
@@ -69,11 +70,10 @@ export const AwaitForPaymentTicketsContextProvider = ({ children }) => {
     awaitForPaymentTickets: {},
   });
   const {logout} = useLogout();
-  const user = JSON.parse(localStorage.getItem('user'))
-  if(user)
-  console.log(user.token)
-  useEffect(() => {
-    const getAwaitForPaymentTickets = async () => {
+  const {user} = useUserContext()
+useEffect(() => {
+  const getAwaitForPaymentTickets = async () => {
+      const user = JSON.parse(localStorage.getItem('user'))
       const response = await fetch("/order/getAwaitForPaymentOrdersGroupedByType", {
         method: "GET",
         headers: {
@@ -92,7 +92,7 @@ export const AwaitForPaymentTicketsContextProvider = ({ children }) => {
     };
     if(user)
     getAwaitForPaymentTickets();
-  }, [dispatch]);
+  }, [dispatch,user]);
 
   return (
     <AwaitForPaymentTicketsContext.Provider value={{ ...state, dispatch }}>

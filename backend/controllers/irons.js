@@ -58,7 +58,7 @@ const isDateBetween = (target, end) => {
     let tod = new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' })
     const startDate = resetTime(new Date(tod))
     const endDate = resetTime(new Date(end));
-    console.log("Today's date: ",startDate, "   Order Date:  ",targetDate,"    End Date: ", endDate)
+    // console.log("Today's date: ",startDate, "   Order Date:  ",targetDate,"    End Date: ", endDate)
     return  startDate>= targetDate && endDate < targetDate;
 }
   

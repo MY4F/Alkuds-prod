@@ -7,7 +7,10 @@ import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import Seperator from "../components/Seperator/index";
 import { useEffect, useState } from "react";
+import { useUserContext } from "../hooks/useUserContext";
+
 const ProfitReport = () => {
+  const {user} = useUserContext()
   const [date, setDate] = useState();
   const [rows, setRows] = useState([createData(0,0,0,0,0,0,0)]);
 
@@ -19,12 +22,13 @@ const ProfitReport = () => {
   },[rows,date])
 
   const getProfit = async()=>{
-    console.log(date)
+    console.log(user.token)
     const response = await fetch('/admin/getProfitReportDataBasedOnDate',{
       'method':"POST",
       "body":JSON.stringify({"monthAndYear":date}),
       'headers': {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${user.token}`
       }
     })
 

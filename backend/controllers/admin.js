@@ -95,14 +95,14 @@ const getBeginningOfMonthIronPrice = async(startDate) => {
         const wantedDate = new Date(startDate);
         for(let order of orders){
             let orderDate = new Date(order.date)
+            console.log("orderDate", orderDate, "wantedDate",wantedDate)
             if(isDateBetween(orderDate,wantedDate)){
-                console.log(order._id)
                 for(let ticket of order.ticket){
                     for(let consumedUnitPerWeight of ticket.usedUnitCostPerWeight){
                         let hasTheConsumedIron = false
                         for(let k = 0 ; k<ironMap[ticket.ironName][ticket.radius].length ; k++){
                             // console.log("ironId here: ",ironMap[ticket.ironName][ticket.radius][k] , "  order Id: ",order._id)
-                            console.log("OrderIronId: ",consumedUnitPerWeight, "  iron Id: ",ironMap[ticket.ironName][ticket.radius][k].id.toString())
+                            // console.log("OrderIronId: ",consumedUnitPerWeight, "  iron Id: ",ironMap[ticket.ironName][ticket.radius][k].id.toString())
                             if( consumedUnitPerWeight.ironId === ironMap[ticket.ironName][ticket.radius][k].id.toString()){
                                 hasTheConsumedIron = true    
                                 if(order.type === "out"){
@@ -143,30 +143,23 @@ const getBeginningOfMonthIronPrice = async(startDate) => {
     }
 }
 
-function convertToLastDayOfMonth(dateString) {
-    // Parse the input date string.
-    const date = new Date(dateString);
+function getFirstDayOfCurrentMonth() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth(); // 0-indexed
   
-    // Check if the date is valid.
-    if (isNaN(date.getTime())) {
-      return null; // Return null for invalid date input.
-    }
+    const firstDay = new Date(year, month, 1);
   
-    // Get the year and month.
-    const year = date.getFullYear();
-    const month = date.getMonth(); // Month is 0-indexed.
+    const yyyy = firstDay.getFullYear();
+    const mm = String(firstDay.getMonth() + 1).padStart(2, '0');
+    const dd = String(firstDay.getDate()).padStart(2, '0');
   
-    // Create a new date object for the last day of the month.
-    // Passing '0' as the day to the Date constructor results in the last day of the *previous* month.
-    const lastDayOfMonth = new Date(year, month + 1, 0);
-  
-    // Convert the last day of the month back to ISO 8601 string format.
-    const lastDayOfMonthString = lastDayOfMonth.toISOString();
-    return lastDayOfMonthString;
-  }
+    return `${yyyy}-${mm}-${dd}`;
+}
 
 const getProfitReportDataBasedOnDate = async(req,res)=>{
     let { monthAndYear } = req.body
+    console.log("heree")
     console.log(monthAndYear)
     let soldOrders, iron,soldProfit = 0, purchasedPrice = 0, beginningOfMonthIronPrice = 0, endingOfMonthIronPrice = 0, totalProfitWithoutExpenses = 0, overAllTotalProfit = 0, deliveryFees = 0;
     let retObj, clients, totalDiscounts = 0;
@@ -191,7 +184,7 @@ const getProfitReportDataBasedOnDate = async(req,res)=>{
                 ]
             }
         ) 
-        console.log(soldOrders.length)
+        // console.log(soldOrders.length)
 
         for(let order of soldOrders){
             console.log(order.date, monthAndYear)
@@ -207,15 +200,17 @@ const getProfitReportDataBasedOnDate = async(req,res)=>{
         }
 
         let formattedSentMonthAndYear = monthAndYear
-        let monthBefore = subtractOneMonth(formattedSentMonthAndYear)
+        // let monthBefore = subtractOneMonth(formattedSentMonthAndYear)
         for(let i of iron){
             for(let j of i.costPerWeight){
                 if(isBeforeByMonthYearOrEqual(monthAndYear, j.date)){
+                    console.log("inside")
                     endingOfMonthIronPrice += (parseFloat((j.weight / 1000)) * j.unitCostPerTon)
                 }
             }
         }
-        let formattedDay = convertToLastDayOfMonth(monthBefore)
+        let formattedDay = getFirstDayOfCurrentMonth(formattedSentMonthAndYear)
+        // console.log("formattedDay: ",formattedDay)
         beginningOfMonthIronPrice = await getBeginningOfMonthIronPrice(formattedDay)
 
         let companyExpensesDoc = await Client.findOne({"clientId":"4"})
@@ -228,7 +223,7 @@ const getProfitReportDataBasedOnDate = async(req,res)=>{
        
         totalProfitWithoutExpenses = ((soldProfit + endingOfMonthIronPrice) - (purchasedPrice + beginningOfMonthIronPrice)) 
         overAllTotalProfit = (totalProfitWithoutExpenses - companyExpenses) - totalDiscounts
-
+        console.log("totalDiscounts",totalDiscounts)
         let totalDeficitAndSurplusOfGoods = 0
         retObj = {
             totalDeficitAndSurplusOfGoods,soldProfit,purchasedPrice,beginningOfMonthIronPrice,endingOfMonthIronPrice,totalProfitWithoutExpenses,overAllTotalProfit
