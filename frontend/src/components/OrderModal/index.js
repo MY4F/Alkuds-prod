@@ -95,6 +95,8 @@ const OrderModal = ({ onClose, type, closeFun }) => {
       );
     }
   };
+
+
   return (
     <div dir="rtl">
       <Seperator text={`بيانات طلب ${type == "in" ? "وارد" : "خارج"}`} />
@@ -103,27 +105,40 @@ const OrderModal = ({ onClose, type, closeFun }) => {
           <div className="md:w-[33%] w-full flex justify-center">
             <div className="flex flex-col gap-2 w-full max-w-[300px]">
               <label className="text-center">أسم العميل</label>
-              <select
-                required
-                value={clients}
-                onChange={(e) => {
-                  setClients(e.target.value);
-                  const selectedIndex = e.target.selectedIndex;
-                  const selectedText = e.target.options[selectedIndex].text;
-                  setSelectedClientName(selectedText)
-                }}
+              <input 
+                name="clientsList"
+                list="clients"
+                placeholder="ابحث ..."
                 className="w-full md:w-[300px]"
-              >
-                <option value="">أسم العميل</option>
-
-                {client &&
-                  [...Object.keys(client)].map((i, idx) => (
-                    <option value={client[i].clientId}>
-                      {" "}
-                      {client[i].name}{" "}
-                    </option>
-                  ))}
-              </select>
+                onChange={(e) => {
+                  const selectedName = e.target.value;
+                  const selectedClient = Object.values(client).find(c => c.name === selectedName);
+                  if(selectedClient){
+                    console.log(selectedClient["clientId"])
+                    setClients(selectedClient["clientId"]);
+                  }
+                }}
+                type=""
+                required />
+                <datalist id="clients">
+                    {client &&
+                      [...Object.keys(client)].map((i, idx) => 
+                        
+                      {  
+                        if(type ==="in" && client[i].isFactory){
+                          return <option value={client[i].name}>
+                          {" "}
+                          {client[i].clientId}{" "}
+                          </option>
+                        }
+                        else if(type ==="out" && !client[i].isFactory){
+                          return <option value={client[i].name}>
+                          {" "}
+                          {client[i].clientId}{" "}
+                          </option>
+                        }
+                      })}
+                </datalist>
             </div>
           </div>
           <div className="md:w-[33%] w-full flex justify-center">
@@ -140,7 +155,7 @@ const OrderModal = ({ onClose, type, closeFun }) => {
               />
             </div>
           </div>
-          <div className="md:w-[33%] w-full flex justify-center">
+          {/* <div className="md:w-[33%] w-full flex justify-center">
             <div className="flex flex-col gap-2 w-full max-w-[300px]">
               <label className="text-center">كلمه السر لبضاعه اول الشهر </label>
               <input
@@ -153,7 +168,7 @@ const OrderModal = ({ onClose, type, closeFun }) => {
                 className="w-full md:w-[300px]"
               />
             </div>
-          </div>
+          </div> */}
           {type === 'out' && <div className="md:w-[33%] w-full flex justify-center">
             <div className="flex flex-col gap-2 w-full max-w-[300px]">
               <label className="text-center">المشال</label>

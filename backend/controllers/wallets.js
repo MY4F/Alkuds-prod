@@ -25,6 +25,7 @@ const addTransaction = async (req, res) => {
                 {
                     $push: {
                         'transactions': {
+                            notes,
                             "amount":amount,
                             "clientId": clientId,
                             "date": new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' })
@@ -113,6 +114,7 @@ const addTransaction = async (req, res) => {
                 {
                     $push: {
                         'transactions': {
+                            notes,
                             "amount":amount,
                             "clientId": clientId,
                             "date": new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' })
@@ -187,7 +189,7 @@ const addTransaction = async (req, res) => {
                         balance: amount
                     },
                     $push: {
-                        'transactionsHistory': { amount, type }
+                        'transactionsHistory': { amount, type, notes }
                     },
                 },
                 { 
@@ -202,7 +204,7 @@ const addTransaction = async (req, res) => {
                         balance: -amount
                     },
                     $push: {
-                        'transactionsHistory': { amount, type }
+                        'transactionsHistory': { amount, type, notes }
                     },
                 },
                 { 
@@ -221,6 +223,7 @@ const addTransaction = async (req, res) => {
                 {
                     $push: {
                         'transactions': {
+                            notes,
                             "amount":-amount,
                             "clientId": clientId,
                             "date": new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' })

@@ -160,7 +160,7 @@ const Impexp = () => {
                     {transactions &&
                       transactions.map((i, idx) => (
                         <>
-                          <DayExpenseRow data={i} key={idx} client={client} />
+                         {showPricePerTon && <DayExpenseRow data={i} key={idx} client={client} />}
                         </>
                       ))}
                   </tbody>
@@ -296,9 +296,10 @@ const Impexp = () => {
                   </tfoot>
                 </table>
               </div>
-              <Seperator text="الخزنه" />
-              <TableContainer
+              { showPricePerTon && <Seperator text="الخزنه"  />}
+             { showPricePerTon && <TableContainer
                 component={Paper}
+                className="no-print"
                 sx={{ border: "1px solid black" }}
               >
                 <Table
@@ -343,7 +344,7 @@ const Impexp = () => {
                       )}
                   </TableBody>
                 </Table>
-              </TableContainer>
+              </TableContainer>}
             </div>
           ) : (
             <div className="text-center">

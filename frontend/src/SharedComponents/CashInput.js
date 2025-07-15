@@ -22,7 +22,6 @@ const CashInput = (props) => {
   const { awaitForPaymentTickets, dispatch: awaitForPaymentTicketsUpdate} = useAwaitForPaymentTicketsContext();
   const { unfinishedTickets, dispatch: unfinishedTicketsUpdate } = useUnfinishedTicketsContext()
   const { finishedTickets , dispatch: finishedTicketsUpdate } = useFinishedTicketsContext()
-  console.log(awaitForPaymentTickets,wallet,client)
   const [isLoading,setIsLoading] = useState(false)
   
   useEffect(()=>{},[wallet, awaitForPaymentTickets,client,clientUpdate,walletUpdate,awaitForPaymentTicketsUpdate])
@@ -181,19 +180,34 @@ const CashInput = (props) => {
         <div className="md:w-[50%] w-full flex justify-center">
           <div className="flex flex-col gap-2 w-full max-w-[300px]">
             <label className="text-center">أسم العميل</label>
-            <select
-              required
-              value={selectedClient}
-              onChange={(e) => {
-                setSelectedClient(e.target.value);
-              }}
-            >
-              <option value="">أسم العميل</option>
-              {client &&
-                [...Object.keys(client)].map((i, idx) => (
-                  isKudsPersonnel ? client[i].isKudsPersonnel && <option value={client[i].clientId}> {client[i].name} </option> : !client[i].isKudsPersonnel && <option value={client[i].clientId}> {client[i].name} </option>
-                ))}
-            </select>
+              
+            <input 
+                name="clientsList"
+                list="clients"
+                placeholder="ابحث ..."
+                className="w-full md:w-[300px]"
+                onChange={(e) => {
+                  let selectedName = e.target.value
+                  const selectedClient = Object.values(client).find(c => c.name === selectedName);
+                  if(selectedClient){
+                    setSelectedClient(selectedClient["clientId"]);
+                  }
+                }}
+                type=""
+                required />
+                <datalist id="clients">
+                    {client &&
+                      [...Object.keys(client)].map((i, idx) => 
+                        
+                      {  
+                        if(isKudsPersonnel && client[i].isKudsPersonnel){
+                          return <option value={client[i].name}> {client[i].clientId} </option>
+                        }
+                        else if(!isKudsPersonnel && !client[i].isKudsPersonnel){
+                          return <option value={client[i].name}> {client[i].clientId} </option>
+                        }
+                      })}
+                </datalist>
           </div>
         </div>
         <div className="md:w-[50%] w-full flex justify-center">

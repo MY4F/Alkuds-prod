@@ -130,7 +130,7 @@ const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
     //     order._id,
     //   "_blank"  
     // );
-    window.open("https://alkuds-cd6a685335ea.herokuapp.com/print/"+ isFinishedTicket.toString() +  "/" + order._id,"_blank")
+    window.open("https://alkuds-cd6a685335ea.herokuapp.com/print/"+  isFinishedTicket.toString() +  "/" +order._id,"_blank")
   };
 
   const handlePurchaseBill = (e) => {
