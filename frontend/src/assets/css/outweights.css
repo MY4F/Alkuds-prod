@@ -81,7 +81,6 @@
   align-items: center;
   gap: 10px;
   justify-content: flex-end;
-  margin: 5px 0;
   width: 100%;
 }
 
@@ -206,7 +205,6 @@ label {
   width: 80%;
 }
 
-
 .modal {
   position: fixed;
   padding: 15px;
@@ -215,7 +213,7 @@ label {
   /* border-radius: 30px; */
   overflow-y: auto;
   height: 90vh;
-  
+
   width: 90%;
   background: white;
   box-shadow: 2px 2px 15px rgba(0, 0, 0, 0.9);
@@ -348,36 +346,37 @@ label {
   justify-content: center;
 }
 
-.print-btn{
+.print-btn {
   margin: 30px;
   width: 80%;
   background-color: greenyellow;
   font-size: 30px;
 }
 
-.vault-container{
+.vault-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
 }
 
-.cash-holder input, select{
+.cash-holder input,
+select {
   width: auto;
 }
 
-.cash-btn{
+.cash-btn {
   font-size: 20px !important;
   margin: 10px auto !important;
   transition: 0.5s !important;
 }
 
-.cash-btn:hover{
+.cash-btn:hover {
   background: greenyellow !important;
-  color :black !important;
+  color: black !important;
 }
 
-.logout{
+.logout {
   margin: 0 auto;
   width: 100%;
   outline: none;
@@ -392,12 +391,12 @@ label {
   background-color: white;
 }
 
-.logout:hover{
+.logout:hover {
   color: red;
   color: white;
 }
 
-.name-filter{
+.name-filter {
   margin: 20px 0;
   width: 100%;
   display: flex;
@@ -405,26 +404,26 @@ label {
   justify-content: flex-end;
 }
 
-.name-filter select{
+.name-filter select {
   width: 70%;
 }
 
-.walletsHolder{
+.walletsHolder {
   margin-top: 20px;
   width: 100%;
 }
 
-.walletsHolder th{
+.walletsHolder th {
   font-size: 17px !important;
 }
 
-.search-btn{
+.search-btn {
   width: 30% !important;
   margin: 10px;
 }
 
-@media print{
-  .print-btn{
+@media print {
+  .print-btn {
     display: none;
   }
 }

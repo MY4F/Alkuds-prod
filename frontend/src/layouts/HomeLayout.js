@@ -76,7 +76,7 @@ export default function RootLayout() {
                 "sscrollbarWidth": "none",
                 "-ms-overflow-style": "none",
               }}
-              className="gap-4 flex md:flex-col flex-row-reverse  overflow-y-auto md:overflow-hidden px-6"
+              className="items-center gap-4 flex md:flex-col flex-row-reverse  overflow-y-auto md:overflow-hidden px-6"
             >
               <NavLink className="text-center" to={"/"}>
                 {" "}

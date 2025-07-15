@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useClientContext } from "../hooks/useClientContext";
 import { useUserContext } from "../hooks/useUserContext";
+import CircularProgress from "@mui/material/CircularProgress";
 
 const InTableRow = ({ w, name, raduis, ironName }) => {
   return (
@@ -25,13 +26,16 @@ const OutTableRow = ({ name, raduis, w, ironName }) => {
 };
 
 const Day = () => {
-  const { user } = useUserContext()
+  const { user } = useUserContext();
   const [inArrWeightArr, setInArrWeightArr] = useState([]);
   const [outArrWeightArr, setOutArrWeightArr] = useState([]);
   const [startDate, setStartDate] = useState([]);
   const [totalOut, setTotalOut] = useState(0);
   const [totalIn, setTotalIn] = useState(0);
   const { client } = useClientContext();
+  const [showTable, setShowTable] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [noTicketsForThatDay, setNoTicketsForThatday] = useState(false);
   useEffect(() => {}, [inArrWeightArr, outArrWeightArr, totalOut, totalIn]);
 
   if (!client) {
@@ -39,20 +43,31 @@ const Day = () => {
   }
 
   const getTicketsInfo = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
+    setIsLoading(true);
+    if (!showTable) {
+      setShowTable(true);
+    }
     const response = await fetch("/order/getTicketsForDay", {
       method: "POST",
-      body:JSON.stringify({startDate}),
+      body: JSON.stringify({ startDate }),
       headers: {
         "Content-Type": "application/json",
-          'Authorization': `Bearer ${user.token}`
+        Authorization: `Bearer ${user.token}`,
       },
     });
     const json = await response.json();
+
+    if (json.length == 0 ) {
+      setNoTicketsForThatday(true);
+    }else {
+      setNoTicketsForThatday(false);
+    }
     let tOut = 0,
       tIn = 0;
     if (response.ok) {
-      let inArr = [],outArr = [];
+      let inArr = [],
+        outArr = [];
       for (let i of json) {
         if (i.type === "in") {
           console.log(i);
@@ -80,7 +95,7 @@ const Day = () => {
         }
         setOutArrWeightArr([...inArr]);
         setTotalIn(tIn);
-        console.log(inArr)
+        console.log(inArr);
       }
       for (let i of json) {
         if (i.type === "out") {
@@ -106,9 +121,10 @@ const Day = () => {
         }
         setInArrWeightArr([...outArr]);
         setTotalOut(tOut);
-        console.log(outArr)
+        console.log(outArr);
       }
     }
+    setIsLoading(false);
   };
 
   const MMDDYYYYDate = () => {
@@ -120,7 +136,7 @@ const Day = () => {
   };
   return (
     <>
-      <p className="mb-3" style={{ textAlign: "center" }}>
+      <p className="no-print mb-3" style={{ textAlign: "center" }}>
         {" "}
         {MMDDYYYYDate()} / {new Date().toLocaleTimeString()}
       </p>
@@ -128,79 +144,110 @@ const Day = () => {
         className="flex lg:flex-col items-center flex-col gap-2 lg:gap-4"
         onSubmit={(e) => getTicketsInfo(e)}
       >
-        <div className="flex items-center gap-2">
+        <div className="no-print mt-3 flex flex-row-reverse justify-center  items-center gap-2">
+          <div className="margin-for-print">
+            <label dir="rtl" className="text-center mb-0">
+              تاريخ اليومية :
+            </label>
+            <p className="print-only">{startDate}</p>
+          </div>
           <input
+            className="no-print"
             required
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
           />
         </div>
-        <button type="submit" className="iron-btn search-btn">
+        <button type="submit" className="no-print iron-btn search-btn">
           {" "}
           بحث{" "}
         </button>
+        {!showTable && (
+          <p className="text-center text-xl font-bold">
+            الرجاء اختيار تاريخ لعرض تفاصيل اليومية الخاصة بهذا اليوم
+          </p>
+        )}
       </form>
-      <div className="daily-table-holder">
-        <table className="in-table" align="right">
-          <thead>
-            <tr>
-              <th> مورد بضاعه </th>
-              <th> نوع </th>
-              <th> م </th>
-              <th> وزن</th>
-            </tr>
-          </thead>
-          <tbody>
-            {outArrWeightArr.map((i, idx) => (
-              <OutTableRow
-                key={idx}
-                ironName={i.ironName}
-                name={i.name}
-                w={i.w}
-                raduis={i.raduis}
-              />
-            ))}
-          </tbody>
-          <tfoot>
-            <tr>
-              <td>{totalIn}</td>
-              <th>اجمالي الوزن</th>
-            </tr>
-          </tfoot>
-        </table>
-        <table className="in-table right-table">
-          <thead>
-            <tr>
-              <th> العميل </th>
-              <th> نوع </th>
-              <th> م </th>
-              <th> وزن</th>
-            </tr>
-          </thead>
-          <tbody>
-            {inArrWeightArr.map((i, idx) => (
-              <InTableRow
-                key={idx}
-                name={i.name}
-                ironName={i.ironName}
-                w={i.w}
-                raduis={i.raduis}
-              />
-            ))}
-          </tbody>
-          <tfoot>
-            <tr>
-              <td>{totalOut}</td>
-              <th>اجمالي الوزن</th>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-      <button className="iron-btn" onClick={(e) => window.print()}>
-        {" "}
-        طباعه
-      </button>
+      {showTable && (
+        <>
+          {isLoading ? (
+            <div className="text-center">
+              <CircularProgress />
+            </div>
+          ) : noTicketsForThatDay ? (
+            <p className="text-center text-xl font-bold">
+              لا يوجد اي عمليات في هذا اليوم
+            </p>
+          ) : (
+            <>
+              <div className="daily-table-holder">
+                <table className="in-table" align="right">
+                  <thead>
+                    <tr>
+                      <th> مورد بضاعه </th>
+                      <th> نوع </th>
+                      <th> م </th>
+                      <th> وزن</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {outArrWeightArr.map((i, idx) => (
+                      <OutTableRow
+                        key={idx}
+                        ironName={i.ironName}
+                        name={i.name}
+                        w={i.w}
+                        raduis={i.raduis}
+                      />
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td>{totalIn}</td>
+                      <th>اجمالي الوزن</th>
+                    </tr>
+                  </tfoot>
+                </table>
+                <table className="in-table">
+                  <thead>
+                    <tr>
+                      <th> العميل </th>
+                      <th> نوع </th>
+                      <th> م </th>
+                      <th> وزن</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {inArrWeightArr.map((i, idx) => (
+                      <InTableRow
+                        key={idx}
+                        name={i.name}
+                        ironName={i.ironName}
+                        w={i.w}
+                        raduis={i.raduis}
+                      />
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td>{totalOut}</td>
+                      <th>اجمالي الوزن</th>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+              <button
+                className="no-print iron-btn font-bold max-w-80 text-xl mt-5"
+                onClick={(e) => window.print()}
+              >
+                {" "}
+                طباعه
+              </button>
+            </>
+          )}
+        </>
+      )}
     </>
   );
 };

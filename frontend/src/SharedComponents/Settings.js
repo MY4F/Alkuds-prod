@@ -1,96 +1,141 @@
-import React, { useState } from 'react'
-import swal from 'sweetalert';
+import Seperator from "../components/Seperator";
+import React, { useState } from "react";
+import swal from "sweetalert";
 const Settings = () => {
+  const [driverName, setDriverName] = useState("");
+  const [driverNumber, setDriverNumber] = useState("");
+  const [clientName, setClientName] = useState("");
+  const [clientAddress, setClientAddress] = useState("");
+  const [clientType, setClientType] = useState("");
 
-  const [driverName, setDriverName] = useState("")
-  const [driverNumber, setDriverNumber] = useState("")
-  const [clientName, setClientName] = useState("")
-  const [clientAddress, setClientAddress] = useState("")
-  const [clientType, setClientType] = useState("")
-
-  const handleClientAdd = async(e) =>{
-    e.preventDefault()
+  const handleClientAdd = async (e) => {
+    e.preventDefault();
     let obj = {
-      "name": clientName,
-      "address":clientAddress,
-      "isFactory": clientType
-    }
-    const response = await fetch('/client/addClient',
-      {
-        method: "POST",
-        body: JSON.stringify(obj),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }
+      name: clientName,
+      address: clientAddress,
+      isFactory: clientType,
+    };
+    const response = await fetch("/client/addClient", {
+      method: "POST",
+      body: JSON.stringify(obj),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const json = await response.json();
+    console.log(json);
+    if (response.ok) swal("تم اضافعه عميل جديد بنجاح.", "", "success");
+  };
 
-
-    )
-    const json = await response.json()
-    console.log(json)
-    if(response.ok)
-        swal ( "تم اضافعه عميل جديد بنجاح." ,"" ,  "success" )
-  }
-
-
-  const handleDriverAdd = async(e) =>{
-    e.preventDefault()
+  const handleDriverAdd = async (e) => {
+    e.preventDefault();
     let obj = {
-      "name": driverName,
-      "mobile":driverNumber
-    }
-    const response = await fetch('/driver/addDriver',
-      {
-        method: "POST",
-        body: JSON.stringify(obj),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }
-
-
-    )
-    const json = await response.json()
-    console.log(json)
-    if(json["msg"] === "success")
-      swal ( "تم اضافعه العمليه بنجاح." ,  "تم تحديث البانات الماليه" ,  "success" )
-  }
+      name: driverName,
+      mobile: driverNumber,
+    };
+    const response = await fetch("/driver/addDriver", {
+      method: "POST",
+      body: JSON.stringify(obj),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const json = await response.json();
+    console.log(json);
+    if (json["msg"] === "success")
+      swal("تم اضافعه العمليه بنجاح.", "تم تحديث البانات الماليه", "success");
+  };
 
   return (
-    <div className='setting-holder'>
-      <form className='setting-holder-form' onSubmit={e=>handleDriverAdd(e)}>
-        <div className="data-input">
-          <input name="name" type="text" value={driverName} onChange={e => setDriverName(e.target.value)} required/>
-          <label htmlFor="name"> اسم السائق </label>
-        </div>
-        <div className="data-input">
-          <input name="number" type="text" value={driverNumber} onChange={e => setDriverNumber(e.target.value)} required/>
-          <label htmlFor="number"> رقم السائق </label>
-        </div>
-        <button type='submit' className="iron-btn"> اضافه سائق جديد</button>
+    <div className="setting-holder">
+      <Seperator text="اضافة سائق جديد" />
 
+      <form
+        dir="rtl"
+        className="setting-holder-form w-full"
+        onSubmit={(e) => handleDriverAdd(e)}
+      >
+        <div className="flex flex-col lg:flex-row gap-5 w-full items-center justify-center">
+          <div className="text-center flex flex-col gap-2 w-fit">
+            <label htmlFor="name"> اسم السائق </label>
+            <input
+              name="name"
+              type="text"
+              value={driverName}
+              onChange={(e) => setDriverName(e.target.value)}
+              className="lg:w-[300px] w-full"
+            />
+          </div>
+          <div dir="rtl" className="text-center flex flex-col gap-2 w-fit">
+            <label htmlFor="number"> رقم السائق </label>
+            <input
+              name="number"
+              type="text"
+              value={driverNumber}
+              onChange={(e) => setDriverNumber(e.target.value)}
+              required
+              className="lg:w-[300px] w-full"
+            />
+          </div>
+        </div>
+        <button type="submit" className="iron-btn max-w-[300px]">
+          {" "}
+          اضافه سائق جديد
+        </button>
       </form>
-      <form className='setting-holder-form' onSubmit={e=>handleClientAdd(e)}>
-      <select required  onChange={(e) => {
-                setClientType(e.target.value);
-          }} >
-            <option disabled selected> اختر نوع  </option>
+      <Seperator text="اضافة عميل جديد" />
+      <form
+        className="setting-holder-form "
+        onSubmit={(e) => handleClientAdd(e)}
+      >
+        <div
+          dir="rtl"
+          className="lg:items-end flex flex-col lg:flex-row gap-5 items-center justify-center"
+        >
+          <div dir="rtl" className="flex flex-col gap-2 w-fit text-center">
+            <label htmlFor="name"> اسم العميل </label>
+            <input
+              name="name"
+              type="text"
+              value={clientName}
+              onChange={(e) => setClientName(e.target.value)}
+              required
+              className="lg:w-[300px] w-full"
+            />
+          </div>
+          <div dir="rtl" className="flex flex-col gap-2 text-center">
+            <label htmlFor="address"> عنوان العميل </label>
+            <input
+              name="address"
+              type="text"
+              value={clientAddress}
+              onChange={(e) => setClientAddress(e.target.value)}
+              required
+              className="lg:w-[300px] w-full"
+            />
+          </div>
+          <select
+            className="h-fit"
+            required
+            onChange={(e) => {
+              setClientType(e.target.value);
+            }}
+          >
+            <option disabled selected>
+              {" "}
+              اختر نوع{" "}
+            </option>
             <option value="مورد"> مورد </option>
             <option value="عميل"> عميل </option>
-             
           </select>
-        <div className="data-input">
-          <input name="name" type="text" value={clientName} onChange={e => setClientName(e.target.value)} required />
-          <label htmlFor="name"> اسم العميل </label>
         </div>
-        <div className="data-input">
-          <input name="address" type="text" value={clientAddress} onChange={e => setClientAddress(e.target.value)} required/>
-          <label htmlFor="address"> عنوان العميل </label>
-        </div>
-        <button type='submit' className="iron-btn"> اضافه عميل جديد</button>
+        <button type="submit" className=" max-w-[300px] iron-btn">
+          {" "}
+          اضافه عميل جديد
+        </button>
       </form>
     </div>
-  )
-}
+  );
+};
 
-export default Settings
+export default Settings;

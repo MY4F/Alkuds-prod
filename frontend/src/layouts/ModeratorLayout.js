@@ -96,7 +96,7 @@ export default function ModeratorLayout() {
           <div className="nav-container  w-full gap-4 flex md:flex-col flex-row-reverse   justify-center  py-4 overflow-y-auto">
             <div
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-              className="gap-4 flex md:flex-col flex-row-reverse  overflow-y-auto md:overflow-hidden px-6"
+              className="items-center gap-4 flex md:flex-col flex-row-reverse  overflow-y-auto md:overflow-hidden px-6"
             >
               <NavLink className="text-center" to={"/up"}>
                 {" "}

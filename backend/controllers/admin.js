@@ -66,6 +66,18 @@ const isSameMonth = (date1Str, date2Str) => {
     );
 }
 
+function isBeforeLastDayOfPreviousMonth(inputDate) {
+    const date = new Date(inputDate);
+    if (isNaN(date)) {
+      throw new Error("Invalid date input");
+    }
+  
+    const now = new Date();
+    const lastDayOfPrevMonth = new Date(now.getFullYear(), now.getMonth(), 0); // last day of previous month
+    console.log(date, lastDayOfPrevMonth,date < lastDayOfPrevMonth)
+    return date > lastDayOfPrevMonth;
+  }
+
 const getBeginningOfMonthIronPrice = async(startDate) => {
     console.log(startDate)
     let ironList, ironMap = {};
@@ -95,25 +107,25 @@ const getBeginningOfMonthIronPrice = async(startDate) => {
         const wantedDate = new Date(startDate);
         for(let order of orders){
             let orderDate = new Date(order.date)
-            console.log("orderDate", orderDate, "wantedDate",wantedDate)
-            if(isDateBetween(orderDate,wantedDate)){
+            // console.log("orderDate", orderDate, "wantedDate",wantedDate)
+            if(isBeforeLastDayOfPreviousMonth(orderDate)){
                 for(let ticket of order.ticket){
                     for(let consumedUnitPerWeight of ticket.usedUnitCostPerWeight){
                         let hasTheConsumedIron = false
                         for(let k = 0 ; k<ironMap[ticket.ironName][ticket.radius].length ; k++){
-                            // console.log("ironId here: ",ironMap[ticket.ironName][ticket.radius][k] , "  order Id: ",order._id)
+                            console.log("ironId here: ",ironMap[ticket.ironName][ticket.radius][k] , "  order Id: ",order._id)
                             // console.log("OrderIronId: ",consumedUnitPerWeight, "  iron Id: ",ironMap[ticket.ironName][ticket.radius][k].id.toString())
                             if( consumedUnitPerWeight.ironId === ironMap[ticket.ironName][ticket.radius][k].id.toString()){
                                 hasTheConsumedIron = true    
                                 if(order.type === "out"){
-                                    console.log("out before: ",ironMap[ticket.ironName][ticket.radius][k], "  ironName:  ", ticket.ironName,  "  radius:  ", ticket.radius)
+                                    // console.log("out before: ",ironMap[ticket.ironName][ticket.radius][k], "  ironName:  ", ticket.ironName,  "  radius:  ", ticket.radius)
                                     ironMap[ticket.ironName][ticket.radius][k].weight += consumedUnitPerWeight.weight
-                                    console.log("out after: ",ironMap[ticket.ironName][ticket.radius][k])
+                                    // console.log("out after: ",ironMap[ticket.ironName][ticket.radius][k])
                                 }
                                 else{
-                                    console.log("in before: ",ironMap[ticket.ironName][ticket.radius][k], "  ironName:  ", ticket.ironName,  "  radius:  ", ticket.radius)
+                                    // console.log("in before: ",ironMap[ticket.ironName][ticket.radius][k], "  ironName:  ", ticket.ironName,  "  radius:  ", ticket.radius)
                                     ironMap[ticket.ironName][ticket.radius][k].weight -= consumedUnitPerWeight.weight
-                                    console.log("in after: ",ironMap[ticket.ironName][ticket.radius][k])
+                                    // console.log("in after: ",ironMap[ticket.ironName][ticket.radius][k])
                                 }
                             }                            
                         }
@@ -125,6 +137,7 @@ const getBeginningOfMonthIronPrice = async(startDate) => {
             }
         }
         let total = 0
+        console.log(ironMap)
         for (const ironName in ironMap) {
             const radii = ironMap[ironName];
             for (const radius in radii) {
@@ -204,13 +217,11 @@ const getProfitReportDataBasedOnDate = async(req,res)=>{
         for(let i of iron){
             for(let j of i.costPerWeight){
                 if(isBeforeByMonthYearOrEqual(monthAndYear, j.date)){
-                    console.log("inside")
                     endingOfMonthIronPrice += (parseFloat((j.weight / 1000)) * j.unitCostPerTon)
                 }
             }
         }
         let formattedDay = getFirstDayOfCurrentMonth(formattedSentMonthAndYear)
-        // console.log("formattedDay: ",formattedDay)
         beginningOfMonthIronPrice = await getBeginningOfMonthIronPrice(formattedDay)
 
         let companyExpensesDoc = await Client.findOne({"clientId":"4"})
@@ -222,11 +233,11 @@ const getProfitReportDataBasedOnDate = async(req,res)=>{
         }
        
         totalProfitWithoutExpenses = ((soldProfit + endingOfMonthIronPrice) - (purchasedPrice + beginningOfMonthIronPrice)) 
-        overAllTotalProfit = (totalProfitWithoutExpenses - companyExpenses) - totalDiscounts
-        console.log("totalDiscounts",totalDiscounts)
-        let totalDeficitAndSurplusOfGoods = 0
+        overAllTotalProfit = (totalProfitWithoutExpenses - (companyExpenses + totalDiscounts))
+        console.log("delivery fees",deliveryFees)
+        let totalDeficitAndSurplusOfIron = 0
         retObj = {
-            totalDeficitAndSurplusOfGoods,soldProfit,purchasedPrice,beginningOfMonthIronPrice,endingOfMonthIronPrice,totalProfitWithoutExpenses,overAllTotalProfit
+            totalDeficitAndSurplusOfIron,soldProfit,purchasedPrice,beginningOfMonthIronPrice,endingOfMonthIronPrice,totalProfitWithoutExpenses,overAllTotalProfit
         }
 
     }

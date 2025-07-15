@@ -26,8 +26,12 @@ app.use(cors(corsOptions));
 app.use(
   session({
     secret: process.env.SECRET,
-    resave: true,
-    saveUninitialized: true,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: false, // set to true if using HTTPS
+        maxAge: 1000 * 60 * 60 * 24 // 1 day
+    }
   })
 );
 

@@ -36,7 +36,7 @@ const ProfitReport = () => {
     if(response.ok){
       console.log(value)
       setRows([createData(
-          value["totalDeficitAndSurplusOfGoods"],
+          value["totalDeficitAndSurplusOfIron"],
           value["soldProfit"],
           value["purchasedPrice"],
           value["beginningOfMonthIronPrice"],

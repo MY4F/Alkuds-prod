@@ -110,8 +110,9 @@ const ReceiptPrintPage = () => {
               order: orderStateUpdate.newUpdatedOrder,
               client : orderStateUpdate.balanceUpdate
             });
+            console.log(orderStateUpdate.newUpdatedOrder,"heeree")
             await socket.emit("send_order_update", {
-              message: "Order Printed Successfully",
+              message: "Order Printed Successfully finish state",
               room: "123",
               order: orderStateUpdate.newUpdatedOrder,
               client : orderStateUpdate.balanceUpdate

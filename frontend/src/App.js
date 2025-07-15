@@ -12,7 +12,7 @@ import Day from "./SharedComponents/Day";
 import Settings from "./SharedComponents/Settings";
 import ModeratorLayout from "./layouts/ModeratorLayout";
 import { useUserContext } from "./hooks/useUserContext";
-import OrdersPage from "./components/OrdersPage/index"
+import OrdersPage from "./components/OrdersPage/index";
 import Login from "./SharedComponents/Login";
 import "./styles/tailwind.css";
 import ModeratorMainPage from "./ModeratorPages/ModeratorMainPage";
@@ -26,9 +26,10 @@ import AdminLayout from "./layouts/AdminLayout";
 import ProfitReport from "./ModeratorPages/ProfitReport";
 import PersonalAccountStatement from "./ModeratorPages/PersonalAccountStatement";
 import OwnerLayout from "./layouts/OwnerLayout";
+import CustomersBalance from "./ModeratorPages/CustomersBalance";
 const LoginRoute = () => {
   const { user } = useUserContext();
-  console.log(user)
+  console.log(user);
   if (user === null) {
     return <Login />;
   } else {
@@ -41,49 +42,67 @@ const LoginRoute = () => {
     else if (user.user.msg.name === "Sobhy"){
       return <Navigate to="/owner" />
     }
-    else{
+    else if(user.user.msg.name === "Hassan"){
       return <Navigate to="/down" />
     }
+    else{
+      return <Login />;
+    }
+    
   }
 };
 
 const ModeratorRoute = () => {
-
   const { user } = useUserContext();
   if (user === null) {
     return <Navigate to="/" />;
   } else {
-    return user.user.msg.name === "Osama" ? <ModeratorLayout /> : <Navigate to="/" />;
+    return user.user.msg.name === "Osama" ? (
+      <ModeratorLayout />
+    ) : (
+      <Navigate to="/" />
+    );
   }
 };
 
 const WorkerRoute = () => {
-
   const { user } = useUserContext();
   if (user === null) {
     return <Navigate to="/" />;
   } else {
-    return user.user.msg.name === "Hassan" ? <HomeLayout /> : <Navigate to="/" />;
+    return user.user.msg.name === "Hassan" ? (
+      <HomeLayout />
+    ) : (
+      <Navigate to="/" />
+    );
   }
 };
 
-const AdminRoute = () =>{
+const AdminRoute = () => {
   const { user } = useUserContext();
   if (user === null) {
     return <Navigate to="/" />;
   } else {
-    return user.user.msg.name === "Ziad" ? <AdminLayout /> : <Navigate to="/" />;
+    return user.user.msg.name === "Ziad" ? (
+      <AdminLayout />
+    ) : (
+      <Navigate to="/" />
+    );
   }
-}
+};
 
-const OwnerRoute = () =>{
+const OwnerRoute = () => {
   const { user } = useUserContext();
   if (user === null) {
     return <Navigate to="/" />;
   } else {
-    return user.user.msg.name === "Sobhy" ? <OwnerLayout /> : <Navigate to="/" />;
+    return user.user.msg.name === "Sobhy" ? (
+      <OwnerLayout />
+    ) : (
+      <Navigate to="/" />
+    );
   }
-}
+};
 
 const router = createBrowserRouter([
   {
@@ -123,21 +142,20 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <ReceiptPrintPage />,
-        loader: GetOrder
-      }
-    ]
+        loader: GetOrder,
+      },
+    ],
   },
-  ,
   {
     path: "/print/purchasebill/:id",
     element: <PrintLayout />,
     children: [
       {
         index: true,
-        element: < PurchaseBill/>,
-        loader: GetOrder
+        element: <PurchaseBill />,
+        loader: GetOrder,
       },
-    ]
+    ],
   },
   {
     path: "/up",
@@ -149,19 +167,19 @@ const router = createBrowserRouter([
       },
       {
         path: "orders/:category",
-        element: < OrdersPage/>,
+        element: <OrdersPage />,
       },
       {
         path: "clientbill",
-        element: < ClientBill/>,
+        element: <ClientBill />,
       },
       {
         path: "moneyvault",
-        element: < MoneyVault/>,
+        element: <MoneyVault />,
       },
       {
         path: "personal-account-statement",
-        element: < PersonalAccountStatement/>,
+        element: <PersonalAccountStatement />,
       },
       {
         path: "impexp",
@@ -175,15 +193,6 @@ const router = createBrowserRouter([
         path: "settings",
         element: <Settings />,
       },
-      // {
-      //   path: "day",
-      //   element: <Day />,
-      // },
-      // {
-      //   path: "storage",
-      //   element: <Storage />,
-      // },
-      // {
     ],
   },
   {
@@ -196,23 +205,23 @@ const router = createBrowserRouter([
       },
       {
         path: "orders/:category",
-        element: < OrdersPage/>,
+        element: <OrdersPage />,
       },
       {
         path: "clientbill",
-        element: < ClientBill/>,
+        element: <ClientBill />,
       },
       {
         path: "moneyvault",
-        element: < MoneyVault/>,
+        element: <MoneyVault />,
       },
       {
         path: "settings",
-        element: < Settings/>,
+        element: <Settings />,
       },
       {
         path: "personal-account-statement",
-        element: < PersonalAccountStatement/>,
+        element: <PersonalAccountStatement />,
       },
       {
         path: "impexp",
@@ -225,7 +234,7 @@ const router = createBrowserRouter([
       {
         path: "profitreports",
         element: <ProfitReport />,
-      }
+      },
     ],
   },
   {
@@ -238,11 +247,11 @@ const router = createBrowserRouter([
       },
       {
         path: "orders/:category",
-        element: < OrdersPage/>,
+        element: <OrdersPage />,
       },
       {
         path: "moneyvault",
-        element: < MoneyVault/>,
+        element: <MoneyVault />,
       },
       {
         path: "impexp",
@@ -255,7 +264,11 @@ const router = createBrowserRouter([
       {
         path: "profitreports",
         element: <ProfitReport />,
-      }
+      },
+      {
+        path: "customersbalance",
+        element: <CustomersBalance />,
+      },
     ],
   },
 ]);

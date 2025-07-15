@@ -10,13 +10,13 @@ export default function OwnerLayout() {
       e.preventDefault();
     }
   };
-  const {logout} = useLogout();
-  const handleLogout = () =>{
-      logout()
-  }
+  const { logout } = useLogout();
+  const handleLogout = () => {
+    logout();
+  };
   return (
     <div className="background ">
-      <div className="container h-[1px] max-w-[1900px] flex-col-reverse max-w-none md:max-[] md:flex-row gap-4 w-full md:p-7 p-0">
+      <div className="container  max-w-[1900px] flex-col-reverse max-w-none md:max-[] md:flex-row gap-4 w-full md:p-7 p-0">
         <div className="main-content min-h-[90vh]  md:min-h-[82vh] w-full rounded-none md:rounded-[50px]">
           <Outlet />
         </div>
@@ -27,8 +27,8 @@ export default function OwnerLayout() {
           </div>
           <div className="nav-container  w-full gap-4 flex md:flex-col flex-row-reverse   justify-center  py-4 overflow-y-auto">
             <div
-              style={{"scrollbarWidth": "none" ,  "msOverflowStyle": "none"}}
-              className="gap-4 flex md:flex-col flex-row-reverse  overflow-y-auto md:overflow-hidden px-6"
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+              className="items-center gap-4 flex md:flex-col flex-row-reverse  overflow-y-auto md:overflow-hidden px-6"
             >
               <NavLink className="text-center" to={"/up"}>
                 {" "}
@@ -48,9 +48,14 @@ export default function OwnerLayout() {
               <NavLink className="text-center" to={"profitreports"}>
                 التقارير
               </NavLink>
+              <NavLink className="text-center" to={"customersbalance"}>
+                رصيد العملاء
+              </NavLink>
 
-              <button onClick={handleLogout} className="iron-btn logout"> تسجيل خروج </button>
-
+              <button onClick={handleLogout} className="iron-btn logout">
+                {" "}
+                تسجيل خروج{" "}
+              </button>
             </div>
           </div>
         </div>

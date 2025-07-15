@@ -21,22 +21,27 @@
   width: 100%;
 }
 
-.container-table{
+.container-table {
   width: auto !important;
 }
 
-.setting-holder{
+.setting-holder {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 40px;
+  gap: 30px;
 }
 
-.setting-holder-form{
+.setting-holder-form {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 30px;
+}
+
+#react-confirm-alert {
+  position: relative;
+  z-index: 999999;
 }

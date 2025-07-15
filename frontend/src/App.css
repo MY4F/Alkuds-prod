@@ -36,3 +36,7 @@
     transform: rotate(360deg);
   }
 }
+
+.css-y2ff7i-MuiPaper-root-MuiTableContainer-root {
+  border-radius: 0 !important;
+}

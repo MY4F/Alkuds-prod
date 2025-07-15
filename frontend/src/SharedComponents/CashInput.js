@@ -7,6 +7,7 @@ import { useAwaitForPaymentTicketsContext } from "../hooks/useAwaitForPaymentTic
 import { useSocketContext } from "../hooks/useSocket";
 import { useUnfinishedTicketsContext } from "../hooks/useUnfinishedTicketsContext";
 import { useFinishedTicketsContext } from "../hooks/useFinishedTicketsContext";
+import { useUserContext } from "../hooks/useUserContext";
 const CashInput = (props) => {
   const { isKudsPersonnel } = props
   const [selectedClient, setSelectedClient] = useState("اختر عميل");
@@ -17,6 +18,7 @@ const CashInput = (props) => {
   const [selectedBank, setSelectedBank] = useState("اختر البنك");
   const { client, dispatch: clientUpdate } = useClientContext();
   const { wallet, dispatch: walletUpdate } = useWalletContext();
+  const {user} = useUserContext()
   const { awaitForPaymentTickets, dispatch: awaitForPaymentTicketsUpdate} = useAwaitForPaymentTicketsContext();
   const { unfinishedTickets, dispatch: unfinishedTicketsUpdate } = useUnfinishedTicketsContext()
   const { finishedTickets , dispatch: finishedTicketsUpdate } = useFinishedTicketsContext()
@@ -48,7 +50,8 @@ const CashInput = (props) => {
         method:"POST",
         body: JSON.stringify(newTransaction),
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user.token}`
         }
       }
     )
@@ -83,7 +86,8 @@ const CashInput = (props) => {
           method:"POST",
           body: JSON.stringify(newTransaction),
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${user.token}`
           }
         }
       )
@@ -130,6 +134,8 @@ const CashInput = (props) => {
           }
           if (addTransaction.client !==null)
             clientUpdate({ type: "UPDATE_CLIENT", payload: addTransaction.client })
+
+          if (addTransaction.bank !==null)
           walletUpdate({ type: "UPDATE_WALLET", payload: addTransaction.bank })
 
           socketTransactionNotification(addTransaction.bank)
@@ -166,6 +172,7 @@ const CashInput = (props) => {
               <option value="">نوع العمليه</option>
               <option value="استلام من">استلام من</option>
               <option value="تحويل الي">تحويل الي</option>
+              <option value="صرف شيك">صرف شيك</option>
               { !isKudsPersonnel &&<option value="اكراميه">اكراميه</option>}
               {!isKudsPersonnel && <option value="خصم">خصم</option>}
             </select>

@@ -6,14 +6,14 @@ import TicketDetails from "./TicketDetails";
 import { useClientContext } from "../hooks/useClientContext";
 import { useUnfinishedTicketsContext } from "../hooks/useUnfinishedTicketsContext";
 import { useEffect, useState } from "react";
-const InOrders = ({isFinishedTicket, order, orderContextIdx}) => {
+const InOrders = ({ isFinishedTicket, order, orderContextIdx }) => {
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
   const { client } = useClientContext();
-  const {unfinishedTickets, dispatch } = useUnfinishedTicketsContext();
+  const { unfinishedTickets, dispatch } = useUnfinishedTicketsContext();
 
-  useEffect(()=>{},[unfinishedTickets])
+  useEffect(() => {}, [unfinishedTickets]);
 
   const style = {
     position: "absolute",
@@ -25,35 +25,43 @@ const InOrders = ({isFinishedTicket, order, orderContextIdx}) => {
     border: "2px solid #000",
     boxShadow: 24,
     p: 4,
-    height:"80vh",
-    'overflow-y':"auto"
+    height: "80vh",
+    "overflow-y": "auto",
   };
 
   if (!client) {
-    console.log("here")
+    console.log("here");
     return <div>Loading...</div>; // Prevents rendering until data is available
   }
 
   return (
     <>
-      <div className="order-container" style={{"borderColor": isFinishedTicket? "greenyellow":"red"}}>
-        <h2> {client[order.clientId].name} </h2>
-        <p>
-          توقيت الاوردر <br /> {order.date}
-        </p>
-        <Button onClick={handleOpen}>افتح الاوردر</Button>
-        <Modal
-          open={open}
-          onClose={handleClose}
-          style={{"overflow-y":"auto"}}
-          aria-labelledby="modal-modal-title"
-          aria-describedby="modal-modal-description"
-        >
-          <Box sx={style}>
-              <TicketDetails isFinishedTicket={isFinishedTicket} orderContextIdx={orderContextIdx} order={order}/>
-          </Box>
-        </Modal>
-      </div>
+      
+      <button
+        dir="rtl"
+        onClick={handleOpen}
+        className="mb-4 sm:items-center items-start gap-5  !text-start !border-[2px] !bg-white border-[#e4e5e6] hover:border-[greenyellow] cursor-pointer !flex sm:flex-row flex-col  !p-4 sm:!justify-between !rounded w-full"
+      >
+        <div>
+          <h2> {client[order.clientId].name} </h2>
+          <p className="text-[#6c6f75]">{order.date}</p>
+        </div>
+      </button>
+      <Modal
+        open={open}
+        onClose={handleClose}
+        style={{ "overflow-y": "auto" }}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={style}>
+          <TicketDetails
+            isFinishedTicket={isFinishedTicket}
+            orderContextIdx={orderContextIdx}
+            order={order}
+          />
+        </Box>
+      </Modal>
     </>
   );
 };

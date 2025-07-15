@@ -35,7 +35,7 @@ const WorkerMainPage = () => {
         <ToggleButton value="out">خارج</ToggleButton>
       </ToggleButtonGroup>
       </div>
-      <div className="in-orders">
+      <div className="in-orders pt-3">
         <div className="orders-holder">
           {unfinishedTickets.inOrders && alignment ==="in" &&
           unfinishedTickets.inOrders.map((i, idx) => <InOrders  isFinishedTicket={false} order={i} orderContextIdx={idx} />)}

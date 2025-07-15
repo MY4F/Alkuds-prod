@@ -16,6 +16,7 @@ const OrderModal = ({ onClose, type, closeFun }) => {
   const [deliveryFees, setDeliveryFees] = useState(0);
   const { unfinishedTickets, dispatch } = useUnfinishedTicketsContext();
   const {user} = useUserContext()
+  const [password, setPassword] = useState("")
   const [tickets, setTickets] = useState([
     { ironName: "", radius: "", neededWeight: "", unitPrice: "" },
   ]);
@@ -35,7 +36,8 @@ const OrderModal = ({ onClose, type, closeFun }) => {
       ticket: tickets,
       type: type,
       deliveryFees: deliveryFees,
-      clientName: selectedClientName
+      clientName: selectedClientName,
+      password
     };
     try {
       const response = await fetch("/order/addOrder", {
@@ -52,22 +54,35 @@ const OrderModal = ({ onClose, type, closeFun }) => {
 
       const result = await response.json();
       if(response.ok){
-        console.log("hereeee")
-        await socket.emit("send_order_creation", {
-          message: "Order Printed Successfully",
-          room: "123",
-          order: result,
-        });
-        dispatch({type:"ADD_TICKET",payload: [result]})
+        if(!("exceededIronArr" in result)){
+          await socket.emit("send_order_creation", {
+            message: "Order Printed Successfully",
+            room: "123",
+            order: result,
+          });
+          dispatch({type:"ADD_TICKET",payload: [result]})
+          swal({
+            text: "تم انشاء طلب بنجاح",
+            icon: "success",
+          }).then(e=>{
+            setAdding(false)
+            closeFun()
+          });
+        }
+        else{
+          let errStr = ""
+          for(let i of result.exceededIronArr){
+            errStr += i
+          }
+          swal({
+            text: "لم يتم انشاء الاوردر لعدم وجود حديد كافي: " + errStr,
+            icon: "error",
+          }).then(e=>{
+            setAdding(false)
+            closeFun()
+          });
+        }
       }
-
-      swal({
-        text: "تم انشاء طلب بنجاح",
-        icon: "success",
-      }).then(e=>{
-        setAdding(false)
-        closeFun()
-      });
     } catch (error) {
       swal({
         text: "حدث خطأ ما برجاء المحاولة مرة اخرى",
@@ -121,6 +136,20 @@ const OrderModal = ({ onClose, type, closeFun }) => {
                   setDate(e.target.value);
                 }}
                 type="date"
+                className="w-full md:w-[300px]"
+              />
+            </div>
+          </div>
+          <div className="md:w-[33%] w-full flex justify-center">
+            <div className="flex flex-col gap-2 w-full max-w-[300px]">
+              <label className="text-center">كلمه السر لبضاعه اول الشهر </label>
+              <input
+                required
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                }}
+                type="password"
                 className="w-full md:w-[300px]"
               />
             </div>
