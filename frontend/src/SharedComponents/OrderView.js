@@ -139,7 +139,7 @@ const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
     //   "http://localhost:3000/print/purchasebill/" + order._id,
     //   "_blank"
     // );
-    window.open("https://alkuds-cd6a685335ea.herokuapp.com/print/"+ order._id,"_blank")
+    window.open("https://alkuds-cd6a685335ea.herokuapp.com/print/purchasebill/"+ order._id,"_blank")
     handleClose()
   };
   const handleCancelChangePrice = (e, idx) => {
