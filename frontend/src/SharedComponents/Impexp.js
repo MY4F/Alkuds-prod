@@ -15,12 +15,11 @@ import Paper from "@mui/material/Paper";
 import Seperator from "../components/Seperator";
 const DayExpenseRow = (props) => {
   const { data, client } = props;
-
+  let sign = data["sign"] || " "
   return (
     <>
       <div>
-        {data["notes"]}&nbsp; - &nbsp;{data["amount"]} &nbsp; - &nbsp;{" "}
-        {client[data["clientId"]].name}
+        {data["notes"]} &nbsp; - &nbsp; {client[data["clientId"]].name} &nbsp; - &nbsp; {data["amount"]} &nbsp; | &nbsp; {sign} &nbsp;
       </div>
     </>
   );
@@ -63,6 +62,7 @@ const Impexp = () => {
     return <div> Loading... </div>;
   }
 
+  // + - 900 - name - bank - note
   const getDailyData = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -149,10 +149,6 @@ const Impexp = () => {
                       <th className="text-center border-l-2 border-black p-2">
                         {" "}
                         نقديه{" "}
-                      </th>
-                      <th className="text-center border-l-2 border-black p-2">
-                        {" "}
-                        +/-{" "}
                       </th>
                     </tr>
                   </thead>

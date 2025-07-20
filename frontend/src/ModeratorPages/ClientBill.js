@@ -174,15 +174,25 @@ const ClientBill = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [previousBalance, setPreviousBalance] = useState(0);
+  const { user } = useUserContext();
+  const [ isAdmin, setIsAdmin ] = useState(false)
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
+  
+  useEffect(() => {
+    if (
+      user.user.msg.name === "Sobhy" ||
+      user.user.msg.name === "Ziad"
+    ) {
+      setIsAdmin(true)
+    }
+  }, []);
 
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(+event.target.value);
     setPage(0);
   };
-  const { user } = useUserContext();
   useEffect(() => {
     const getPreviousMonthBalance = async () => {};
     if (selectedClient !== "") getPreviousMonthBalance();
@@ -298,7 +308,38 @@ const ClientBill = () => {
               onChange={(e) => setTransactionMonth(e.target.value)}
             />
           </div>
-          <select
+          <input 
+            name="clientsList"
+            list="clients"
+            placeholder="ابحث ..."
+            className="w-full md:w-[300px]"
+            onChange={(e) => {
+              const selectedName = e.target.value;
+              const selectedClient = Object.values(client).find(c => c.name === selectedName);
+              console.log(selectedClient)
+              if(selectedClient){
+                console.log(selectedClient["clientId"])
+                setSelectedClient(selectedClient["clientId"]);
+              }
+            }}
+            type=""
+            required 
+          />
+          <datalist id="clients">
+              {client &&
+                [...Object.keys(client)].map((i, idx) => 
+                  {  
+                    return !client[i].isKudsPersonnel && (
+                      <option value={client[i].name}>
+                        {" "}
+                        {client[i].clientId}{" "}
+                      </option>
+                    )
+                  }
+                )
+              }
+          </datalist>
+          {/* <select
             onChange={(e) => {
               setClients(client[e.target.value].name);
               setSelectedClient(e.target.value);
@@ -322,7 +363,7 @@ const ClientBill = () => {
                   );
                 }
               })}
-          </select>
+          </select> */}
           <button type="submit" className="iron-btn search-btn w-auto">
             {" "}
             بحث{" "}
@@ -396,15 +437,15 @@ const ClientBill = () => {
                 </TableCell>
               </TableRow>
               <TableRow>
-                <TableCell colSpan={2}>اجمالي الربح </TableCell>
-                <TableCell
+                { isAdmin && <TableCell colSpan={2}>اجمالي الربح </TableCell>}
+               { isAdmin && <TableCell
                   style={{ direction: "ltr" }}
                   component="th"
                   scope="row"
                   align="right"
                 >
                   {totalProfit.toLocaleString()}
-                </TableCell>
+                </TableCell>}
               </TableRow>
               {user.user.msg.name === "Sobhy" && (
                 <TableRow>

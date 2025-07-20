@@ -39,6 +39,10 @@ const WalletSchema = new mongoose.Schema({
             type: String,
             default: ""
         },
+        sign: {
+            type: String,
+            default: " "
+        },
         date: {
             type: Date,
             default: new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' })

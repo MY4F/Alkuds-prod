@@ -25,10 +25,11 @@ const addTransaction = async (req, res) => {
                 {
                     $push: {
                         'transactions': {
-                            notes,
+                            "notes":   bankName + " - " + notes,
                             "amount":amount,
                             "clientId": clientId,
-                            "date": new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' })
+                            "date": new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' }),
+                            "sign":"+"
                         }
                     },
                     $inc: { totalAmount: amount } 
@@ -114,10 +115,11 @@ const addTransaction = async (req, res) => {
                 {
                     $push: {
                         'transactions': {
-                            notes,
+                            "notes":   bankName + " - " + notes,
                             "amount":amount,
                             "clientId": clientId,
-                            "date": new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' })
+                            "date": new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' }),
+                            "sign":"-"
                         }
                     },
                     $inc: { totalAmount: -amount } 
@@ -196,6 +198,47 @@ const addTransaction = async (req, res) => {
                     returnDocument: 'after' 
                 } 
             )
+            // newTransaction = await Wallet.findOneAndUpdate(
+            //     {
+            //         bankName:'اكراميات'
+            //     },
+            //     {
+            //         $push: {
+            //             'transactions': {
+            //                 'notes':"اكراميه - "+notes,
+            //                 "amount":amount,
+            //                 "clientId": clientId,
+            //                 "date": new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' })
+            //             }
+            //         },
+            //         $inc: { totalAmount: amount } 
+            //     },
+            //     {
+            //         returnDocument: 'after'
+            //     }
+            // )
+
+            newTransaction = await Wallet.findOneAndUpdate(
+                {
+                    bankName:'نقدي'
+                },
+                {
+                    $push: {
+                        'transactions': {
+                            "notes":     bankName + " - " + notes,
+                            "amount":amount,
+                            "clientId": clientId,
+                            "date": new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' }),
+                            "sign":"-"
+                        }
+                    },
+                    $inc: { totalAmount: amount } 
+                },
+                {
+                    returnDocument: 'after'
+                }
+            )
+
         }
         else if(type ==="خصم"){
             clientUpdate = await Client.findOneAndUpdate({clientId},
@@ -210,6 +253,25 @@ const addTransaction = async (req, res) => {
                 { 
                     returnDocument: 'after' 
                 } 
+            )
+            newTransaction = await Wallet.findOneAndUpdate(
+                {
+                    bankName:'خصومات'
+                },
+                {
+                    $push: {
+                        'transactions': {
+                            'notes':"خصم - "+notes,
+                            "amount":amount,
+                            "clientId": clientId,
+                            "date": new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' })
+                        }
+                    },
+                    $inc: { totalAmount: amount } 
+                },
+                {
+                    returnDocument: 'after'
+                }
             )
         }
         else if(type ==="صرف شيك"){
@@ -331,9 +393,10 @@ const addCompanyExpenses = async(req,res)=>{
                         $push: {
                             'transactions': { 
                                 amount, 
-                                notes,
+                                "notes" :    bankName + " - " + notes,
                                 clientId,
-                                type
+                                type,
+                                "sign":"+"
                             }
                         },
                         $inc: { totalAmount: amount } 
@@ -371,9 +434,10 @@ const addCompanyExpenses = async(req,res)=>{
                         $push: {
                             'transactions': { 
                                 amount, 
-                                notes,
+                                'notes' :    bankName + " - " + notes,
                                 clientId,
-                                type
+                                type,
+                                "sign":"-"
                             }
                         },
                         $inc: { totalAmount: -amount } 
