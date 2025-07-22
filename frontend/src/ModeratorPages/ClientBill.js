@@ -35,7 +35,7 @@ const Row = (props) => {
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
         </TableCell>
-        <TableCell>
+        {/* <TableCell>
           <IconButton
             aria-label="expand row"
             size="small"
@@ -47,7 +47,7 @@ const Row = (props) => {
               <KeyboardArrowDownIcon />
             )}
           </IconButton>
-        </TableCell>
+        </TableCell> */}
         <TableCell component="th" scope="row" align="right">
           {row.type === "in" ? "وارد" : "خارج"}
         </TableCell>
@@ -110,7 +110,7 @@ const Row = (props) => {
             </Box>
           </Collapse>
         </TableCell>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+        {/* <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
           <Collapse in={openStatement} timeout="auto" unmountOnExit>
             <Box sx={{ margin: 1 }}>
               <Typography
@@ -153,7 +153,7 @@ const Row = (props) => {
               </Table>
             </Box>
           </Collapse>
-        </TableCell>
+        </TableCell> */}
       </TableRow>
     </Fragment>
   );
@@ -198,9 +198,34 @@ const ClientBill = () => {
     if (selectedClient !== "") getPreviousMonthBalance();
   }, [clients, rows, isLoading, client, selectedClient]);
 
+  function formatISODateToReadable(isoString) {
+    const dateObj = new Date(isoString);
+  
+    // Get date components
+    const month = dateObj.getMonth() + 1; // Months are 0-indexed, so add 1
+    const day = dateObj.getDate();
+    const year = dateObj.getFullYear();
+  
+    // Get time components
+    let hours = dateObj.getHours();
+    const minutes = dateObj.getMinutes();
+    const seconds = dateObj.getSeconds();
+  
+    // Determine AM/PM and adjust hours for 12-hour format
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12; // The hour '0' should be '12'
+  
+    // Pad single-digit minutes/seconds with a leading zero if needed
+    const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
+    const formattedSeconds = seconds < 10 ? '0' + seconds : seconds;
+  
+    return `${month}-${day}-${year} ${hours}:${formattedMinutes}:${formattedSeconds} ${ampm}`;
+  }
+
   const columns = [
     { id: "id", label: "رقم المستند", minWidth: 170 },
-    { id: "date", label: "التاريخ", minWidth: 100 },
+    { id: "date", label: "التاريخ", minWidth: 100, format: (value) => formatISODateToReadable(value) },
     {
       id: "bankName",
       label: "جهه الدفع",
@@ -376,7 +401,7 @@ const ClientBill = () => {
             <TableHead>
               <TableRow>
                 <TableCell align="right">طلبيات</TableCell>
-                <TableCell align="right">مدفوعات</TableCell>
+                {/* <TableCell align="right">مدفوعات</TableCell> */}
 
                 <TableCell align="right">النوع</TableCell>
                 <TableCell align="right">الحاله</TableCell>
@@ -492,7 +517,8 @@ const ClientBill = () => {
                             <TableCell key={column.id} align={column.align}>
                               {column.format && typeof value === "number"
                                 ? column.format(value)
-                                : value}
+                                : column.id === "date" ? column.format(value):value}
+                              
                             </TableCell>
                           );
                         })}

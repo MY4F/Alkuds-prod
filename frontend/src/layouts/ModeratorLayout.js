@@ -102,6 +102,9 @@ export default function ModeratorLayout() {
                 {" "}
                 الرئيسيه{" "}
               </NavLink>
+              <NavLink className="text-center" to={"moneyvault"}>
+                الخزنه
+              </NavLink>
               <NavLink className="text-center" to={"/up/impexp"}>
                 جرد
               </NavLink>
@@ -114,9 +117,6 @@ export default function ModeratorLayout() {
               </NavLink>
               <NavLink className="text-center" to={"settings"}>
                 اعدادات
-              </NavLink>
-              <NavLink className="text-center" to={"moneyvault"}>
-                الخزنه
               </NavLink>
 
               <button onClick={handleLogout} className="iron-btn logout">

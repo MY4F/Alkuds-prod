@@ -16,11 +16,11 @@ export const WalletReducer = (state, action) => {
         wallet: [action.payload, ...state.wallet],
       };
     case "UPDATE_WALLET":
-      let newWallet = state.wallet
-      console.log(state.wallet)
-      newWallet[action.payload.bankName] = action.payload
       return {
-        wallet: newWallet
+        wallet: {
+          ...state.wallet,
+          [action.payload.bankName]: action.payload, // returns a new object reference
+        },
       };
     case "DELETE_TICKET":
       return {

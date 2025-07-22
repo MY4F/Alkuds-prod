@@ -39,7 +39,19 @@ const WalletSchema = new mongoose.Schema({
             type: String,
             default: ""
         },
+        isDisbursed: {
+            type: Boolean,
+            default: false
+        },
+        disbursementDate: {
+            type: String,
+            default: " "
+        },
         sign: {
+            type: String,
+            default: " "
+        },
+        receiverName: {
             type: String,
             default: " "
         },

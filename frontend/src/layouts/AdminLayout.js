@@ -134,6 +134,11 @@ export default function AdminLayout() {
                 {" "}
                 الرئيسيه{" "}
               </NavLink>
+
+              <NavLink className="text-center" to={"moneyvault"}>
+                الخزنه
+              </NavLink>
+
               <NavLink className="text-center" to={"impexp"}>
                 جرد
               </NavLink>
@@ -150,10 +155,6 @@ export default function AdminLayout() {
               </NavLink>
               <NavLink className="text-center" to={"personal-account-statement"}>
                 كشف حسابات شخصية
-              </NavLink>
-
-              <NavLink className="text-center" to={"moneyvault"}>
-                الخزنه
               </NavLink>
 
               <NavLink className="text-center" to={"profitreports"}>

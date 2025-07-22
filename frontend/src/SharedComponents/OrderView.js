@@ -15,7 +15,7 @@ const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
     order.ticket.map((ticket) => ticket.unitPrice)
   );
   const [orderTickets, setOrderTickets] = useState(order.ticket)
-  const [firstWeight, setFirstWeight] = useState(0);
+  const [firstWeight, setFirstWeight] = useState(order.firstWeight.weight);
   const [firstTime, setFirstTime] = useState(0);
   const [firstDate, setFirstDate] = useState(0);
   const [weight, setWeight] = useState(0);
@@ -87,14 +87,14 @@ const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
         "Content-Type": "application/json",
           'Authorization': `Bearer ${user.token}`
       },
-      body:JSON.stringify({orderId: order._id,ticket:newOrder.ticket})
+      body:JSON.stringify({orderId: order._id,ticket:newOrder.ticket,"ticketId":ticketId})
     })
 
     const ticketUpdate = await ticketUpdateFetch.json()
 
     if(ticketUpdateFetch.ok){
       console.log("Ticket Updated: ",ticketUpdate)
-    setIsLoading(false)
+      setIsLoading(false)
     }
 
   }
@@ -130,7 +130,7 @@ const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
     //     order._id,
     //   "_blank"  
     // );
-    window.open("https://alkuds-cd6a685335ea.herokuapp.com/print/"+  isFinishedTicket.toString() +  "/" +order._id,"_blank")
+    window.open("https://alkuds-cd6a685335ea.herokuapp.com/print/"+ isFinishedTicket.toString() + "/" + order._id,"_blank")
   };
 
   const handlePurchaseBill = (e) => {

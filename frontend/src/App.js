@@ -269,6 +269,10 @@ const router = createBrowserRouter([
         path: "customersbalance",
         element: <CustomersBalance />,
       },
+      {
+        path: "clientbill",
+        element: <ClientBill />,
+      },
     ],
   },
 ]);

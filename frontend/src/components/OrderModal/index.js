@@ -112,6 +112,7 @@ const OrderModal = ({ onClose, type, closeFun }) => {
                 className="w-full md:w-[300px]"
                 onChange={(e) => {
                   const selectedName = e.target.value;
+                  setSelectedClientName(selectedName)
                   const selectedClient = Object.values(client).find(c => c.name === selectedName);
                   if(selectedClient){
                     console.log(selectedClient["clientId"])

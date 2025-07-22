@@ -161,23 +161,26 @@ const getSpecificTicket = async (req, res) => {
 
 const EditOrderTicket = async (req, res) => {
   const { orderId, ticket, ticketId } = req.body;
-  console.log("edelo eedeee");
+  console.log(ticket, ticketId);
   const orderTickets = await Order.findById(orderId);
-  let ironData = await Iron.findOne({
-    $and: [
-      { name: orderTickets.ticket[ticketId].ironName },
-      { radius: orderTickets.ticket[ticketId].radius },
-    ],
-  });
-  let ironFullExistWeight = 0;
-  ironData?.costPerWeight?.map((el) => {
-    ironFullExistWeight += el.weight;
-  });
-  if (ironFullExistWeight < ticket[ticketId].neededWeight) {
-    return res.status(400).json({
-      error: "Not enough data of that iron available",
-      availableWeight: ironFullExistWeight,
+  if(orderTickets.type === 'out'){
+    let ironData = await Iron.findOne({
+      $and: [
+        { name: orderTickets.ticket[ticketId].ironName },
+        { radius: orderTickets.ticket[ticketId].radius },
+      ],
     });
+    let ironFullExistWeight = 0;
+    ironData?.costPerWeight?.map((el) => {
+      ironFullExistWeight += el.weight;
+    });
+    if (ironFullExistWeight < ticket[ticketId].neededWeight) {
+      console.log("here in 400")
+      return res.status(400).json({
+        error: "Not enough data of that iron available",
+        availableWeight: ironFullExistWeight,
+      });
+    }
   }
   let newOrder;
   try {
@@ -187,7 +190,7 @@ const EditOrderTicket = async (req, res) => {
     let inOrders = [],
       outOrders = [];
     let orders;
-    orders = await Order.find({ state: "progress" });
+    orders = await Order.find({ state: "جاري التحميل" });
     for (let x of orders) {
       if (x.type === "in") {
         inOrders.push(x);
@@ -260,6 +263,7 @@ const addOrder = async (req, res) => {
     clientName,
     password
   } = req.body;
+  console.log("clientId",clientId,"clientName",clientName)
   let newOrder = null;
   try {
     if(type === "out"){
@@ -508,10 +512,12 @@ const OrderFinishState = async (req, res) => {
       let inClientOrders = await Order.find({
         $and: [
           { clientId: updatedOrder.clientId },
-          { type: "in" },
+          
           { state: "جاري انتظار الدفع" },
         ],
       }).sort({ date: 1 });
+      // -639,000	
+      // 1,141,000
       let remainingTotalPrice = totalPrice;
       let isOutOrders = false;
       for (let i of inClientOrders) {
@@ -526,6 +532,7 @@ const OrderFinishState = async (req, res) => {
         );
         let deltaTotalPriceAndInOrderPrice =
           remainingTotalPrice - (i.realTotalPrice - i.totalPaid);
+          // 502,000
         if (deltaTotalPriceAndInOrderPrice >= 0) {
           client.balance += deltaTotalPriceAndInOrderPrice;
           console.log("client.balance after", client.balance);
@@ -560,18 +567,18 @@ const OrderFinishState = async (req, res) => {
       }
       // remaining total current order price = 241,000
       //                      client balance = -150,000
-      if (isOutOrders) {
+      if (isOutOrders && inClientOrders.length>0) {  
         newUpdatedOrder = await Order.findOneAndUpdate(
           { _id: orderId },
           {
             ticket: orderTickets,
             totalProfit: totalProfitForOrder,
             realTotalPrice: totalPrice + updatedOrder.deliveryFees,
-            state: "منتهي",
-            totalPaid: totalPrice + updatedOrder.deliveryFees,
+            state: "جاري انتظار الدفع",
+            totalPaid: remainingTotalPrice>=0 ? totalPrice - remainingTotalPrice :0 ,
             $push: {
               statement: {
-                paidAmount: totalPrice + updatedOrder.deliveryFees,
+                paidAmount: remainingTotalPrice>=0 ? totalPrice - remainingTotalPrice :0,
                 clientId: updatedOrder.clientId,
                 bankName: "تم سحبه تلقائي من رصيد العميل",
                 date: new Date().toLocaleString("en-EG", {
@@ -583,7 +590,7 @@ const OrderFinishState = async (req, res) => {
           },
           { returnDocument: "after" }
         );
-      } else {
+      } else if (!isOutOrders) {
         if (client.balance + (totalPrice + updatedOrder.deliveryFees) <= 0) {
           newUpdatedOrder = await Order.findOneAndUpdate(
             { _id: orderId },
@@ -636,7 +643,8 @@ const OrderFinishState = async (req, res) => {
           );
         }
       }
-    } else if (client.balance >= 0) {
+    } 
+    else if (client.balance >= 0) {
       newUpdatedOrder = await Order.findOneAndUpdate(
         { _id: orderId },
         {
@@ -662,7 +670,8 @@ const OrderFinishState = async (req, res) => {
       },
       { returnDocument: "after" }
     );
-  } else {
+  } 
+  else {
     let realTotalPrice = 0,
       ironId = "";
     for (let i = 0; i < orderTickets.length; i++) {
@@ -697,45 +706,135 @@ const OrderFinishState = async (req, res) => {
       realTotalPrice += orderTickets[i].realTotalPrice;
     }
 
-        if(client.balance<=0){
-            newUpdatedOrder = await Order.findOneAndUpdate({ _id: orderId }, { ticket: orderTickets, realTotalPrice, state : "جاري انتظار الدفع"}, { returnDocument: 'after' })
+    if(client.balance>0){
+      // 411,000
+      //690,000
+      let outClientOrders = await Order.find({
+        $and: [
+          { clientId: updatedOrder.clientId },
+          { state: "جاري انتظار الدفع" },
+        ],
+      }).sort({ date: 1 });
+      let remainingTotalPrice = realTotalPrice;
+      //690,000
+      let isInOrders = false;
+      for (let i of outClientOrders) {
+        isInOrders = true;
+        console.log(
+          "remainingTotalPrice",
+          remainingTotalPrice,
+          "(i.realTotalPrice-i.paidAmount)",
+          i.realTotalPrice - i.totalPaid
+        );
+        let deltaTotalPriceAndInOrderPrice =
+          remainingTotalPrice - (i.realTotalPrice - i.totalPaid);
+          //279,000
+        if (deltaTotalPriceAndInOrderPrice >= 0) {
+          client.balance -= (i.realTotalPrice - i.totalPaid);
+          console.log("client.balance after", client.balance);
+          i.state = "منتهي";
+          i.statement.push({
+            paidAmount: i.realTotalPrice - i.totalPaid,
+            clientId: i.clientId,
+            bankName: "تم سحبه تلقائي من رصيد العميل",
+            date: new Date().toLocaleString("en-EG", {
+              timeZone: "Africa/Cairo",
+            }),
+            walletTransactionId: "لا يوجد",
+          });
+          i.totalPaid = i.realTotalPrice;
+          remainingTotalPrice = deltaTotalPriceAndInOrderPrice;
+          await i.save();
+        } else {
+          i.totalPaid += remainingTotalPrice + updatedOrder.deliveryFees;
+          i.statement.push({
+            paidAmount: remainingTotalPrice,
+            clientId: i.clientId,
+            bankName: "تم سحبه تلقائي من رصيد العميل",
+            date: new Date().toLocaleString("en-EG", {
+              timeZone: "Africa/Cairo",
+            }),
+            walletTransactionId: "لا يوجد",
+          });
+          remainingTotalPrice = 0;
+          await i.save();
+          break;
         }
-        else if (client.balance>0 && client.balance + (-realTotalPrice) <0 ){
-            newUpdatedOrder = await Order.findOneAndUpdate({ _id: orderId }, { ticket: orderTickets, realTotalPrice, state : "جاري انتظار الدفع" , totalPaid : client.balance, 
-                $push:{ statement: {
-                    "paidAmount":client.balance,
-                    "clientId": updatedOrder.clientId,
-                    "bankName" : "تم سحبه تلقائي من رصيد العميل عند الشركه",
-                    "date": new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' }),
-                    "walletTransactionId" : "لا يوجد"
-                }
-             }}, { returnDocument: 'after' })
-        }
-        else if(client.balance>0 && client.balance + (-realTotalPrice) >=0 ){
-            newUpdatedOrder = await Order.findOneAndUpdate({ _id: orderId }, { ticket: orderTickets, realTotalPrice, state : "منتهي" , totalPaid : realTotalPrice, $push:{ statement: {
-                "paidAmount":realTotalPrice,
+      }
+
+      if (isInOrders && outClientOrders.length>0) {  
+        newUpdatedOrder = await Order.findOneAndUpdate(
+          { _id: orderId },
+          {
+            ticket: orderTickets,
+            realTotalPrice: realTotalPrice + updatedOrder.deliveryFees,
+            state: "جاري انتظار الدفع",
+            totalPaid: remainingTotalPrice>=0 ? totalPrice - remainingTotalPrice :0 ,
+            $push: {
+              statement: {
+                paidAmount: remainingTotalPrice>=0 ?totalPrice - remainingTotalPrice : 0,
+                clientId: updatedOrder.clientId,
+                bankName: "تم سحبه تلقائي من رصيد العميل",
+                date: new Date().toLocaleString("en-EG", {
+                  timeZone: "Africa/Cairo",
+                }),
+                walletTransactionId: "لا يوجد",
+              },
+            },
+          },
+          { returnDocument: "after" }
+        );
+      } else if (!isInOrders) {
+        if (client.balance + (-realTotalPrice) <0) {
+          newUpdatedOrder = await Order.findOneAndUpdate({ _id: orderId }, { ticket: orderTickets, realTotalPrice, state : "جاري انتظار الدفع" , totalPaid : client.balance, 
+            $push:{ statement: {
+                "paidAmount":client.balance,
                 "clientId": updatedOrder.clientId,
                 "bankName" : "تم سحبه تلقائي من رصيد العميل عند الشركه",
                 "date": new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' }),
                 "walletTransactionId" : "لا يوجد"
             }
-         }}, { returnDocument: 'after' })
-        }       
-        balanceUpdate = await Client.findOneAndUpdate( 
-            {clientId:updatedOrder.clientId},
-            {
-                $inc: { balance: -realTotalPrice },
-                $push: {
-                    'transactionsHistory': { amount:realTotalPrice, type : "in"}
-                },
-                
-            },
-            {
-                returnDocument: 'after'
+          }}, { returnDocument: 'after' })
+
+        } else if (
+          client.balance + (-realTotalPrice) >=0
+        ) {
+          console.log("client balance", client.balance);
+          console.log("remainingTotalPrice", remainingTotalPrice);
+          console.log("addedPaidPrice", addedPaidPrice);
+          newUpdatedOrder = await Order.findOneAndUpdate({ _id: orderId }, { ticket: orderTickets, realTotalPrice, state : "منتهي" , totalPaid : realTotalPrice, $push:{ statement: {
+              "paidAmount":realTotalPrice,
+              "clientId": updatedOrder.clientId,
+              "bankName" : "تم سحبه تلقائي من رصيد العميل عند الشركه",
+              "date": new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' }),
+              "walletTransactionId" : "لا يوجد"
             }
-        )
-        console.log(balanceUpdate)
+          }}, { returnDocument: 'after' })
+         
         
+        }
+      }
+
+    }
+    else{
+      newUpdatedOrder = await Order.findOneAndUpdate({ _id: orderId }, { ticket: orderTickets, realTotalPrice, state : "جاري انتظار الدفع"}, { returnDocument: 'after' })
+
+    }   
+    balanceUpdate = await Client.findOneAndUpdate( 
+        {clientId:updatedOrder.clientId},
+        {
+            $inc: { balance: -realTotalPrice },
+            $push: {
+                'transactionsHistory': { amount:realTotalPrice, type : "in"}
+            },
+            
+        },
+        {
+            returnDocument: 'after'
+        }
+    )
+    console.log(balanceUpdate)
+    
     }
     }
     catch(err){

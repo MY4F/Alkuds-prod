@@ -34,6 +34,9 @@ export default function OwnerLayout() {
                 {" "}
                 الرئيسيه{" "}
               </NavLink>
+              <NavLink className="text-center" to={"moneyvault"}>
+                الخزنه
+              </NavLink>
               <NavLink className="text-center" to={"impexp"}>
                 جرد
               </NavLink>
@@ -41,17 +44,15 @@ export default function OwnerLayout() {
                 يوميه
               </NavLink>
 
-              <NavLink className="text-center" to={"moneyvault"}>
-                الخزنه
-              </NavLink>
-
-              <NavLink className="text-center" to={"profitreports"}>
-                التقارير
+              <NavLink className="text-center" to={"clientbill"}>
+                كشف الحسابات
               </NavLink>
               <NavLink className="text-center" to={"customersbalance"}>
                 رصيد العملاء
               </NavLink>
-
+              <NavLink className="text-center" to={"profitreports"}>
+                التقارير
+              </NavLink>
               <button onClick={handleLogout} className="iron-btn logout">
                 {" "}
                 تسجيل خروج{" "}

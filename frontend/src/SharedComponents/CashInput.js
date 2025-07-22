@@ -9,13 +9,15 @@ import { useUnfinishedTicketsContext } from "../hooks/useUnfinishedTicketsContex
 import { useFinishedTicketsContext } from "../hooks/useFinishedTicketsContext";
 import { useUserContext } from "../hooks/useUserContext";
 const CashInput = (props) => {
-  const { isKudsPersonnel } = props
+  const { isKudsPersonnel, isCheque } = props
   const [selectedClient, setSelectedClient] = useState("اختر عميل");
   const [selectedType, setSelectedType] = useState("نوع العمليه");
   const [notes, setNotes] = useState();
   const [amount, setAmount] = useState("");
   const { socket } = useSocketContext()
   const [selectedBank, setSelectedBank] = useState("اختر البنك");
+  const [selectedCheque, setSelectedCheque] = useState("");
+  const [selectedChequeName, setSelectedChequeName] = useState();
   const { client, dispatch: clientUpdate } = useClientContext();
   const { wallet, dispatch: walletUpdate } = useWalletContext();
   const {user} = useUserContext()
@@ -23,8 +25,14 @@ const CashInput = (props) => {
   const { unfinishedTickets, dispatch: unfinishedTicketsUpdate } = useUnfinishedTicketsContext()
   const { finishedTickets , dispatch: finishedTicketsUpdate } = useFinishedTicketsContext()
   const [isLoading,setIsLoading] = useState(false)
+  const [cheques, setCheques] = useState([])
   
-  useEffect(()=>{},[wallet, awaitForPaymentTickets,client,clientUpdate,walletUpdate,awaitForPaymentTicketsUpdate])
+  useEffect(()=>{
+    if(wallet){
+      let unDisbursedCheques = wallet["شيكات"].transactions.filter(tx => tx.isDisbursed === false);
+      setCheques(unDisbursedCheques)
+    }
+  },[wallet, awaitForPaymentTickets,client,clientUpdate,walletUpdate,awaitForPaymentTicketsUpdate, selectedChequeName])
   
   if(client == null || wallet == null){
     return <div> Loading....</div>
@@ -74,13 +82,15 @@ const CashInput = (props) => {
     }
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e, isCheque) => {
     e.preventDefault()
     setIsLoading(true)
     let newTransaction = {
-        amount, notes,"orderId":" ","type" : selectedType, "clientId":selectedClient, "bankName":selectedBank 
+        amount, notes,"orderId":" ","type" : selectedType, "clientId":selectedClient, "bankName":selectedBank
       }
-      const addTransactionFetch = await fetch('/wallet/addTransaction',
+      if (isCheque)
+        newTransaction["chequeId"]= selectedCheque
+      const addTransactionFetch = await fetch(!isCheque?'/wallet/addTransaction':'/wallet/addChequeTransaction' ,
         {
           method:"POST",
           body: JSON.stringify(newTransaction),
@@ -151,7 +161,7 @@ const CashInput = (props) => {
         handleKudsPersonnel(e)
       }
       else{
-        handleSubmit(e)
+        handleSubmit(e,isCheque)
       }
     }}>
       {!isLoading ? <div
@@ -171,13 +181,13 @@ const CashInput = (props) => {
               <option value="">نوع العمليه</option>
               <option value="استلام من">استلام من</option>
               <option value="تحويل الي">تحويل الي</option>
-              <option value="صرف شيك">صرف شيك</option>
-              { !isKudsPersonnel &&<option value="اكراميه">اكراميه</option>}
-              {!isKudsPersonnel && <option value="خصم">خصم</option>}
+              { isCheque && <option value="صرف شيك">صرف شيك</option>}
+              { !isKudsPersonnel && !isCheque &&<option value="اكراميه">اكراميه</option>}
+              {!isKudsPersonnel && !isCheque &&<option value="خصم">خصم</option>}
             </select>
           </div>
         </div>
-        <div className="md:w-[50%] w-full flex justify-center">
+       { (isCheque && selectedType !== 'صرف شيك') && <div className="md:w-[50%] w-full flex justify-center">
           <div className="flex flex-col gap-2 w-full max-w-[300px]">
             <label className="text-center">أسم العميل</label>
               
@@ -209,8 +219,34 @@ const CashInput = (props) => {
                       })}
                 </datalist>
           </div>
-        </div>
-        <div className="md:w-[50%] w-full flex justify-center">
+        </div>}
+
+       {(isCheque && (selectedType === 'تحويل الي' || selectedType === 'صرف شيك'))? 
+       <div className="md:w-[50%] w-full flex justify-center">
+        <div className="flex flex-col gap-2 w-full max-w-[300px]">
+          <label className="text-center">الشيكات</label>
+          <select
+                value={selectedChequeName}
+                onChange={(e) => {
+                  let selectedId = e.target.value.split('-|-')[0]
+                  let selectedAmount = e.target.value.split('-|-')[1]
+                  let selectedName = e.target.value.split('-|-')[2]
+                  console.log(selectedId,selectedAmount,selectedName)
+                  setSelectedChequeName(e.target.value)
+                  setSelectedCheque(selectedId);
+                  setAmount(parseInt(selectedAmount))
+                }}
+              >
+                <option value="اختر الشيك">اختر من الشيكات</option>
+                {cheques &&
+                cheques.map((i, idx) => (
+                    <option value={i._id.toString()+'-|-'+i.amount.toString()+"-|-"+ client[i.clientId].name}> {client[i.clientId].name} {i.amount} </option>
+                  ))}
+              </select>
+        </div> 
+       </div>
+       :
+       <div className="md:w-[50%] w-full flex justify-center">
           <div className="flex flex-col gap-2 w-full max-w-[300px]">
             <label className="text-center">المبلغ</label>
             <input
@@ -223,8 +259,8 @@ const CashInput = (props) => {
               }}
             />
           </div>
-        </div>
-        <div className="md:w-[50%] w-full flex justify-center">
+        </div>}
+        { ((isCheque && selectedType !== 'تحويل الي' && selectedType !== 'استلام من' ) || !isCheque) && <div className="md:w-[50%] w-full flex justify-center">
           <div className="flex flex-col gap-2 w-full max-w-[300px]">
             <label className="text-center">البنك</label>
             <select
@@ -240,7 +276,7 @@ const CashInput = (props) => {
                 ))}
             </select>
           </div>
-        </div>
+        </div>}
         <div className="md:w-[50%] w-full flex justify-center">
           <div className="flex flex-col gap-2 w-full max-w-[300px]">
             <label className="text-center">ملاحظات</label>

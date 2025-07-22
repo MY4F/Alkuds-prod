@@ -71,7 +71,7 @@ const Row = (props) => {
                           {transactionRow.orderId}
                         </TableCell>
                         <TableCell align="right" component="th" scope="row">
-                          {transactionRow.type === "in" ? "وارد" : "خارج"}
+                          {transactionRow.type === "in" ? "استلام من" : "تحويل الي"}
                         </TableCell>
                         <TableCell align="right" component="th" scope="row">
                           {transactionRow.notes}
@@ -101,10 +101,13 @@ const MoneyVault = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [open, setOpen] = useState(false);
   const [open2, setOpen2] = useState(false);
+  const [open3, setOpen3] = useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
   const handleOpen2 = () => setOpen2(true);
   const handleClose2 = () => setOpen2(false);
+  const handleOpen3 = () => setOpen3(true);
+  const handleClose3 = () => setOpen3(false);
   const { client } = useClientContext();
   const { wallet, dispatch } = useWalletContext();
   const [rows, setRows] = useState([]);
@@ -120,7 +123,6 @@ const MoneyVault = () => {
         let transactionObj,
           transactionsArr = [];
         for (let j of wallet[i].transactions) {
-          console.log(j);
           transactionObj = {
             clientName: client[j.clientId].name,
             orderId: j.orderId,
@@ -145,7 +147,7 @@ const MoneyVault = () => {
       setFilteredRows([...walletsArr]);
       setIsLoading(false);
     }
-  }, [wallet, dispatch]);
+  }, [wallet, dispatch,]);
 
   if (!client || !wallet) {
     return <div> Loading.... </div>;
@@ -213,6 +215,15 @@ const MoneyVault = () => {
         >
           اضافه شخصيه او نقديه ماليه
         </Button>
+
+        <Button
+          style={{ width: "30%", background: "black", color: "white" }}
+          className="cash-btn"
+          onClick={handleOpen3}
+        >
+          شيكات
+        </Button>
+
       </div>
       <Modal
         open={open}
@@ -222,7 +233,7 @@ const MoneyVault = () => {
         aria-describedby="modal-modal-description"
       >
         <Box sx={style}>
-          <CashInput isKudsPersonnel={false} />
+          <CashInput isKudsPersonnel={false} isCheque={false} />
         </Box>
       </Modal>
 
@@ -234,7 +245,20 @@ const MoneyVault = () => {
         aria-describedby="modal-modal-description"
       >
         <Box sx={style}>
-          <CashInput isKudsPersonnel={true} />
+          <CashInput isKudsPersonnel={false} isCheque={false} />
+        </Box>
+      </Modal>
+
+
+      <Modal
+        open={open3}
+        onClose={handleClose3}
+        style={{ "overflow-y": "auto" }}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={style}>
+          <CashInput isKudsPersonnel={false} isCheque={true} />
         </Box>
       </Modal>
 
