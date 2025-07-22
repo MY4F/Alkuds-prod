@@ -1,6 +1,10 @@
 const User = require('../models/user');
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken');
+const { resetClients } = require('../controllers/clients');
+const { resetAllIronArray } = require('../controllers/irons');
+const { resetAllBanks } = require('../controllers/wallets');
+const { deleteOrders } = require('../controllers/order');
 
 const createToken = (_id) => {
     return jwt.sign({ _id }, process.env.SECRET, { expiresIn: '3d' })
@@ -48,7 +52,22 @@ const Register = async(req,res) =>{
     }
 }
 
+const ResetSystem = async(req,res)=>{
+    let result;
+    try{
+        await resetClients()
+        await resetAllIronArray()
+        await resetAllBanks()
+        await deleteOrders()
+    }
+    catch(err){
+        console.log(err)
+    }
+    res.json({"state":"done"})
+}
+
 module.exports = {
     Login,
-    Register
+    Register,
+    ResetSystem
 }

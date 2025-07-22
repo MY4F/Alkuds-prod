@@ -118,6 +118,9 @@ export default function ModeratorLayout() {
               <NavLink className="text-center" to={"settings"}>
                 اعدادات
               </NavLink>
+              <NavLink className="text-center" to={"customersbalance"}>
+                رصيد العملاء
+              </NavLink>
 
               <button onClick={handleLogout} className="iron-btn logout">
                 {" "}

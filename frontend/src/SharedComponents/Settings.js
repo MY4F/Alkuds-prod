@@ -1,3 +1,4 @@
+import { useUserContext } from "../hooks/useUserContext";
 import Seperator from "../components/Seperator";
 import React, { useState } from "react";
 import swal from "sweetalert";
@@ -7,6 +8,7 @@ const Settings = () => {
   const [clientName, setClientName] = useState("");
   const [clientAddress, setClientAddress] = useState("");
   const [clientType, setClientType] = useState("");
+  const {user} = useUserContext()
 
   const handleClientAdd = async (e) => {
     e.preventDefault();
@@ -20,6 +22,7 @@ const Settings = () => {
       body: JSON.stringify(obj),
       headers: {
         "Content-Type": "application/json",
+        'Authorization': `Bearer ${user.token}`
       },
     });
     const json = await response.json();

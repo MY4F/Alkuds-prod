@@ -20,19 +20,17 @@ const addClients = async (req , res) => {
     const { name,address, clientId, isFactory} = req.body
     let newClient, id;
     try{
-        id = await User.findById('67e8754822c838b9188ccae0')
+        const latestDoc = await Client.find().sort({ _id: -1 }).limit(1)
+        let newId = parseInt(latestDoc[0].clientId) + 1
         newClient = new Client(
             {
                 name,
                 address,
                 ticketsIds:[],
-                clientId: id["ids"].toString(),
+                clientId: newId.toString(),
                 isFactory:isFactory === 'مورد' ? true:false
             }
         )
-        id.ids += 1
-        await id.save()
-
         newClient.save()
     }
     catch(err){
@@ -47,6 +45,17 @@ const updateClientsInfo = (req , res) => {
     })
 
 }
+
+const resetClients = async(req,res)=>{
+    let result
+    try{
+          result = await Client.updateMany({},{balance:0 , "$set":{transactionsHistory:[], ticketsIds:[], purchasingNotes:[]}})
+    }
+    catch(err){
+        console.log(err)
+    }
+    return result
+}
 module.exports = {
-    getClientsInfo , addClients , updateClientsInfo
+    getClientsInfo , addClients , updateClientsInfo, resetClients
 }

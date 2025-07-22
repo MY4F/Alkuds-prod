@@ -193,6 +193,10 @@ const router = createBrowserRouter([
         path: "settings",
         element: <Settings />,
       },
+      {
+        path: "customersbalance",
+        element: <CustomersBalance />,
+      }
     ],
   },
   {
@@ -235,6 +239,10 @@ const router = createBrowserRouter([
         path: "profitreports",
         element: <ProfitReport />,
       },
+      {
+        path: "customersbalance",
+        element: <CustomersBalance />,
+      }
     ],
   },
   {

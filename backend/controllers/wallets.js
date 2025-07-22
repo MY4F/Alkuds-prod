@@ -817,6 +817,17 @@ const getWalletInventoryByDate = async(req,res)=>{
     res.json(transactions)
 }
 
+const resetAllBanks = async(req,res) =>{
+    let result 
+    try{
+        result = await Wallet.updateMany({}, { totalAmount:0, "$set":{transactions : []} })
+    }
+    catch(err){
+        console.log(err)
+    }
+    return result
+}
+
 module.exports = {
     addTransaction,
     getSpecificClientTransactions,
@@ -825,5 +836,6 @@ module.exports = {
     addCompanyExpenses,
     getWalletInventoryByDate,
     getOldClientBalance,
-    addChequeTransaction
+    addChequeTransaction,
+    resetAllBanks
 }

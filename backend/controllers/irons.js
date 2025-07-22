@@ -243,11 +243,23 @@ const handleChangePassword = (req, res) => {
     }
 }
 
+const resetAllIronArray = async(req,res) =>{
+    let result;
+    try{
+        result = await Iron.updateMany({},{ "$set":{costPerWeight:[]} })
+    }
+    catch(err){
+        console.log.log(err)
+    }
+
+    return result
+}
 module.exports = {
     addIron,
     changeIronWeight,
     getScaleWeight,
     handleChangePassword,
     getIronStorageAdmin,
-    isDateBetween
+    isDateBetween,
+    resetAllIronArray
 }

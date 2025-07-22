@@ -89,6 +89,7 @@ const Impexp = () => {
 
     const transactions = await transactionsFetch.json();
     if (transactionsFetch.ok && response.ok) {
+      console.log(transactions)
       setDailyData([...ironStorage]);
       setTransactions([...transactions]);
       setTotalWeight(total);

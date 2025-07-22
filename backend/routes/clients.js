@@ -6,7 +6,7 @@ const router = express.Router();
 router.get('/getClientsInfo',requireAuth, getClientsInfo);
 router.post('/addClient',requireAuth, addClients);
 router.post('/updateClients', requireAuth,updateClientsInfo);
-
+ 
 
 
 

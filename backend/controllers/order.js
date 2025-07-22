@@ -982,6 +982,18 @@ const orderChangeState = async (req, res) => {
   res.json(newUpdate);
 };
 
+const deleteOrders =  async(req,res)=>{
+  let del
+  try{
+      del = await Order.deleteMany({})
+      return del
+  }
+  catch(err){
+      console.log(err)
+  }
+  return del
+}
+
 module.exports = {
   getUnfinishedOrdersInfoGroupedByClientId,
   getUnfinishedOrdersInfoGroupedByType,
@@ -1001,4 +1013,5 @@ module.exports = {
   addOrderStatement,
   OrderIronPriceUpdate,
   orderChangeState,
+  deleteOrders
 };
