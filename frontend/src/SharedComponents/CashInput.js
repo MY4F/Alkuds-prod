@@ -187,7 +187,7 @@ const CashInput = (props) => {
             </select>
           </div>
         </div>
-       { (isCheque && selectedType !== 'صرف شيك') && <div className="md:w-[50%] w-full flex justify-center">
+        { ((isCheque && selectedType !== 'صرف شيك') || !isCheque) && <div className="md:w-[50%] w-full flex justify-center">
           <div className="flex flex-col gap-2 w-full max-w-[300px]">
             <label className="text-center">أسم العميل</label>
               
