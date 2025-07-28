@@ -8,11 +8,11 @@ import { faPrint } from "@fortawesome/fontawesome-free-solid";
 import { useSocketContext } from "../hooks/useSocket";
 const Receipt = ({ order }) => {
   let arr = [],
-    totalPriceSum = 0;
+  totalPriceSum = 0;
 
   console.log(order.ticket.length);
   for (let idx = 0; idx < order.ticket.length; idx++) {
-    totalPriceSum += order.ticket[idx].totalPrice;
+    totalPriceSum += order.ticket[idx].realTotalPrice;
     arr.push(
       <div className="generated-iron-block">
         <div className="client-print-data" style={{ direction: "rtl" }}>
@@ -20,11 +20,6 @@ const Receipt = ({ order }) => {
             <span>قطر:</span>
             &nbsp;
             <span>{order.ticket[idx].radius}</span>
-          </p>
-          <p className="total-weight">
-            <span>نوع الحديد:</span>
-            &nbsp;
-            <span>{order.ticket[idx].ironName}</span>
           </p>
           <p className="total-weight">
             <span>صافي الكميه:</span>
@@ -39,13 +34,12 @@ const Receipt = ({ order }) => {
           <p className="total-weight">
             <span>الاجمالي</span>
             &nbsp;
-            <span>{order.ticket[idx].totalPrice}</span>
+            <span>{order.ticket[idx].realTotalPrice}</span>
           </p>
         </div>
       </div>
     );
   }
-
   return (
     <>
       {arr.map((i, idx) => (

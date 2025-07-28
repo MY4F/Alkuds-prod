@@ -27,6 +27,10 @@ const WalletSchema = new mongoose.Schema({
             type: String,
             required: true
         },
+        bankName: {
+            type: String,
+            default: " "
+        },
         type: {
             type: String,
             default: ""

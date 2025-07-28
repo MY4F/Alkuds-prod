@@ -48,6 +48,8 @@ const OrdersViewHolder = ({ order, isFinishedTicket, alignment }) => {
         <div>
           <h2> {client[order.clientId].name} </h2>
           <p className="text-[#6c6f75]">{order.date}</p>
+          <p className="text-[#6c6f75]">{order.state}</p>
+
         </div>
         <div className="flex gap-6">
           <button

@@ -12,10 +12,10 @@ const CashInput = (props) => {
   const { isKudsPersonnel, isCheque } = props
   const [selectedClient, setSelectedClient] = useState("اختر عميل");
   const [selectedType, setSelectedType] = useState("نوع العمليه");
-  const [notes, setNotes] = useState();
+  const [notes, setNotes] = useState(" ");
   const [amount, setAmount] = useState("");
   const { socket } = useSocketContext()
-  const [selectedBank, setSelectedBank] = useState("اختر البنك");
+  const [selectedBank, setSelectedBank] = useState();
   const [selectedCheque, setSelectedCheque] = useState("");
   const [selectedChequeName, setSelectedChequeName] = useState();
   const { client, dispatch: clientUpdate } = useClientContext();
@@ -191,25 +191,26 @@ const CashInput = (props) => {
           <div className="flex flex-col gap-2 w-full max-w-[300px]">
             <label className="text-center">أسم العميل</label>
               
-            <input 
-                name="clientsList"
-                list="clients"
-                placeholder="ابحث ..."
-                className="w-full md:w-[300px]"
-                onChange={(e) => {
-                  let selectedName = e.target.value
-                  const selectedClient = Object.values(client).find(c => c.name === selectedName);
-                  if(selectedClient){
-                    setSelectedClient(selectedClient["clientId"]);
-                  }
-                }}
-                type=""
-                required />
+                <input 
+                  name="clientsList"
+                  list="clients"
+                  placeholder="ابحث ..."
+                  className="w-full md:w-[300px]"
+                  onChange={(e) => {
+                    let selectedName = e.target.value
+                    const selectedClient = Object.values(client).find(c => c.name === selectedName);
+                    if(selectedClient){
+                      setSelectedClient(selectedClient["clientId"]);
+                    }
+                  }}
+                  type=""
+                  required
+                />
                 <datalist id="clients">
                     {client &&
                       [...Object.keys(client)].map((i, idx) => 
                         
-                      {  
+                      { 
                         if(isKudsPersonnel && client[i].isKudsPersonnel){
                           return <option value={client[i].name}> {client[i].clientId} </option>
                         }
@@ -264,12 +265,13 @@ const CashInput = (props) => {
           <div className="flex flex-col gap-2 w-full max-w-[300px]">
             <label className="text-center">البنك</label>
             <select
+              required
               value={selectedBank}
               onChange={(e) => {
                 setSelectedBank(e.target.value);
               }}
             >
-              <option value="اختر البنك">أسم البنك</option>
+              <option disabled>أسم البنك</option>
               {wallet &&
                 [...Object.keys(wallet)].map((i, idx) => (
                   <option value={wallet[i].bankName}> {wallet[i].bankName} </option>

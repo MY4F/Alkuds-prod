@@ -16,12 +16,27 @@ import Seperator from "../components/Seperator";
 const DayExpenseRow = (props) => {
   const { data, client } = props;
   let sign = data["sign"] || " "
+  console.log(data)
   return (
-    <>
-      <div>
-        {data["notes"]} &nbsp; - &nbsp; {client[data["clientId"]].name} &nbsp; - &nbsp; {data["amount"]} &nbsp; | &nbsp; {sign} &nbsp;
+    <div>
+        {/* <span> {data["notes"]} </span>
+        <span>-</span>
+        <span> {data["bankName"]} </span>
+        <span>-</span>
+        <span>{client[data["clientId"]].name}</span>
+        <span>-</span>
+        <span>{data["amount"]}</span>
+        <span> | </span>
+        <span> {sign}</span> */}
+
+        <div dir="ltr">
+          {client[data["clientId"]].name} &nbsp; - &nbsp; 
+          &nbsp; {data["bankName"]} &nbsp; - 
+          {data["notes"]} &nbsp; - &nbsp; 
+          <span dir="ltr">{data["amount"]}</span> &nbsp; | &nbsp; 
+          <span dir="ltr">{sign}</span> &nbsp;
+        </div>    
       </div>
-    </>
   );
 };
 
@@ -189,7 +204,7 @@ const Impexp = () => {
                       <>
                         {(el.weight > 0 || el.weight < 0) &&
                           el.radius === "6" && (
-                            <tr style={{ border: "2px solid black" }}>
+                            <tr  style={{ border: "2px solid black", "background": el.highlight? 'orange':'none' }}>
                               <td className=" text-center border-l-2 border-black">
                                 {el.weight}
                               </td>
@@ -220,7 +235,7 @@ const Impexp = () => {
                       <>
                         {(el.weight > 0 || el.weight < 0) &&
                           el.radius === "8" && (
-                            <tr style={{ border: "2px solid black" }}>
+                            <tr style={{ border: "2px solid black" , "background": el.highlight? 'orange':'none' }}>
                               <td className="text-center border-l-2 border-black">
                                 {" "}
                                 {el.weight}
@@ -253,7 +268,7 @@ const Impexp = () => {
                         {(el.weight > 0 || el.weight < 0) &&
                           el.radius !== "6" &&
                           el.radius !== "8" && (
-                            <tr style={{ border: "2px solid black" }}>
+                            <tr style={{ border: "2px solid black", "background": el.highlight? 'orange':'none'  }}>
                               <td className="text-center border-l-2 border-black">
                                 {" "}
                                 {el.weight}

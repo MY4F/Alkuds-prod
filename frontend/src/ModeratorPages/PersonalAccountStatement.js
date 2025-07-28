@@ -16,6 +16,7 @@ import Box from "@mui/material/Box";
 const Row = ({ row, key, transactionMonth }) => {
   const [purchasingNotesTable, setPurchasingNotesTable] = useState(false);
  let filteredRows = [...row.purchasingNotes];
+ console.log(row)
   if (transactionMonth !== null) {
     filteredRows = row.purchasingNotes.filter((el) => {
       const parsedDate = new Date(el.date);
@@ -58,10 +59,10 @@ const Row = ({ row, key, transactionMonth }) => {
           {row.name}
         </TableCell>
         <TableCell className="!text-right border-[0.8px] border-black">
-          {totalTransfers}
+          {totalTransfers.toLocaleString()}
         </TableCell>
         <TableCell className="!text-right border-[0.8px] border-black">
-          {totalReceived}
+          {totalReceived.toLocaleString()}
         </TableCell>
       </TableRow>
       <TableRow style={{ verticalAlign: "baseline" }}>
@@ -95,7 +96,7 @@ const Row = ({ row, key, transactionMonth }) => {
                       filteredRows.map((el, index) => (
                         <TableRow key={index}>
                           <TableCell className="!text-right border-[0.8px] border-black">
-                            {el.amount}
+                            {el.amount.toLocaleString()}
                           </TableCell>
                           <TableCell className="!text-right border-[0.8px] border-black">
                             {el.date}
@@ -134,7 +135,7 @@ const PersonalAccountStatement = () => {
   const filteredClients = clientArray.filter((c) => c.isKudsPersonnel);
   const handleMonthSubmit = (e) => {
     e.preventDefault();
-    setIsSearching(true);
+    console.log(transactionMonth)
   };
   return (
     <div className="flex items-center gap-8 flex-col" dir="rtl">
@@ -193,9 +194,9 @@ const PersonalAccountStatement = () => {
             {filteredClients.map((el) => {
               return (
                 <Row
-                  transactionMonth={isSearching ? transactionMonth : null}
-                  row={el}
-                  key={el.id}
+                transactionMonth={transactionMonth}
+                row={el}
+                key={el.id}
                 />
               );
             })}

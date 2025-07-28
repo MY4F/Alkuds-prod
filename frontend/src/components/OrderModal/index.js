@@ -193,6 +193,35 @@ const OrderModal = ({ onClose, type, closeFun }) => {
           <div key={index}>
             <Seperator text={`تذكرة رقم ${index + 1}`} />
             <div className="w-full flex md:flex-row flex-col gap-5 py-6">
+            <div className="md:w-[50%] w-full flex justify-center">
+                <div className="flex flex-col gap-2 w-full max-w-[300px]">
+                  <label className="text-center">القطر </label>
+
+                  <select
+                    required
+                    className="w-full"
+                    value={tickets[index].radius}
+                    onChange={(e) => {
+                      const updatedTickets = [...tickets];
+                      updatedTickets[index].radius = e.target.value;
+                      setTickets(updatedTickets);
+                    }}
+                  >
+                    <option>اختر قطر</option>
+                    <option>6</option>
+                    <option>8</option>
+                    <option>10</option>
+                    <option>12</option>
+                    <option>14</option>
+                    <option>16</option>
+                    <option>18</option>
+                    <option>20</option>
+                    <option>22</option>
+                    <option>25</option>
+                    <option>32</option>
+                  </select>
+                </div>
+              </div>
               <div className="md:w-[50%] w-full flex justify-center">
                 <div className="flex flex-col gap-2 w-full max-w-[300px]">
                   <label className="text-center">نوع الحديد</label>
@@ -229,35 +258,6 @@ const OrderModal = ({ onClose, type, closeFun }) => {
                   </select>
                 </div>
               </div>
-              <div className="md:w-[50%] w-full flex justify-center">
-                <div className="flex flex-col gap-2 w-full max-w-[300px]">
-                  <label className="text-center">القطر </label>
-
-                  <select
-                    required
-                    className="w-full"
-                    value={tickets[index].radius}
-                    onChange={(e) => {
-                      const updatedTickets = [...tickets];
-                      updatedTickets[index].radius = e.target.value;
-                      setTickets(updatedTickets);
-                    }}
-                  >
-                    <option>اختر قطر</option>
-                    <option>6</option>
-                    <option>8</option>
-                    <option>10</option>
-                    <option>12</option>
-                    <option>14</option>
-                    <option>16</option>
-                    <option>18</option>
-                    <option>20</option>
-                    <option>22</option>
-                    <option>25</option>
-                    <option>32</option>
-                  </select>
-                </div>
-              </div>
             </div>
             <div className="w-full flex md:flex-row flex-col gap-5 py-6">
               <div className="md:w-[50%] w-full flex justify-center">
@@ -269,9 +269,12 @@ const OrderModal = ({ onClose, type, closeFun }) => {
                     placeholder="الوزن المطلوب"
                     value={tickets[index].neededWeight}
                     onChange={(e) => {
-                      const updatedTickets = [...tickets];
-                      updatedTickets[index].neededWeight = e.target.value;
-                      setTickets(updatedTickets);
+                      const value = e.target.value;
+                      if (/^\d*\.?\d*$/.test(value)) {
+                        const updatedTickets = [...tickets];
+                        updatedTickets[index].neededWeight = e.target.value;
+                        setTickets(updatedTickets);
+                      }
                     }}
                   />
                 </div>

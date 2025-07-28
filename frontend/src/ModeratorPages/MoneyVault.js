@@ -18,6 +18,7 @@ import Paper from "@mui/material/Paper";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import CircularProgress from "@mui/material/CircularProgress";
+import { useUserContext } from "../hooks/useUserContext";
 
 const Row = (props) => {
   const { row } = props;
@@ -114,6 +115,8 @@ const MoneyVault = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [transactionMonth, setTransactionMonth] = useState();
   const [filteredRows, setFilteredRows] = useState([]);
+  const [currentCheques, setCurrentCheques] = useState([])
+  const { user } = useUserContext()
   useEffect(() => {
     if (wallet && client) {
       setIsLoading(true);
@@ -147,7 +150,33 @@ const MoneyVault = () => {
       setFilteredRows([...walletsArr]);
       setIsLoading(false);
     }
-  }, [wallet, dispatch,]);
+
+    const getCurrentCheques = async() =>{
+      let chequesCall
+      try{
+        chequesCall = await fetch(
+          "/wallet/getCurrentCheques",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${user.token}`,
+            },
+          }
+        );
+
+        const chequesData = await chequesCall.json();
+
+        if (chequesCall.ok){
+          setCurrentCheques([...chequesData])
+        }
+      }
+      catch(err){
+        console.log(err)
+      }
+    }
+    getCurrentCheques()
+  }, [wallet, dispatch]);
 
   if (!client || !wallet) {
     return <div> Loading.... </div>;
@@ -245,7 +274,7 @@ const MoneyVault = () => {
         aria-describedby="modal-modal-description"
       >
         <Box sx={style}>
-          <CashInput isKudsPersonnel={false} isCheque={false} />
+          <CashInput isKudsPersonnel={true} isCheque={false} />
         </Box>
       </Modal>
 
@@ -308,7 +337,28 @@ const MoneyVault = () => {
             </TableHead>
             <TableBody>
               {!isLoading ? (
-                filteredRows.map((row) => <Row key={row.walletId} row={row} />)
+                filteredRows.map((row,idx) => {return idx!==6 && <Row key={row.walletId} row={row} />})
+              ) : (
+                <CircularProgress />
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        
+        <div style={{'height':'100px'}}></div>
+
+        <TableContainer component={Paper}>
+          <Table style={{ direction: "rtl" }} aria-label="collapsible table">
+            <TableHead>
+              <TableRow>
+                <TableCell align="right"> فتح العمليات</TableCell>
+                <TableCell align="right">اسم الحساب</TableCell>
+                <TableCell align="right">اجمالي المبلغ</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {!isLoading ? (
+                currentCheques.map((row) => <Row key={row.walletId} row={row} />)
               ) : (
                 <CircularProgress />
               )}

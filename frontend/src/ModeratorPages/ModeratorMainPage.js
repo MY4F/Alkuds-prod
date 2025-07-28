@@ -98,14 +98,14 @@ const ModeratorMainPage = () => {
         >
           <PayIcon className="size-14" />
           <h1 className="text-4xl">جاري الدفع</h1>
-        </button>
+        </button> */}
         <button
           onClick={() => navigate(`orders/done`)}
           className="cursor-pointer p-5  hover:border-[greenyellow] flex border-[2px] flex-col items-center justify-center gap-4 rounded  md:flex-1 min-h-60"
         >
           <DoneIcon className="size-14" />
           <h1 className="text-4xl">تم</h1>
-        </button> */}
+        </button>
       </div>
     </section>
   );

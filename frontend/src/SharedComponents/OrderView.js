@@ -28,6 +28,7 @@ const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
   const [saveLoading, setSaveLoading] = useState(false);
   const [isManual, setIsManual] = useState(false)
   const {user} = useUserContext()
+  
   useEffect(() => {
     // socket.on("receive_order_finish_state", (info) => {
     //   if (info.order === null) {
@@ -246,9 +247,9 @@ const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
             </div>
           </div>
         </div>
-        <div style={{textAlign:"right"}}>
+       { user.user.msg.name === "Ziad" && <div style={{textAlign:"right"}}>
           <FormControlLabel control={<Switch onChange={e=> setIsManual(!isManual)} defaultChecked />} label={ isManual? 'يدوي':"اتوماتيكي" } />
-        </div>
+        </div>}
         {orderTickets.map((i, idx) => (
           <>
             <Seperator text={idx + 1 + " تذكره رقم "} />

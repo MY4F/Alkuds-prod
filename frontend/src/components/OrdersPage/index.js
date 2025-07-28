@@ -54,7 +54,7 @@ const OrdersPage = () => {
       category === "done" &&
       finishedTickets[`${typeObj[alignment]}`]
     ) {
-      return [...finishedTickets[`${typeObj[alignment]}`]];
+      return [...finishedTickets[`${typeObj[alignment]}`], ...awaitForPaymentTickets[`${typeObj[alignment]}`]];
     }else if (
       category === "new" &&
       newTickets[`${typeObj[alignment]}`]

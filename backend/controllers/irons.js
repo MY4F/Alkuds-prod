@@ -116,33 +116,59 @@ const getIronStorageAdmin = async(req, res) => {
         for (const ironName in ironMap) {
             const radii = ironMap[ironName];
             for (const radius in radii) {
-              const items = radii[radius];
-              for (let i = 0 ; i < items.length ; i++) {
-                  if(i<items.length - 1 && items[i].weight >=0 && items[i+1].unitCost === items[i].unitCost){           
-                    total+=items[i].weight + items[i+1].weight
-                    let rowitem = {
-                        name: ironName,
-                        weight: items[i].weight + items[i+1].weight,
-                        radius: radius,
-                        price: items[i].unitCost.toLocaleString(),
-                        totalPrice: ((parseFloat(items[i].weight/1000) * items[i].unitCost) + (parseFloat(items[i+1].weight/1000) * items[i+1].unitCost)).toLocaleString(),
-                    };
-                    ironStorage.push(rowitem);
-                    i++;
+                const items = radii[radius];
+                let ironAlikeCo = 0;
+                for (let i = 0 ; i < items.length ; i++) {
+                    if(items[i].weight >0)
+                        ironAlikeCo++;
+                    if(i<items.length - 1 && items[i].weight >=0 && items[i+1].unitCost === items[i].unitCost){           
+                        total+=items[i].weight + items[i+1].weight
+                        let rowitem = {
+                            name: ironName,
+                            weight: items[i].weight + items[i+1].weight,
+                            radius: radius,
+                            price: items[i].unitCost.toLocaleString(),
+                            totalPrice: ((parseFloat(items[i].weight/1000) * items[i].unitCost) + (parseFloat(items[i+1].weight/1000) * items[i+1].unitCost)).toLocaleString(),
+                        };
+                        ironStorage.push(rowitem);
+                        i++;
+                    }
+                    else if(items[i].weight >=0){
+                        total+=items[i].weight
+                        let rowitem = {
+                            name: ironName,
+                            weight: items[i].weight,
+                            radius: radius,
+                            price: items[i].unitCost.toLocaleString(),
+                            totalPrice: (parseFloat(items[i].weight/1000) * items[i].unitCost).toLocaleString(),
+                        };
+                        ironStorage.push(rowitem);
+                    }
                 }
-                else if(items[i].weight >=0){
-                    total+=items[i].weight
+                if(ironAlikeCo > 1){
                     let rowitem = {
                         name: ironName,
-                        weight: items[i].weight,
+                        weight: 0,
                         radius: radius,
-                        price: items[i].unitCost.toLocaleString(),
-                        totalPrice: (parseFloat(items[i].weight/1000) * items[i].unitCost).toLocaleString(),
+                        price: 0,
+                        totalPrice: 0,
+                        highlight:true
                     };
+                    for (let i = 0 ; i < items.length ; i++) {
+                        rowitem["weight"] += items[i].weight
+                        rowitem["price"] += items[i].unitCost
+                        rowitem["totalPrice"] += (parseFloat(items[i].weight/1000) * items[i].unitCost)
+                    }
+                    rowitem["weight"]/= ironAlikeCo
+                    rowitem["price"] /= ironAlikeCo
+                    rowitem["totalPrice"]/=ironAlikeCo
+                    
+                    rowitem["price"] = rowitem["price"].toLocaleString()
+                    rowitem["totalPrice"] = rowitem["totalPrice"].toLocaleString()
+                    
                     ironStorage.push(rowitem);
                 }
             }
-          }
         }
         total = total.toLocaleString()
         res.json({ironStorage,total})
