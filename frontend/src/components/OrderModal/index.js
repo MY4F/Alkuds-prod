@@ -132,7 +132,7 @@ const OrderModal = ({ onClose, type, closeFun }) => {
                           {client[i].clientId}{" "}
                           </option>
                         }
-                        else if(type ==="out" && !client[i].isFactory){
+                        else if(type ==="out" && client[i].isClient && !client[i].isKudsPersonnel){
                           return <option value={client[i].name}>
                           {" "}
                           {client[i].clientId}{" "}

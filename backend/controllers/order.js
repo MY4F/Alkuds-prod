@@ -6,6 +6,8 @@ const Order = require("../models/order");
 const Client = require("../models/client");
 const Iron = require("../models/iron");
 const Wallet = require("../models/wallet");
+const { ObjectId } = require('mongodb');
+const mongoose = require("mongoose");
 const getTicketsInfo = (req, res) => {
   let dataTickets = getDatabaseByName("Tickets");
   let inProgressTickets = [];
@@ -512,17 +514,13 @@ const OrderFinishState = async (req, res) => {
       let inClientOrders = await Order.find({
         $and: [
           { clientId: updatedOrder.clientId },
-          
+          { type : "in" },
           { state: "جاري انتظار الدفع" },
         ],
       }).sort({ date: 1 });
-      // -639,000	
-      // 1,141,000
       let remainingTotalPrice = totalPrice;
       let isOutOrders = false;
       for (let i of inClientOrders) {
-        // in order fadelo 1,000,000 paid 200,000 - 800,000
-        // out order 1,300,000
         isOutOrders = true;
         console.log(
           "remainingTotalPrice",
@@ -532,10 +530,19 @@ const OrderFinishState = async (req, res) => {
         );
         let deltaTotalPriceAndInOrderPrice =
           remainingTotalPrice - (i.realTotalPrice - i.totalPaid);
-          // 502,000
         if (deltaTotalPriceAndInOrderPrice >= 0) {
+          // totalPrice -= (i.realTotalPrice - i.totalPaid)
+          console.log("total price: ", totalPrice);
+          console.log("deltaTotalPriceAndInOrderPrice", deltaTotalPriceAndInOrderPrice);
           client.balance += deltaTotalPriceAndInOrderPrice;
           console.log("client.balance after", client.balance);
+          console.log("here befire save new state")
+          updatedOrder.state = 'منتهي'
+          updatedOrder.affectedOrders.push({
+            orderId:i._id,
+            paidAmount : i.realTotalPrice - i.totalPaid,
+            previousState : i.state
+          })
           i.state = "منتهي";
           i.statement.push({
             paidAmount: i.realTotalPrice - i.totalPaid,
@@ -549,8 +556,16 @@ const OrderFinishState = async (req, res) => {
           i.totalPaid = i.realTotalPrice;
           remainingTotalPrice = deltaTotalPriceAndInOrderPrice;
           await i.save();
+          await updatedOrder.save()
         } else {
+          // totalPrice = (i.realTotalPrice - i.totalPaid)
           i.totalPaid += remainingTotalPrice + updatedOrder.deliveryFees;
+          updatedOrder.state = 'منتهي'
+          updatedOrder.affectedOrders.push({
+            orderId:i._id,
+            paidAmount : i.realTotalPrice - i.totalPaid,
+            previousState : i.state
+          })
           i.statement.push({
             paidAmount: remainingTotalPrice,
             clientId: i.clientId,
@@ -561,6 +576,7 @@ const OrderFinishState = async (req, res) => {
             walletTransactionId: "لا يوجد",
           });
           remainingTotalPrice = 0;
+          await updatedOrder.save()
           await i.save();
           break;
         }
@@ -568,13 +584,14 @@ const OrderFinishState = async (req, res) => {
       // remaining total current order price = 241,000
       //                      client balance = -150,000
       if (isOutOrders && inClientOrders.length>0) {  
+        console.log("here first if")
         newUpdatedOrder = await Order.findOneAndUpdate(
           { _id: orderId },
           {
             ticket: orderTickets,
             totalProfit: totalProfitForOrder,
             realTotalPrice: totalPrice + updatedOrder.deliveryFees,
-            state: "جاري انتظار الدفع",
+            state:remainingTotalPrice>0? "جاري انتظار الدفع" : "منتهي",
             totalPaid: remainingTotalPrice>=0 ? totalPrice - remainingTotalPrice :0 ,
             $push: {
               statement: {
@@ -591,6 +608,7 @@ const OrderFinishState = async (req, res) => {
           { returnDocument: "after" }
         );
       } else if (!isOutOrders) {
+        console.log("here SECOND if")
         if (client.balance + (totalPrice + updatedOrder.deliveryFees) <= 0) {
           newUpdatedOrder = await Order.findOneAndUpdate(
             { _id: orderId },
@@ -732,6 +750,11 @@ const OrderFinishState = async (req, res) => {
         if (deltaTotalPriceAndInOrderPrice >= 0) {
           client.balance -= (i.realTotalPrice - i.totalPaid);
           console.log("client.balance after", client.balance);
+          updatedOrder.affectedOrders.push({
+            orderId:i._id,
+            paidAmount : i.realTotalPrice - i.totalPaid,
+            previousState : i.state
+          })
           i.state = "منتهي";
           i.statement.push({
             paidAmount: i.realTotalPrice - i.totalPaid,
@@ -745,8 +768,14 @@ const OrderFinishState = async (req, res) => {
           i.totalPaid = i.realTotalPrice;
           remainingTotalPrice = deltaTotalPriceAndInOrderPrice;
           await i.save();
+          await updatedOrder.save()
         } else {
           i.totalPaid += remainingTotalPrice + updatedOrder.deliveryFees;
+          updatedOrder.affectedOrders.push({
+            orderId:i._id,
+            paidAmount : i.realTotalPrice - i.totalPaid,
+            previousState : i.state
+          })
           i.statement.push({
             paidAmount: remainingTotalPrice,
             clientId: i.clientId,
@@ -757,6 +786,7 @@ const OrderFinishState = async (req, res) => {
             walletTransactionId: "لا يوجد",
           });
           remainingTotalPrice = 0;
+          await updatedOrder.save()
           await i.save();
           break;
         }
@@ -834,7 +864,6 @@ const OrderFinishState = async (req, res) => {
         }
     )
     console.log(balanceUpdate)
-    
     }
     }
     catch(err){
@@ -994,6 +1023,85 @@ const deleteOrders =  async(req,res)=>{
   return del
 }
 
+const revertOrder = async(req,res) =>{
+  let { order } = req.body
+  try{
+    for(let i of order.affectedOrders){
+      let newOrder = await Order.findOne({"_id":i.orderId})
+      newOrder.state = i.previousState
+      newOrder.totalPaid -= i.paidAmount 
+      if(newOrder.statement.length > 0)
+      newOrder.statement.pop()
+      await newOrder.save()
+    }
+
+    for(let tick of order.ticket){
+      for(let iron of tick.usedUnitCostPerWeight){
+        let ironToRevert = await Iron.findOneAndUpdate(
+          {
+            "costPerWeight._id": iron.ironId
+          },
+          {
+            $inc:{  "costPerWeight.$.weight": iron.weight }
+          }
+        )
+        console.log(ironToRevert)
+      }
+    }
+
+    let clientUpdate = await Client.findOne({ 'clientId': order.clientId })
+
+    let lastTransaction = clientUpdate.transactionsHistory[clientUpdate.transactionsHistory.length-1]
+    if(lastTransaction.type === "out"){
+      clientUpdate.balance -= lastTransaction.amount
+    }
+    else{
+      clientUpdate.balance += lastTransaction.amount
+    }
+
+    clientUpdate.transactionsHistory.pop()
+    clientUpdate.ticketsIds.pop()
+
+    await clientUpdate.save()
+
+    await Order.findOneAndDelete({'_id':order._id})
+
+    let clients = await Client.find(),clientsMap = {};
+    for(x of clients){
+        clientsMap[x.clientId] = x
+    }
+
+    let inOrders  = [],outOrders = [];
+    let awaitOrders = await Order.find({ state: "جاري انتظار الدفع" });
+    for (let x of awaitOrders) {
+      if (x.type === "in") {
+        inOrders.push(x);
+      } else {
+        outOrders.push(x);
+      }
+    }
+
+    let inOrdersFinished = [], outOrdersFinished = []
+    let finishedOrders = await Order.find({
+      state: "منتهي",
+    });
+    for (let x of finishedOrders) {
+      if (x.type === "in") {
+        inOrdersFinished.push(x);
+      } else {
+        outOrdersFinished.push(x);
+      }
+    }
+
+    res.json({"message":"success", "clients":clientsMap, "finishedOrders":{"inOrders":inOrdersFinished,"outOrders": outOrdersFinished}, "awaitOrders":{"inOrders":inOrders,"outOrders":outOrders}})
+
+  }
+  catch(err){
+    console.log(err)
+    res.json({"message":"fail"})
+  }
+}
+
 module.exports = {
   getUnfinishedOrdersInfoGroupedByClientId,
   getUnfinishedOrdersInfoGroupedByType,
@@ -1013,5 +1121,6 @@ module.exports = {
   addOrderStatement,
   OrderIronPriceUpdate,
   orderChangeState,
-  deleteOrders
+  deleteOrders,
+  revertOrder
 };

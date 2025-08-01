@@ -4,6 +4,10 @@ const ClientSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    isClient: {
+        type: Boolean,
+        default: true
+    },
     address: {
         type: String,
         required: true

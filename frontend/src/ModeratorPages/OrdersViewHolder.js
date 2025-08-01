@@ -6,15 +6,20 @@ import Modal from "@mui/material/Modal";
 import { useClientContext } from "../hooks/useClientContext";
 import OrderView from "../SharedComponents/OrderView";
 import AddingPriceForm from "../components/AddingPriceForm";
+import { useUserContext } from "../hooks/useUserContext";
+import { useAwaitForPaymentTicketsContext } from "../hooks/useAwaitForPaymentTicketsContext";
+import { useFinishedTicketsContext } from "../hooks/useFinishedTicketsContext";
 
 const OrdersViewHolder = ({ order, isFinishedTicket, alignment }) => {
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
   const [addingPrice, setAddingPrice] = useState(false);
-
-  const { client } = useClientContext();
-  useEffect(() => {}, []);
+  const { user } = useUserContext()
+  const { client, dispatch: clientDispatch } = useClientContext();
+  const { dispatch } = useAwaitForPaymentTicketsContext()
+  const { dispatch: dispatchFinishedOrders } = useFinishedTicketsContext()
+  useEffect(() => {}, [dispatch, clientDispatch, dispatchFinishedOrders ]);
 
   const style = {
     position: "absolute",
@@ -37,6 +42,34 @@ const OrdersViewHolder = ({ order, isFinishedTicket, alignment }) => {
   console.log("heeereee");
   console.log(order);
 
+  const handleRevertOrder = async() =>{
+    try{
+      console.log(order)
+      const response = await fetch("/order/revertOrder", {
+        // Update port if different
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${user.token}`
+        },
+        body: JSON.stringify({order}),
+      });
+
+      if (!response.ok) throw new Error("Failed to add order");
+
+      const result = await response.json();
+      if(response.ok){
+        console.log(result)
+        dispatch({ type: "SET_TICKETS", payload: result.awaitOrders });
+        dispatchFinishedOrders({ type: "SET_TICKETS", payload: result.finishedOrders })
+        clientDispatch({ type: "SET_CLIENTS", payload: result.clients })
+      }
+    }
+    catch(err){
+      console.log(err)
+    }
+  }
+
   return (
     <>
       
@@ -55,11 +88,11 @@ const OrdersViewHolder = ({ order, isFinishedTicket, alignment }) => {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              setAddingPrice(true);
+              handleRevertOrder();
             }}
             className="sm:h-[32px] h-auto m-0 pb-1 px-3 rounded  hover:bg-dark-green !w-auto bg-[#00756a] text-white   "
           >
-            اضافة عملية دفع
+            مرتجع
           </button>
         </div>
       </button>
@@ -79,7 +112,7 @@ const OrdersViewHolder = ({ order, isFinishedTicket, alignment }) => {
           />
         </Box>
       </Modal>
-      <Modal
+      {/* <Modal
         className="popup-width"
         open={addingPrice}
         onClose={() => {
@@ -92,7 +125,7 @@ const OrdersViewHolder = ({ order, isFinishedTicket, alignment }) => {
         <Box sx={style}>
           <AddingPriceForm order={order} alignment={alignment} />
         </Box>
-      </Modal>
+      </Modal> */}
     </>
   );
 };

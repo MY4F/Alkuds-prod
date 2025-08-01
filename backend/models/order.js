@@ -41,6 +41,12 @@ const OrderSchema = new mongoose.Schema({
         clientId: { type: String, required: true },
         date: { type: String, default: new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' }) }
     }],
+    affectedOrders: [{
+        orderId:  { type: String, required: true },
+        paidAmount: { type: Number, required: true },
+        previousState: { type: String, required: true },
+        date: { type: String, default: new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' }) }
+    }],
     totalProfit: { type: Number, default: 0 },
     totalPrice: { type: Number, default: 0 },
     realTotalPrice: { type: Number, default: 0 },
