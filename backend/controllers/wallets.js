@@ -628,6 +628,7 @@ const addCompanyExpenses = async(req,res)=>{
     let clientUpdate, newTransaction = null;
     try{
         if(type === "استلام من"){
+            console.log(amount)
             clientUpdate = await Client.findOneAndUpdate({ clientId },
                 {
                     $inc: {

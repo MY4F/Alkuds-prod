@@ -96,6 +96,7 @@ const getNewOrdersInfoGroupedByType = async (req, res) => {
     outOrders = [];
   try {
     orders = await Order.find({ state: "جديد" });
+    console.log(orders)
     for (let x of orders) {
       if (x.type === "in") {
         inOrders.push(x);

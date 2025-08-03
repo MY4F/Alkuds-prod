@@ -59,6 +59,7 @@ const OrdersPage = () => {
       category === "new" &&
       newTickets[`${typeObj[alignment]}`]
     ){
+      console.log(newTickets)
       return [...newTickets[`${typeObj[alignment]}`]];
     }
   };
@@ -120,7 +121,7 @@ const OrdersPage = () => {
             خارج
           </ToggleButton>
         </ToggleButtonGroup>
-        <form
+        {/* <form
           className="flex lg:flex-row flex-col gap-2 lg:gap-4"
           onSubmit={(e) => handleDateFilters(e)}
         >
@@ -143,7 +144,7 @@ const OrdersPage = () => {
             />
           </div>
           <button className="iron-btn add-btn">بحث</button>
-        </form>
+        </form> */}
       </div>
 
       <Seperator
@@ -153,8 +154,10 @@ const OrdersPage = () => {
             : category === "progress-pay"
             ? "طلبات جاري الدفع"
             : category === "done"
-            ? "طلبات تمت"
-            : ""
+            ? "طلبات تمت و جاري انتظار الدفع"
+            : category === "new"
+            ? "طلبات جديده"
+            :" "
         }
       />
       <div className="in-orders">
@@ -163,11 +166,21 @@ const OrdersPage = () => {
             {list &&
               list
                 .filter((i) => {
-                  if (!startDate || !endDate || !dateSearchApplied) return true;
                   const itemDate = new Date(i.date);
-                  const start = new Date(filteredDates[0]);
-                  const end = new Date(filteredDates[1]);
-                  return itemDate >= start && itemDate <= end;
+                  const startOfToday = new Date();
+                  startOfToday.setHours(0, 0, 0, 0);
+                  const endOfToday = new Date();
+                  endOfToday.setHours(23, 59, 59, 999);
+                  if(category === "progress-load"){
+                    return itemDate >= startOfToday && itemDate <= endOfToday;
+                  }
+                  else if(category === 'new'){
+                    console.log(i,"here")
+                    return itemDate > endOfToday;
+                  }
+                  else if(category === 'progress-pay' || category === 'done'){
+                    return itemDate <= endOfToday;
+                  }
                 })
                 .slice(0, loadRange)
                 .map((i, idx) => (

@@ -119,25 +119,8 @@ export const NewTicketsContextProvider = ({ children }) => {
       });
 
       let jsonAns = await response.json();
+      console.log(jsonAns)
       if (response.ok) {
-        let newArr = {"inOrders":[],"outOrders":[]}
-        for(let i of jsonAns["inOrders"]){
-            if(isSameDay(i.date, new Date())){
-                let res = updateState(i._id)
-            }
-            else{
-                newArr["inOrders"].push(i)
-            }
-        }
-        for(let i of jsonAns["outOrders"]){
-            console.log(isSameDay(i.date, new Date()))
-            if(isSameDay(i.date, new Date())){
-                let res = updateState(i._id)
-            }
-            else{
-                newArr["outOrders"].push(i)
-            }
-        }
         dispatch({ type: "SET_TICKETS", payload: jsonAns });
       }
       else{

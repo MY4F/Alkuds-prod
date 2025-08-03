@@ -1,5 +1,5 @@
 import { useClientContext } from "../hooks/useClientContext";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import TableRow from "@mui/material/TableRow";
 import TableHead from "@mui/material/TableHead";
 import TableCell from "@mui/material/TableCell";
@@ -13,10 +13,12 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import Box from "@mui/material/Box";
 
-const Row = ({ row, key, transactionMonth }) => {
+const Row = ({ name,row, key, transactionMonth }) => {
   const [purchasingNotesTable, setPurchasingNotesTable] = useState(false);
+  const [totalTransfers, setTotalTransfers] = useState()
+  const [totalReceived, setTotalReceived] = useState()
+  const [total, setTotal] = useState()
  let filteredRows = [...row.purchasingNotes];
- console.log(row)
   if (transactionMonth !== null) {
     filteredRows = row.purchasingNotes.filter((el) => {
       const parsedDate = new Date(el.date);
@@ -26,15 +28,23 @@ const Row = ({ row, key, transactionMonth }) => {
       return formatted === transactionMonth;
     });
   }
-  let totalTransfers = 0;
-  let totalReceived = 0;
-  filteredRows.forEach((el) => {
-    if (el.type === "تحويل الى") {
-      totalTransfers += el.amount;
-    } else {
-      totalReceived += el.amount;
-    }
-  });
+  
+  useEffect(()=>{
+    let transfers = 0;
+    let received = 0;
+    filteredRows.forEach((el) => {
+      if (el.type === "تحويل الي") {
+        transfers += el.amount;
+      } else if(el.type === "استلام من"){
+        received += el.amount;
+      }
+    });
+
+    setTotalReceived(received)
+    setTotalTransfers(transfers)
+    setTotal(transfers - received)
+  },[filteredRows])
+
   return (
     <>
       <TableRow>
@@ -56,13 +66,16 @@ const Row = ({ row, key, transactionMonth }) => {
           </div>
         </TableCell>
         <TableCell className="!text-right border-[0.8px] border-black">
-          {row.name}
+          {name}
         </TableCell>
         <TableCell className="!text-right border-[0.8px] border-black">
-          {totalTransfers.toLocaleString()}
+          {totalTransfers && totalTransfers.toLocaleString()}
         </TableCell>
         <TableCell className="!text-right border-[0.8px] border-black">
-          {totalReceived.toLocaleString()}
+          {totalReceived && totalReceived.toLocaleString()}
+        </TableCell>
+        <TableCell className="!text-right border-[0.8px] border-black">
+          {total && total.toLocaleString()}
         </TableCell>
       </TableRow>
       <TableRow style={{ verticalAlign: "baseline" }}>
@@ -128,11 +141,39 @@ const PersonalAccountStatement = () => {
   const { client, dispatch: clientUpdate } = useClientContext();
   const [transactionMonth, setTransactionMonth] = useState();
   const [isSearching, setIsSearching] = useState(false);
+  const [firstPersonalAccounts, setFirstPersonalAccounts] = useState()
+  const [secondPersonalAccounts, setSecondPersonalAccounts] = useState()
+  useEffect(()=>{
+    const clientArray = Object.values(client);
+    const filteredClients = clientArray.filter((c) => c.isKudsPersonnel);
+
+    let firstPersonalAccounts = filteredClients.filter((c) => c.name.includes("عبدالرحمن"));
+    let secondPersonalAccounts = filteredClients.filter((c) => c.name.includes("صبحي"));
+
+    const firstAccountSummed = {
+      ...firstPersonalAccounts[0],
+      purchasingNotes: [
+        ...(firstPersonalAccounts[0]?.purchasingNotes || []),
+        ...(firstPersonalAccounts[1]?.purchasingNotes || []),
+      ],
+    };
+
+    const secondAccountSummed = {
+      ...secondPersonalAccounts[0],
+      purchasingNotes: [
+        ...(secondPersonalAccounts[0]?.purchasingNotes || []),
+        ...(secondPersonalAccounts[1]?.purchasingNotes || []),
+      ],
+    };
+
+    setFirstPersonalAccounts(firstAccountSummed);
+    setSecondPersonalAccounts(secondAccountSummed);
+  },[])
+
   if (client == null) {
     return <div> Loading....</div>;
   }
-  const clientArray = Object.values(client);
-  const filteredClients = clientArray.filter((c) => c.isKudsPersonnel);
+
   const handleMonthSubmit = (e) => {
     e.preventDefault();
     console.log(transactionMonth)
@@ -188,19 +229,32 @@ const PersonalAccountStatement = () => {
               <TableCell className="!text-start border-[0.8px] border-black">
                 إجمالي الاستلام من الشركة
               </TableCell>
+              <TableCell className="!text-start border-[0.8px] border-black">
+                الاجمالي
+              </TableCell>
             </TableRow>
           </TableHead>
-          <TableBody>
-            {filteredClients.map((el) => {
-              return (
-                <Row
+          { firstPersonalAccounts && secondPersonalAccounts &&  <TableBody>
+            <Row
                 transactionMonth={transactionMonth}
-                row={el}
-                key={el.id}
-                />
-              );
-            })}
-          </TableBody>
+                row={firstPersonalAccounts}
+                key={firstPersonalAccounts._id}
+                name = {'عبدالرحمن'}
+            />
+            <Row
+                transactionMonth={transactionMonth}
+                row={secondPersonalAccounts}
+                key={secondPersonalAccounts._id}
+                name = {'صبحي'}
+            />
+            <Row
+                transactionMonth={transactionMonth}
+                row={client[4]}
+                key={client[4]._id}
+                name = {'مصروفات'}
+            />
+
+          </TableBody>}
         </Table>
       </TableContainer>
     </div>
