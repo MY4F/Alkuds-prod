@@ -6,6 +6,12 @@ import LoadingButton from "../../SharedComponents/LoadingButton";
 import { useSocketContext } from "../../hooks/useSocket";
 import { useUnfinishedTicketsContext } from "../../hooks/useUnfinishedTicketsContext";
 import { useUserContext } from "../../hooks/useUserContext";
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
 const OrderModal = ({ onClose, type, closeFun }) => {
   const [price, setPrice] = useState(0);
   const [date, setDate] = useState();
@@ -21,85 +27,135 @@ const OrderModal = ({ onClose, type, closeFun }) => {
     { ironName: "", radius: "", neededWeight: "", unitPrice: "" },
   ]);
   const { socket } = useSocketContext();
- 
+  const [open, setOpen] = useState(false);
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+  const handleCloseDialog = () => {
+    setOpen(false);
+  };
+
   useEffect(()=>{},[
 
   ])
 
   const HandleFormSubmission = async (e) => {
     setAdding(true);
+    handleClickOpen()
     e.preventDefault();
-    const data = {
-      clientId: clients,
-      totalPrice: 0,
-      date: date,
-      ticket: tickets,
-      type: type,
-      deliveryFees: deliveryFees,
-      clientName: selectedClientName,
-      password
-    };
-    try {
-      const response = await fetch("/order/addOrder", {
-        // Update port if different
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          'Authorization': `Bearer ${user.token}`
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) throw new Error("Failed to add order");
-
-      const result = await response.json();
-      if(response.ok){
-        if(!("exceededIronArr" in result)){
-          await socket.emit("send_order_creation", {
-            message: "Order Printed Successfully",
-            room: "123",
-            order: result,
-          });
-          dispatch({type:"ADD_TICKET",payload: [result]})
-          swal({
-            text: "تم انشاء طلب بنجاح",
-            icon: "success",
-          }).then(e=>{
-            setAdding(false)
-            closeFun()
-          });
-        }
-        else{
-          let errStr = ""
-          for(let i of result.exceededIronArr){
-            errStr += i
-          }
-          swal({
-            text: "لم يتم انشاء الاوردر لعدم وجود حديد كافي: " + errStr,
-            icon: "error",
-          }).then(e=>{
-            setAdding(false)
-            closeFun()
-          });
-        }
-      }
-    } catch (error) {
-      swal({
-        text: "حدث خطأ ما برجاء المحاولة مرة اخرى",
-        icon: "error",
-        buttons: "حاول مرة اخرى",
-      }).then(e=>{
-          setAdding(false)
-          closeFun()
-        }
-      );
-    }
   };
 
 
   return (
     <div dir="rtl">
       <Seperator text={`بيانات طلب ${type == "in" ? "وارد" : "خارج"}`} />
+      <Dialog
+        open={open}
+        onClose={handleCloseDialog}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          {"انشاء اوردر جديد"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+             هل تريد انشاء اوردر جديد بهذه المعايير المكتوبه ادني:
+          </DialogContentText>
+          <DialogContentText id="alert-dialog-description">
+            {
+              tickets.map((i,idx)=>{
+                return ( 
+                  <div style={{direction:"rtl"}}>
+                    <Seperator text={`تفاصيل التذكره رقم ${idx+1}`} />
+                    <h4> نوع الحديد : {i.ironName} </h4>
+                    <h4> قطر : {i.radius} </h4>
+                    <h4> الوزن المطلوب : {parseFloat(i.neededWeight).toLocaleString()} </h4>
+                    <h4> السعر : {parseFloat(i.unitPrice).toLocaleString()} </h4>
+                  </div> 
+                )
+              })
+            }
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={(e) => {
+            handleCloseDialog()
+            setAdding(false)
+          }}>الغاء</Button>
+          <Button onClick={async(e) =>{
+              handleCloseDialog()
+              const data = {
+                clientId: clients,
+                totalPrice: 0,
+                date: date,
+                ticket: tickets,
+                type: type,
+                deliveryFees: deliveryFees,
+                clientName: selectedClientName,
+                password
+              };
+              try {
+                const response = await fetch("/order/addOrder", {
+                  // Update port if different
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    'Authorization': `Bearer ${user.token}`
+                  },
+                  body: JSON.stringify(data),
+                });
+          
+                if (!response.ok) throw new Error("Failed to add order");
+          
+                const result = await response.json();
+                if(response.ok){
+                  if(!("exceededIronArr" in result)){
+                    await socket.emit("send_order_creation", {
+                      message: "Order Printed Successfully",
+                      room: "123",
+                      order: result,
+                    });
+                    dispatch({type:"ADD_TICKET",payload: [result]})
+                    swal({
+                      text: "تم انشاء طلب بنجاح",
+                      icon: "success",
+                    }).then(e=>{
+                      setAdding(false)
+                      closeFun()
+                    });
+                  }
+                  else{
+                    let errStr = ""
+                    for(let i of result.exceededIronArr){
+                      errStr += i
+                    }
+                    swal({
+                      text: "لم يتم انشاء الاوردر لعدم وجود حديد كافي: " + errStr,
+                      icon: "error",
+                    }).then(e=>{
+                      setAdding(false)
+                      closeFun()
+                    });
+                  }
+                }
+              } catch (error) {
+                swal({
+                  text: "حدث خطأ ما برجاء المحاولة مرة اخرى",
+                  icon: "error",
+                  buttons: "حاول مرة اخرى",
+                }).then(e=>{
+                    setAdding(false)
+                    closeFun()
+                  }
+                );
+              }
+              setAdding(false)
+            }} autoFocus>
+            موافق
+          </Button>
+        </DialogActions>
+      </Dialog>
       <form className="w-full px-4 pt-6" onSubmit={HandleFormSubmission}>
         <div className="w-full flex md:flex-row flex-col gap-5 pb-6">
           <div className="md:w-[33%] w-full flex justify-center">

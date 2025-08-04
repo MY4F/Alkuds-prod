@@ -9,7 +9,12 @@ import Switch from '@mui/material/Switch';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import CircularProgress from "@mui/material/CircularProgress";
 import { useUserContext } from "../hooks/useUserContext";
-
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
 const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
   const [ticketsPrices, setTicketsPrices] = useState(
     order.ticket.map((ticket) => ticket.unitPrice)
@@ -28,7 +33,27 @@ const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
   const [saveLoading, setSaveLoading] = useState(false);
   const [isManual, setIsManual] = useState(false)
   const {user} = useUserContext()
+  const [openDialogIndex, setOpenDialogIndex] = useState(null);
+
+  const [open2, setOpen2] = useState(false);
+
+  const handleClickOpen2 = () => {
+    setOpen2(true);
+  };
+
+  const handleCloseDialog2 = () => {
+    setOpen2(false);
+  };
+
+
+  const handleClickOpen = (idx) => {
+    setOpenDialogIndex(idx);
+  };
   
+  const handleCloseDialog = () => {
+    setOpenDialogIndex(null);
+  };
+
   useEffect(() => {
     // socket.on("receive_order_finish_state", (info) => {
     //   if (info.order === null) {
@@ -54,13 +79,14 @@ const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
     firstDate,
     firstTime,
     socket,
-    isManual
+    isManual,
+    orderTickets
   ]);
 
   const updateTicket = async(newWeight,ticketId)=>{
     setIsLoading(true)
-    console.log(newWeight)
     let newTicket = order.ticket[ticketId], newOrder = order
+    console.log(newWeight,ticketId,newTicket.weightBefore)
     if(ticketId > 0){
       newTicket.weightBefore = order.ticket[ticketId-1].weightAfter
       newTicket.weightAfter = newWeight
@@ -69,6 +95,7 @@ const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
     else{
       newTicket.weightBefore = order.firstWeight.weight
       newTicket.weightAfter = newWeight 
+      console.log(order.firstWeight.weight,newWeight)
       newTicket.netWeight =  Math.abs(newWeight - order.firstWeight.weight)
     }
     newTicket.netWeightForProcessing = newTicket.netWeight 
@@ -198,10 +225,34 @@ const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
       <Seperator text={`"${name}" تفاصيل طلب`} />
       <form className="w-full px-4 pt-6" onSubmit={(e) => handleSubmit(e)}>
         <div className="w-full flex md:flex-row flex-col gap-5 pb-6">
+          <Dialog
+            open={open2}
+            onClose={handleCloseDialog2}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+          >
+            <DialogTitle id="alert-dialog-title">
+              {"تحميل الوزن"}
+            </DialogTitle>
+            <DialogContent>
+              <DialogContentText id="alert-dialog-description">
+                سيتم تحديث الوزن، هل قمت الضغط؟
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseDialog2}>الغاء</Button>
+              <Button onClick={(e) =>{
+                  updateFirstWeight()
+                  handleCloseDialog2()
+                }} autoFocus>
+                موافق
+              </Button>
+            </DialogActions>
+          </Dialog>
         { isManual && 
               <div className="md:w-[50%] w-full flex justify-center items-end">
                 <div className="flex flex-col gap-2 ">
-                  <span onClick={e=>updateFirstWeight()}  className="iron-btn "> {isLoading ? <CircularProgress /> : " تحميل الوزن"}{" "} </span>
+                  <span onClick={handleClickOpen2}  className="iron-btn "> {isLoading ? <CircularProgress /> : " تحميل الوزن"}{" "} </span>
                 </div>
             </div>}
           <div className="md:w-[50%] w-full flex justify-center">
@@ -362,7 +413,32 @@ const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
             { isManual && <div className="w-full flex md:flex-row flex-col gap-5 pb-6">
               <div className="md:w-[100%] w-full flex justify-center">
                 <div className="flex flex-col gap-2 ">
-                  <span onClick={e=>updateTicket(orderTickets[idx].weightAfter, idx)}  className="iron-btn "> {isLoading ? <CircularProgress /> : " تحميل الوزن"}{" "} </span>
+                  <Dialog
+                    open={openDialogIndex === idx}
+                    onClose={handleCloseDialog}
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description"
+                  >
+                    <DialogTitle id="alert-dialog-title">
+                      {"تحميل الوزن"}
+                    </DialogTitle>
+                    <DialogContent>
+                      <DialogContentText id="alert-dialog-description">
+                        سيتم تحديث الوزن، هل قمت الضغط؟
+                      </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                      <Button onClick={handleCloseDialog}>الغاء</Button>
+                      <Button onClick={(e) =>{
+                        console.log(idx)
+                        updateTicket(orderTickets[openDialogIndex].weightAfter, openDialogIndex);
+                          handleCloseDialog()
+                        }} autoFocus>
+                        موافق
+                      </Button>
+                    </DialogActions>
+                  </Dialog>
+                  <span onClick={() => handleClickOpen(idx)}  className="iron-btn "> {isLoading ? <CircularProgress /> : " تحميل الوزن"}{" "} </span>
                 </div>
               </div>
             </div>}

@@ -8,6 +8,12 @@ import { useSocketContext } from "../hooks/useSocket";
 import { useUnfinishedTicketsContext } from "../hooks/useUnfinishedTicketsContext";
 import { useFinishedTicketsContext } from "../hooks/useFinishedTicketsContext";
 import { useUserContext } from "../hooks/useUserContext";
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
 const CashInput = (props) => {
   const { isKudsPersonnel, isCheque } = props
   const [selectedClient, setSelectedClient] = useState("اختر عميل");
@@ -26,7 +32,14 @@ const CashInput = (props) => {
   const { finishedTickets , dispatch: finishedTicketsUpdate } = useFinishedTicketsContext()
   const [isLoading,setIsLoading] = useState(false)
   const [cheques, setCheques] = useState([])
-  
+  const [open, setOpen] = useState(false);
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+  const handleCloseDialog = () => {
+    setOpen(false);
+  };
+
   useEffect(()=>{
     if(wallet){
       let unDisbursedCheques = wallet["شيكات"].transactions.filter(tx => tx.isDisbursed === false);
@@ -157,17 +170,51 @@ const CashInput = (props) => {
 
   return (
     <form className="w-full px-4 pt-6 flex-nowrap" onSubmit={e => {
-      if(isKudsPersonnel){
-        handleKudsPersonnel(e)
-      }
-      else{
-        handleSubmit(e,isCheque)
-      }
+      e.preventDefault()
+      handleClickOpen()
     }}>
       {!isLoading ? <div
         style={{ direction: "rtl" }}
         className="w-full flex md:flex-row flex-col gap-5 pb-6 cash-holder overflow-y-auto"
       >
+        <Dialog
+          open={open}
+          onClose={handleCloseDialog}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+        <DialogTitle id="alert-dialog-title">
+          {"انشاء عمليه ماليه"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+             هل تريد انشاء عمليه ماليه جديد بهذه المعايير المكتوبه ادني:
+          </DialogContentText>
+          <DialogContentText style={{direction:"rtl"}} id="alert-dialog-description">
+            <h4>   بنك : {selectedBank} </h4>
+           {selectedClient !== 'اختر عميل' && client && <h4> عميل : {client[selectedClient].name} </h4>}
+            <h4> نوع العمليه : {selectedType} </h4>
+            <h4>  مبلغ : {amount} </h4>
+          </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={(e) => {
+                handleCloseDialog()
+                console.log(client[selectedClient])
+              }}>الغاء</Button>
+              <Button onClick={async(e) =>{
+                  handleCloseDialog()
+                 if(isKudsPersonnel){
+                  handleKudsPersonnel(e)
+                  }
+                  else{
+                    handleSubmit(e,isCheque)
+                  }
+                }} autoFocus>
+                موافق
+              </Button>
+            </DialogActions>
+        </Dialog>
         <div className="md:w-[50%] w-full flex justify-center">
           <div className="flex flex-col gap-2 w-full max-w-[300px]">
             <label className="text-center">نوع العمليه</label>
