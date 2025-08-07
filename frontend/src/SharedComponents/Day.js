@@ -3,13 +3,14 @@ import { useClientContext } from "../hooks/useClientContext";
 import { useUserContext } from "../hooks/useUserContext";
 import CircularProgress from "@mui/material/CircularProgress";
 
-const InTableRow = ({ w, name, raduis, ironName }) => {
+const InTableRow = ({ w, name, raduis, ironName, price, loggedUser }) => {
   return (
     <tr>
       <td style={{ minWidth: "90px" }}> {name} </td>
       <th style={{ minWidth: "90px" }}> {ironName} </th>
       <td> {raduis} </td>
-      <td> {w} </td>
+      <td> {w.toLocaleString()} </td>
+      { loggedUser && <td> {price.toLocaleString()} </td> }
     </tr>
   );
 };
@@ -36,7 +37,13 @@ const Day = () => {
   const [showTable, setShowTable] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [noTicketsForThatDay, setNoTicketsForThatday] = useState(false);
-  useEffect(() => {}, [inArrWeightArr, outArrWeightArr, totalOut, totalIn]);
+  const [ showPriceColumn , setShowPriceColumn ] = useState(false)
+  useEffect(() => {
+    console.log(user.user.msg.username)
+    if(user.user.msg.username !== "admin2"){
+      setShowPriceColumn(true)  
+    }
+  }, [user,inArrWeightArr, outArrWeightArr, totalOut, totalIn]);
 
   if (!client) {
     return <div>Loading...</div>; // Prevents rendering until data is available
@@ -88,7 +95,7 @@ const Day = () => {
               raduis: i.ticket[j].radius,
               ironName: i.ticket[j].ironName,
               field5: " ",
-              money: " ",
+              money: " "
             };
             inArr.push(obj);
           }
@@ -115,6 +122,7 @@ const Day = () => {
               ironName: i.ticket[j].ironName,
               w: i.ticket[j].netWeight,
               raduis: i.ticket[j].radius,
+              unitPrice: i.ticket[j].unitPrice
             };
             outArr.push(obj);
           }
@@ -216,6 +224,7 @@ const Day = () => {
                       <th> نوع </th>
                       <th> م </th>
                       <th> وزن</th>
+                      { showPriceColumn && <th> سعر</th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -226,6 +235,8 @@ const Day = () => {
                         ironName={i.ironName}
                         w={i.w}
                         raduis={i.raduis}
+                        price={parseFloat(i.w * parseFloat(i.unitPrice/1000))}
+                        loggedUser={showPriceColumn}
                       />
                     ))}
                   </tbody>

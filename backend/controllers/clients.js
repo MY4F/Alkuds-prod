@@ -28,7 +28,8 @@ const addClients = async (req , res) => {
                 address,
                 ticketsIds:[],
                 clientId: newId.toString(),
-                isFactory:isFactory === 'مورد' ? true:false
+                isFactory:isFactory === 'مورد' ? true : isFactory === 'عميل و مورد' ? true : isFactory === 'عميل' ?false : true,
+                isClient: isFactory === 'عميل' ? true: isFactory === 'عميل و مورد' ? true : isFactory === 'عميل' ?true : false
             }
         )
         newClient.save()

@@ -1,7 +1,8 @@
 import { useUserContext } from "../hooks/useUserContext";
 import Seperator from "../components/Seperator";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import swal from "sweetalert";
+import { useClientContext } from "../hooks/useClientContext";
 const Settings = () => {
   const [driverName, setDriverName] = useState("");
   const [driverNumber, setDriverNumber] = useState("");
@@ -9,6 +10,9 @@ const Settings = () => {
   const [clientAddress, setClientAddress] = useState("");
   const [clientType, setClientType] = useState("");
   const {user} = useUserContext()
+  const { dispatch } = useClientContext()
+
+  useEffect(()=>{},[dispatch])
 
   const handleClientAdd = async (e) => {
     e.preventDefault();
@@ -26,7 +30,7 @@ const Settings = () => {
       },
     });
     const json = await response.json();
-    console.log(json);
+    dispatch({ type: "UPDATE_CLIENT", payload: json })
     if (response.ok) swal("تم اضافعه عميل جديد بنجاح.", "", "success");
   };
 
@@ -130,6 +134,7 @@ const Settings = () => {
             </option>
             <option value="مورد"> مورد </option>
             <option value="عميل"> عميل </option>
+            <option value="عميل و مورد"> عميل و مورد </option>
           </select>
         </div>
         <button type="submit" className=" max-w-[300px] iron-btn">

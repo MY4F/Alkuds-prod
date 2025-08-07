@@ -121,7 +121,7 @@ const OrdersPage = () => {
             خارج
           </ToggleButton>
         </ToggleButtonGroup>
-        {/* <form
+        {(category === "done" || category === "progress-pay") && <form
           className="flex lg:flex-row flex-col gap-2 lg:gap-4"
           onSubmit={(e) => handleDateFilters(e)}
         >
@@ -144,7 +144,7 @@ const OrdersPage = () => {
             />
           </div>
           <button className="iron-btn add-btn">بحث</button>
-        </form> */}
+        </form>}
       </div>
 
       <Seperator
@@ -179,7 +179,11 @@ const OrdersPage = () => {
                     return itemDate > endOfToday;
                   }
                   else if(category === 'progress-pay' || category === 'done'){
-                    return itemDate <= endOfToday;
+                    if (!startDate || !endDate || !dateSearchApplied) return true;
+                    const itemDate = new Date(i.date);
+                    const start = new Date(filteredDates[0]);
+                    const end = new Date(filteredDates[1]);
+                    return itemDate >= start && itemDate <= end;
                   }
                 })
                 .slice(0, loadRange)
