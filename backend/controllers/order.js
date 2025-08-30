@@ -264,7 +264,8 @@ const addOrder = async (req, res) => {
     deliveryFees,
     date,
     clientName,
-    password
+    password,
+    drivers
   } = req.body;
   console.log("clientId",clientId,"clientName",clientName)
   let newOrder = null;
@@ -309,6 +310,7 @@ const addOrder = async (req, res) => {
       totalPrice,
       deliveryFees,
       date,
+      drivers
     });
     if(password === "alkudsprod123"){
       newOrder.state = 'منتهي'
@@ -684,6 +686,7 @@ const OrderFinishState = async (req, res) => {
           transactionsHistory: {
             amount: totalPrice + updatedOrder.deliveryFees,
             type: "out",
+            orderId
           },
         },
       },
@@ -856,7 +859,7 @@ const OrderFinishState = async (req, res) => {
         {
             $inc: { balance: -realTotalPrice },
             $push: {
-                'transactionsHistory': { amount:realTotalPrice, type : "in"}
+                'transactionsHistory': { amount:realTotalPrice, type : "in",orderId }
             },
             
         },
@@ -1103,6 +1106,142 @@ const revertOrder = async(req,res) =>{
   }
 }
 
+const EditOrderTicketPrice = async(req,res)=>{
+  let {orderId, idx, newPrice} = req.body;
+  try{
+    // lazem azabat el total prioce changes 3ashan mesh mazbot fel line le taht dah 3alatool 
+    let fetchOrder = await Order.findOne({"_id": orderId});
+    console.log("fetchOrder",fetchOrder)
+    let netWeight = fetchOrder.ticket[idx].netWeight
+    fetchOrder.ticket[idx].realTotalPrice = parseFloat(newPrice) * parseFloat(parseFloat(netWeight)/1000)
+    fetchOrder.ticket[idx].unitPrice = parseFloat(newPrice)
+    let newTotalPrice = 0
+    for(let i of fetchOrder.ticket){
+      newTotalPrice += i.realTotalPrice 
+    }
+    let oldTotalPrice = fetchOrder.realTotalPrice
+    let deltaPrice = newTotalPrice - oldTotalPrice
+    if(fetchOrder.type === "in"){ 
+      for (let j of fetchOrder.ticket[idx].usedUnitCostPerWeight){
+        let ironData = await Iron.findOneAndUpdate( 
+        { "costPerWeight._id": j.ironId }, 
+        { 
+          $set: { 
+            "costPerWeight.$.unitCostPerTon": parseFloat(newPrice),
+          } 
+        })
+        let orderUsedIronId = await Order.find({"ticket.usedUnitCostPerWeight.ironId":j.ironId})
+        for(let i = 0 ;i<orderUsedIronId.length; i++){
+          let newTotalProfit = 0
+          for(let k = 0;k<orderUsedIronId[i].ticket.length;k++){
+              for(let m of orderUsedIronId[i].ticket[k].usedUnitCostPerWeight){
+                if(m.ironId === j.ironId){
+                  let unitPrice = orderUsedIronId[i].ticket[k].unitPrice
+                  let netWeight = orderUsedIronId[i].ticket[k].netWeight
+                  orderUsedIronId[i].ticket[k].profit = (unitPrice * parseFloat(netWeight/1000)) - (newPrice * parseFloat(netWeight/1000))
+                }
+              newTotalProfit += orderUsedIronId[i].ticket[k].profit
+            }
+          }
+          orderUsedIronId[i].totalProfit = newTotalProfit
+          await orderUsedIronId[i].save()
+        }
+      }
+      if (deltaPrice<0){
+        let updateClientBalance = await Client.findOneAndUpdate({clientId:fetchOrder.clientId},{ $inc: { balance: -deltaPrice } }, { returnDocument: "after" })
+        for(let i = 0 ;i< updateClientBalance.transactionsHistory.lengthl;i++){
+          if(updateClientBalance.transactionsHistory[i].orderId === orderId){
+            updateClientBalance.transactionsHistory[i].amount += -deltaPrice
+            break
+          }
+        }
+        await updateClientBalance.save()
+      }
+      else{
+        let updateClientBalance = await Client.findOneAndUpdate({clientId:fetchOrder.clientId},{ $inc: { balance: deltaPrice }}, { returnDocument: "after" })
+        for(let i = 0 ;i< updateClientBalance.transactionsHistory.length;i++){
+          console.log(updateClientBalance.transactionsHistory[i].orderId, orderId)
+          if(updateClientBalance.transactionsHistory[i].orderId === orderId){
+            updateClientBalance.transactionsHistory[i].amount += deltaPrice
+            break
+          }
+        }
+        await updateClientBalance.save()
+      }
+
+
+
+    }
+    else{
+      let newTotalProfit = 0, ironUnitCost = 0
+      for (let j of fetchOrder.ticket[idx].usedUnitCostPerWeight){
+        let ironData = await Iron.findOne({ "costPerWeight._id": j.ironId })
+        for (let i of ironData.costPerWeight){
+          if(i._id.toString() === j.ironId){
+            ironUnitCost = i.unitCostPerTon
+            break
+          }
+        }
+        newTotalProfit = parseFloat(fetchOrder.ticket[idx].unitPrice * parseFloat(fetchOrder.ticket[idx].netWeight/1000)) - parseFloat(ironUnitCost * parseFloat(fetchOrder.ticket[idx].netWeight/1000))
+      }
+      fetchOrder.ticket[idx].profit = newTotalProfit
+      let newOverAllProfit = 0
+      for(let k of fetchOrder.ticket){
+        newOverAllProfit += k.profit
+      }
+      fetchOrder.totalProfit = newOverAllProfit
+      let updateClientBalance = await Client.findOneAndUpdate({clientId:fetchOrder.clientId},{ $inc: { balance: deltaPrice } }, { returnDocument: "after" })
+      for(let i = 0 ;i< updateClientBalance.transactionsHistory.length;i++){
+        console.log(updateClientBalance.transactionsHistory[i].orderId, orderId)
+        if(updateClientBalance.transactionsHistory[i].orderId === orderId){
+          updateClientBalance.transactionsHistory[i].amount += deltaPrice
+          break
+        }
+      }
+      await updateClientBalance.save()
+    }
+
+    
+
+    fetchOrder.realTotalPrice = newTotalPrice
+    await fetchOrder.save() 
+    
+    let inOrders  = [],outOrders = [];
+    let awaitOrders = await Order.find({ state: "جاري انتظار الدفع" });
+    for (let x of awaitOrders) {
+      if (x.type === "in") {
+        inOrders.push(x);
+      } else {
+        outOrders.push(x);
+      }
+    }
+
+    let inOrdersFinished = [], outOrdersFinished = []
+    let finishedOrders = await Order.find({
+      state: "منتهي",
+    });
+    for (let x of finishedOrders) {
+      if (x.type === "in") {
+        inOrdersFinished.push(x);
+      } else {
+        outOrdersFinished.push(x);
+      }
+    }
+
+    let clients = await Client.find(),clientsMap = {};
+    for(x of clients){
+        clientsMap[x.clientId] = x
+    }
+
+    res.json({"message":"success", "clients":clientsMap, "finishedOrders":{"inOrders":inOrdersFinished,"outOrders": outOrdersFinished}, "awaitOrders":{"inOrders":inOrders,"outOrders":outOrders}})
+
+  }
+  catch(err){
+    console.log(err)
+  }
+
+}
+
 module.exports = {
   getUnfinishedOrdersInfoGroupedByClientId,
   getUnfinishedOrdersInfoGroupedByType,
@@ -1123,5 +1262,6 @@ module.exports = {
   OrderIronPriceUpdate,
   orderChangeState,
   deleteOrders,
-  revertOrder
+  revertOrder,
+  EditOrderTicketPrice
 };

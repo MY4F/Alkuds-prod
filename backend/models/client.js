@@ -22,6 +22,7 @@ const ClientSchema = new mongoose.Schema({
     transactionsHistory: [{
         amount: { type: Number, required: true },
         type: {type: String, default:""},
+        orderId: {type: String, default:""},
         date : { type: String, default: new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' })}
     }],
     clientId: {

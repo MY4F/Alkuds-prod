@@ -12,6 +12,14 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
+import OutlinedInput from '@mui/material/OutlinedInput';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import ListItemText from '@mui/material/ListItemText';
+import Select from '@mui/material/Select';
+import Checkbox from '@mui/material/Checkbox';
+import { useDriverContext } from "../../hooks/useDriverContext";
 const OrderModal = ({ onClose, type, closeFun }) => {
   const [price, setPrice] = useState(0);
   const [date, setDate] = useState();
@@ -26,6 +34,32 @@ const OrderModal = ({ onClose, type, closeFun }) => {
   const [tickets, setTickets] = useState([
     { ironName: "", radius: "", neededWeight: "", unitPrice: "" },
   ]);
+  const [personName, setPersonName] = useState([]);
+  const { driver } = useDriverContext();
+  const handleChange = (event) => {
+    const {
+      target: { value },
+    } = event;
+    setPersonName(
+      // On autofill we get a stringified value.
+      typeof value === 'string' ? value.split(',') : value,
+    );
+  };
+  
+  console.log(driver)
+
+  const names = [
+    'Oliver Hansen',
+    'Van Henry',
+    'April Tucker',
+    'Ralph Hubbard',
+    'Omar Alexander',
+    'Carlos Abbott',
+    'Miriam Wagner',
+    'Bradley Wilkerson',
+    'Virginia Andrews',
+    'Kelly Snyder',
+  ];
   const { socket } = useSocketContext();
   const [open, setOpen] = useState(false);
   const handleClickOpen = () => {
@@ -85,6 +119,15 @@ const OrderModal = ({ onClose, type, closeFun }) => {
           }}>الغاء</Button>
           <Button onClick={async(e) =>{
               handleCloseDialog()
+              let driversArr = []
+              for(let d of driver){
+                if(personName.includes(d.name))
+                driversArr.push({
+                  name: d.name,
+                  number: d.mobile
+                })
+              }
+              console.log(driversArr)
               const data = {
                 clientId: clients,
                 totalPrice: 0,
@@ -93,7 +136,8 @@ const OrderModal = ({ onClose, type, closeFun }) => {
                 type: type,
                 deliveryFees: deliveryFees,
                 clientName: selectedClientName,
-                password
+                password,
+                drivers: driversArr
               };
               try {
                 const response = await fetch("/order/addOrder", {
@@ -200,6 +244,31 @@ const OrderModal = ({ onClose, type, closeFun }) => {
           </div>
           <div className="md:w-[33%] w-full flex justify-center">
             <div className="flex flex-col gap-2 w-full max-w-[300px]">
+              <label className="text-center">السائق  </label>
+              <FormControl>
+                <InputLabel id="demo-multiple-checkbox-label">سائق</InputLabel>
+                <Select
+                  labelId="demo-multiple-checkbox-label"
+                  id="demo-multiple-checkbox"
+                  multiple
+                  value={personName}
+                  onChange={handleChange}
+                  input={<OutlinedInput label="اختر سائق" />}
+                  renderValue={(selected) => selected.join(', ')}
+                  style={{"backgroundColor":"white"}}
+                >
+                  {driver && driver.map((d,idx) => (
+                    <MenuItem key={idx} value={d.name}>
+                      <Checkbox checked={personName.includes(d.name)} />
+                      <ListItemText primary={d.name} />
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </div>
+          </div>
+          <div className="md:w-[33%] w-full flex justify-center">
+            <div className="flex flex-col gap-2 w-full max-w-[300px]">
               <label className="text-center">التاريخ </label>
               <input
                 required
@@ -212,11 +281,11 @@ const OrderModal = ({ onClose, type, closeFun }) => {
               />
             </div>
           </div>
-          {/* <div className="md:w-[33%] w-full flex justify-center">
+          
+          <div className="md:w-[33%] w-full flex justify-center">
             <div className="flex flex-col gap-2 w-full max-w-[300px]">
               <label className="text-center">كلمه السر لبضاعه اول الشهر </label>
               <input
-                required
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);
@@ -225,7 +294,7 @@ const OrderModal = ({ onClose, type, closeFun }) => {
                 className="w-full md:w-[300px]"
               />
             </div>
-          </div> */}
+          </div>
           {type === 'out' && <div className="md:w-[33%] w-full flex justify-center">
             <div className="flex flex-col gap-2 w-full max-w-[300px]">
               <label className="text-center">المشال</label>

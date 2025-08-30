@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Order = require('../models/order')
 const requireAuth = require('../config/auth')
-const {revertOrder, deleteOrders, orderChangeState, getNewOrdersInfoGroupedByType, OrderIronPriceUpdate, addOrderStatement, getClientOrders, getAwaitForPaymentOrdersGroupedByType, getFinishedOrdersInfoGroupedByType, EditOrderFirstWeight, ticketUpdateTransaction, addOrder , EditOrderTicket, getSpecificClientOrders, getTicketsInfo,getUnfinishedOrdersInfoGroupedByClientId,getUnfinishedOrdersInfoGroupedByType, OrderFinishState, getSpecificTicket, getTicketsForDay, TicketDelete} = require('../controllers/order'); 
+const {EditOrderTicketPrice, revertOrder, deleteOrders, orderChangeState, getNewOrdersInfoGroupedByType, OrderIronPriceUpdate, addOrderStatement, getClientOrders, getAwaitForPaymentOrdersGroupedByType, getFinishedOrdersInfoGroupedByType, EditOrderFirstWeight, ticketUpdateTransaction, addOrder , EditOrderTicket, getSpecificClientOrders, getTicketsInfo,getUnfinishedOrdersInfoGroupedByClientId,getUnfinishedOrdersInfoGroupedByType, OrderFinishState, getSpecificTicket, getTicketsForDay, TicketDelete} = require('../controllers/order'); 
 
 router.get("/getUnfinishedOrdersInfoGroupedByClientId",requireAuth, getUnfinishedOrdersInfoGroupedByClientId)
 router.get("/getUnfinishedOrdersInfoGroupedByType", requireAuth,getUnfinishedOrdersInfoGroupedByType)
@@ -14,6 +14,7 @@ router.post("/getClientOrders/",requireAuth, getClientOrders)
 router.get("/getSpecificTicket/:id", getSpecificTicket)
 router.post("/addOrder",requireAuth, addOrder)
 router.post("/EditOrderTicket",requireAuth, EditOrderTicket)
+router.post("/EditOrderTicketPrice",requireAuth, EditOrderTicketPrice)
 router.post("/ticketAddSatetment",requireAuth, ticketUpdateTransaction)
 router.post("/EditOrderFirstWeight",requireAuth, EditOrderFirstWeight)
 router.post("/addOrderStatement",requireAuth, addOrderStatement)

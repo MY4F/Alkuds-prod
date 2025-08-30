@@ -57,6 +57,28 @@ const resetClients = async(req,res)=>{
     }
     return result
 }
+
+const updateBalances = async(req,res) =>{
+    const { balance } = req.body
+    console.log(balance)
+    let result
+    try{
+        for(const key in balance){
+            const client = await Client.findOne({clientId: balance[key].clientId})
+            if(client){
+                client.balance = balance[key].balance
+                await client.save()
+            }
+        }
+        result = {message: "Balances updated successfully"}
+    }
+    catch(err){
+        console.log(err)
+        result = {message: "Error updating balances"}
+    }
+    return res.json(result)
+}
+
 module.exports = {
-    getClientsInfo , addClients , updateClientsInfo, resetClients
+    getClientsInfo , addClients , updateClientsInfo, resetClients, updateBalances
 }

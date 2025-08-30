@@ -9,7 +9,11 @@ import AddingPriceForm from "../components/AddingPriceForm";
 import { useUserContext } from "../hooks/useUserContext";
 import { useAwaitForPaymentTicketsContext } from "../hooks/useAwaitForPaymentTicketsContext";
 import { useFinishedTicketsContext } from "../hooks/useFinishedTicketsContext";
-
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
 const OrdersViewHolder = ({ order, isFinishedTicket, alignment }) => {
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
@@ -19,6 +23,15 @@ const OrdersViewHolder = ({ order, isFinishedTicket, alignment }) => {
   const { client, dispatch: clientDispatch } = useClientContext();
   const { dispatch } = useAwaitForPaymentTicketsContext()
   const { dispatch: dispatchFinishedOrders } = useFinishedTicketsContext()
+  const [open2, setOpen2] = useState(false);
+  const handleClickOpen2 = () => {
+    setOpen2(true);
+  };
+
+  const handleCloseDialog2 = () => {
+    setOpen2(false);
+  };
+
   useEffect(() => {}, [dispatch, clientDispatch, dispatchFinishedOrders ]);
 
   const style = {
@@ -85,15 +98,40 @@ const OrdersViewHolder = ({ order, isFinishedTicket, alignment }) => {
 
         </div>
         <div className="flex gap-6">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleRevertOrder();
-            }}
-            className="sm:h-[32px] h-auto m-0 pb-1 px-3 rounded  hover:bg-dark-green !w-auto bg-[#00756a] text-white   "
+        <Dialog
+            open={open2}
+            onClose={handleCloseDialog2}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
           >
-            مرتجع
-          </button>
+            <DialogTitle id="alert-dialog-title">
+              {"مرتجع"}
+            </DialogTitle>
+            <DialogContent>
+              <DialogContentText id="alert-dialog-description">
+                سيتم ارجاع الاورد، هل قمت بالضغط؟
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={(e)=>{handleCloseDialog2();handleClose();}}>الغاء</Button>
+              <Button onClick={(e) =>{
+                  handleClose();
+                  handleRevertOrder();
+                  handleCloseDialog2()
+                }} autoFocus>
+                موافق
+              </Button>
+            </DialogActions>
+          </Dialog>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleClickOpen2();
+          }}
+          className="sm:h-[32px] h-auto m-0 pb-1 px-3 rounded  hover:bg-dark-green !w-auto bg-[#00756a] text-white   "
+        >
+          مرتجع
+        </button>
         </div>
       </button>
       <Modal

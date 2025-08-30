@@ -163,6 +163,9 @@ export default function AdminLayout() {
               <NavLink className="text-center" to={"customersbalance"}>
                 رصيد العملاء
               </NavLink>
+              <NavLink className="text-center" to={"clientbalance"}>
+                ادخال رصيد العملاء 
+              </NavLink>
               <button onClick={handleLogout} className="iron-btn logout"> تسجيل خروج </button>
 
             </div>

@@ -15,6 +15,9 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
+import { useFinishedTicketsContext } from "../hooks/useFinishedTicketsContext";
+import { useClientContext } from "../hooks/useClientContext";
+import { useAwaitForPaymentTicketsContext } from "../hooks/useAwaitForPaymentTicketsContext";
 const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
   const [ticketsPrices, setTicketsPrices] = useState(
     order.ticket.map((ticket) => ticket.unitPrice)
@@ -28,14 +31,17 @@ const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
   const [date, setDate] = useState(0);
   const [netWeight, setNetWeight] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingPrice, setIsLoadingPrice] = useState(false);
   const { unfinishedTickets, dispatch } = useUnfinishedTicketsContext();
+  const { awaitForPaymentTickets, dispatch: awaitDispatch } = useAwaitForPaymentTicketsContext();
   const { socket } = useSocketContext();
   const [saveLoading, setSaveLoading] = useState(false);
   const [isManual, setIsManual] = useState(false)
   const {user} = useUserContext()
   const [openDialogIndex, setOpenDialogIndex] = useState(null);
-
+  const { finishedTickets, dispatch:dispatchFinishedOrders } = useFinishedTicketsContext()
   const [open2, setOpen2] = useState(false);
+  const { client , dispatch:clientDispatch} = useClientContext()
 
   const handleClickOpen2 = () => {
     setOpen2(true);
@@ -80,7 +86,13 @@ const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
     firstTime,
     socket,
     isManual,
-    orderTickets
+    orderTickets,
+    client,
+    finishedTickets,
+    awaitForPaymentTickets,
+    awaitDispatch,
+    clientDispatch,
+    dispatchFinishedOrders
   ]);
 
   const updateTicket = async(newWeight,ticketId)=>{
@@ -126,6 +138,36 @@ const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
     }
 
   }
+
+  const updateTicketPrice = async(e,ticketId, newPrice)=>{
+    e.preventDefault()
+    setIsLoadingPrice(true)
+    console.log(newPrice,ticketId,order._id," here new price ")
+    const ticketUpdateFetch = await fetch('/order/EditOrderTicketPrice',{
+      method:"POST",
+      headers: {
+        "Content-Type": "application/json",
+          'Authorization': `Bearer ${user.token}`
+      },
+      body:JSON.stringify({orderId: order._id,idx: ticketId,newPrice:newPrice})
+    })
+
+    const ticketUpdate = await ticketUpdateFetch.json()
+
+    if(ticketUpdateFetch.ok && ticketUpdate.message == "success"){
+      console.log("Ticket Updated: ",ticketUpdate)
+      awaitDispatch({ type: "SET_TICKETS", payload: ticketUpdate.awaitOrders });
+      dispatchFinishedOrders({ type: "SET_TICKETS", payload: ticketUpdate.finishedOrders })
+      clientDispatch({ type: "SET_CLIENTS", payload: ticketUpdate.clients })
+      setIsLoadingPrice(false)
+      swal ( "تم تحديث سعر العمليه بنجاح." ,  "تم تحديث البانات الماليه" ,  "success" )
+    }else{
+      swal ( "حدث عطل، الرجاء المحاوله مجددا  ." , "حاول مجددا بعد قليل." ,  "error" )
+    }
+  
+  }
+  
+
 
 
   const updateFirstWeight = async()=>{
@@ -389,8 +431,9 @@ const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
                   <label className="text-center">السعر</label>
                   <div className="flex flex-col space-y-3">
                     <input
-                      type="text"
+                      type="number"
                       placeholder="السعر"
+                      pattern="^[1-9][0-9]*$"
                       value={ticketsPrices[idx]}
                       onChange={(e) => {
                         const newPrices = [...ticketsPrices];
@@ -406,6 +449,16 @@ const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
                         إلغاء
                       </button>
                     )}
+                    <LoadingButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        updateTicketPrice(e,idx,ticketsPrices[idx]);
+                      }}
+                      defaultText="تغيير السعر"
+                      loadingText="يتم تغيير السعر ..."
+                      className="print-submit w-[300px]"
+                      loading={isLoadingPrice}
+                    />
                   </div>
                 </div>
               </div>

@@ -207,17 +207,24 @@ const ReceiptPrintPage = () => {
             <span>: رقم المقطوره</span>
           </p>
           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-          <p>
-            <span> 1 </span>
-            &nbsp;
-            <span>: رقم السائق</span>
-          </p>
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-          <p>
-            <span>1</span>
-            &nbsp;
-            <span>: اسم السائق</span>
-          </p>
+          {
+            order && order.drivers.map((i,idx)=>(
+              <div>
+                <p>
+              <span> 1 </span>
+              &nbsp;
+              <span>{i.number}: رقم السائق</span>
+            </p>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+              <p>
+                <span>1</span>
+                &nbsp;
+                <span>{i.name}: اسم السائق</span>
+              </p>
+              </div>
+            ))
+            
+          }
         </div>
         <div className="static-data-holder">
           <p>__________________/ت.المستلم</p>

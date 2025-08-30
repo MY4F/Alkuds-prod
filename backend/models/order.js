@@ -4,6 +4,10 @@ const OrderSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    drivers: [{
+        name: { type: String, required: true },
+        number: { type: String, required: true }
+    }],
     clientName: {
         type: String,
         required: true

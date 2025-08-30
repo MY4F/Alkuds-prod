@@ -27,6 +27,7 @@ import ProfitReport from "./ModeratorPages/ProfitReport";
 import PersonalAccountStatement from "./ModeratorPages/PersonalAccountStatement";
 import OwnerLayout from "./layouts/OwnerLayout";
 import CustomersBalance from "./ModeratorPages/CustomersBalance";
+import ClientBalanceInput from "./ModeratorPages/ClientBalanceInput";
 const LoginRoute = () => {
   const { user } = useUserContext();
   console.log(user);
@@ -242,6 +243,10 @@ const router = createBrowserRouter([
       {
         path: "customersbalance",
         element: <CustomersBalance />,
+      },
+      {
+        path: "clientbalance",
+        element: <ClientBalanceInput />,
       }
     ],
   },
