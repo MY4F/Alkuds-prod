@@ -18,6 +18,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import { useFinishedTicketsContext } from "../hooks/useFinishedTicketsContext";
 import { useClientContext } from "../hooks/useClientContext";
 import { useAwaitForPaymentTicketsContext } from "../hooks/useAwaitForPaymentTicketsContext";
+import axios from "axios";
 const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
   const [ticketsPrices, setTicketsPrices] = useState(
     order.ticket.map((ticket) => ticket.unitPrice)
@@ -172,13 +173,27 @@ const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
 
   const updateFirstWeight = async()=>{
     setIsLoading(true)
+
+    if(!isManual){
+      let newWeight = 0;
+      await axios
+      .get("http://localhost:8000/irons/getScaleWeight") // local service running on user's PC
+      .then((response) => {
+        print(response.data)
+        newWeight = response.data.weight
+      })
+      .catch((error) => {
+        console.error("Error reaching local API:", error);
+      });
+    }
+    
     const firstWeightUpdateFetch = await fetch('/order/EditOrderFirstWeight',{
       method:"POST",
       headers: {
         "Content-Type": "application/json",
           'Authorization': `Bearer ${user.token}`
       },
-      body:JSON.stringify({orderId: order._id,firstWeight:firstWeight})
+      body:JSON.stringify({orderId: order._id,firstWeight:isManual?firstWeight:newWeight})
     })
 
     const firstWeightUpdate = await firstWeightUpdateFetch.json()
