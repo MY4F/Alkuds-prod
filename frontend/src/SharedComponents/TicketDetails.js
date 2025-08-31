@@ -78,6 +78,8 @@ const TicketDetails = ({ order, orderContextIdx, isFinishedTicket }) => {
   };
 
   const updateFirstWeight = async (weight) => {
+    
+    
     const firstWeightUpdateFetch = await fetch("order/EditOrderFirstWeight", {
       method: "POST",
       headers: {
@@ -183,24 +185,25 @@ const TicketDetails = ({ order, orderContextIdx, isFinishedTicket }) => {
     }
 
     setIsLoading(true);
-    const weightFetch = await fetch("/irons/getScaleWeight", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${user.token}`,
-      },
-    });
-
-    const weightJson = await weightFetch.json();
-    if (weightFetch.ok) {
+    let newWeight= 0
+    await axios
+    .get("http://localhost:8000/irons/getScaleWeight") // local service running on user's PC
+    .then(async(response) => {
+      console.log(response.data)
+      newWeight = response.data.weight
       let d = new Date().toLocaleString("en-EG", { timeZone: "Africa/Cairo" });
       let dateArr = d.split(",");
-      setFirstWeight(weightJson.weight);
+      setFirstWeight(newWeight);
       setFirstDate(dateArr[0]);
       setFirstTime(dateArr[1]);
-    }
-    await updateFirstWeight(weightJson.weight);
-    setIsLoading(false);
+      await updateFirstWeight(newWeight);
+      setIsLoading(false);
+    })
+    .catch((error) => {
+      console.error("Error reaching local API:", error);
+    });
+
+    
   };
 
   const handleGetWeight = async (e, idx, weight) => {
