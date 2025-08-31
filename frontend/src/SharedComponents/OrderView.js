@@ -174,12 +174,12 @@ const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
   const updateFirstWeight = async()=>{
     setIsLoading(true)
 
+    let newWeight = 0;
     if(!isManual){
-      let newWeight = 0;
       await axios
       .get("http://localhost:8000/irons/getScaleWeight") // local service running on user's PC
       .then((response) => {
-        print(response.data)
+        console.log(response.data)
         newWeight = response.data.weight
       })
       .catch((error) => {
