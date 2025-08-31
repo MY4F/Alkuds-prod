@@ -9,6 +9,7 @@ import swal from "sweetalert";
 import { useAwaitForPaymentTicketsContext } from "../hooks/useAwaitForPaymentTicketsContext";
 import { useUserContext } from "../hooks/useUserContext";
 import "react-confirm-alert/src/react-confirm-alert.css";
+import axios from "axios";
 
 const TicketDetails = ({ order, orderContextIdx, isFinishedTicket }) => {
   const [firstWeight, setFirstWeight] = useState(0);
