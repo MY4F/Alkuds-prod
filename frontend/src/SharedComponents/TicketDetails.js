@@ -222,7 +222,7 @@ const TicketDetails = ({ order, orderContextIdx, isFinishedTicket }) => {
       newWeight = response.data.weight
       let d = new Date().toLocaleString("en-EG", { timeZone: "Africa/Cairo" });
       let dateArr = d.split(",");
-      setWeight(weightJson.weight);
+      setWeight(newWeight);
       setDate(dateArr[0]);
       setTime(dateArr[1]);
       await updateTicket(newWeight, idx);
