@@ -345,7 +345,7 @@ const ClientBill = () => {
     ...rows.flatMap((row) =>
       row.tickets.map((ticket) => ({
         id: ticket.id,
-        ironName: ticket.ironName,
+        radius: ticket.radius,
         netWeight: ticket.netWeight,
         price: ticket.price,
         total: ticket.netWeight * ticket.price,
@@ -606,7 +606,7 @@ const ClientBill = () => {
                   }}
                   className="!text-center !pt-2 !pb-2"
                 >
-                  أسم الصنف
+                  القطر
                 </TableCell>
                 <TableCell
                   sx={{
@@ -691,7 +691,7 @@ const ClientBill = () => {
                     }}
                     className="border border-black !text-center !pt-2 !pb-2"
                   >
-                    {item.ironName}
+                    {item.radius}
                   </TableCell>
                   <TableCell
                     sx={{
