@@ -14,7 +14,7 @@ const OrderSchema = new mongoose.Schema({
     },
     firstWeight:{
         weight: { type: Number, default: 0 },
-        date: { type: String, default: "" }
+        date: { type: String, default: new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' }) }
     },
     deliveryFees: { type: Number, required: true },
     ticket: [{
@@ -36,7 +36,12 @@ const OrderSchema = new mongoose.Schema({
         netWeightForProcessing: { type: Number, default: 0 },
         isProcessed: { type: Boolean, default: false },
         profit: { type: Number, default: 0 },
-        date: { type: String, default: new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' }) }
+        date: { type: String, default: new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' }) },
+        ironDefecit: [{
+            ironId:  { type: String, required: true },
+            weight: { type: Number, required: true },
+            date: { type: String, default: new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' }) }
+        }]
     }],
     statement: [{
         walletTransactionId:  { type: String, default:"" },

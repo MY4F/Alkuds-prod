@@ -19,6 +19,8 @@ import { ClientContextProvider } from "./context/ClientContext";
 import { WalletContextProvider } from "./context/WalletContext";
 import { NewTicketsContextProvider } from "./context/NewTicketsContext";
 import { DriverContextProvider } from "./context/DriverContext";
+import { PreCreatedTicketsContextProvider } from "./context/PreCreatedTicketsContext";
+
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <UserContextProvider>
@@ -26,6 +28,7 @@ root.render(
       <SocketProvider>
         <WalletContextProvider>
           <NewTicketsContextProvider>
+            <PreCreatedTicketsContextProvider>
             <AwaitForPaymentTicketsContextProvider>
               <FinishedTicketsContextProvider>
                 <UnfinishedTicketsContextProvider>
@@ -35,6 +38,7 @@ root.render(
                 </UnfinishedTicketsContextProvider>
               </FinishedTicketsContextProvider>
             </AwaitForPaymentTicketsContextProvider>
+            </PreCreatedTicketsContextProvider>
           </NewTicketsContextProvider>
         </WalletContextProvider>
       </SocketProvider>

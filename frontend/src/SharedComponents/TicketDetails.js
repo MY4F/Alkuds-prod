@@ -9,7 +9,6 @@ import swal from "sweetalert";
 import { useAwaitForPaymentTicketsContext } from "../hooks/useAwaitForPaymentTicketsContext";
 import { useUserContext } from "../hooks/useUserContext";
 import "react-confirm-alert/src/react-confirm-alert.css";
-import axios from "axios";
 
 const TicketDetails = ({ order, orderContextIdx, isFinishedTicket }) => {
   const [firstWeight, setFirstWeight] = useState(0);
@@ -78,8 +77,6 @@ const TicketDetails = ({ order, orderContextIdx, isFinishedTicket }) => {
   };
 
   const updateFirstWeight = async (weight) => {
-    
-    
     const firstWeightUpdateFetch = await fetch("order/EditOrderFirstWeight", {
       method: "POST",
       headers: {
@@ -185,25 +182,24 @@ const TicketDetails = ({ order, orderContextIdx, isFinishedTicket }) => {
     }
 
     setIsLoading(true);
-    let newWeight= 0
-    await axios
-    .get("http://localhost:8000/irons/getScaleWeight") // local service running on user's PC
-    .then(async(response) => {
-      console.log(response.data)
-      newWeight = response.data.weight
-      let d = new Date().toLocaleString("en-EG", { timeZone: "Africa/Cairo" });
-      let dateArr = d.split(",");
-      setFirstWeight(newWeight);
-      setFirstDate(dateArr[0]);
-      setFirstTime(dateArr[1]);
-      await updateFirstWeight(newWeight);
-      setIsLoading(false);
-    })
-    .catch((error) => {
-      console.error("Error reaching local API:", error);
+    const weightFetch = await fetch("/irons/getScaleWeight", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${user.token}`,
+      },
     });
 
-    
+    const weightJson = await weightFetch.json();
+    if (weightFetch.ok) {
+      let d = new Date().toLocaleString("en-EG", { timeZone: "Africa/Cairo" });
+      let dateArr = d.split(",");
+      setFirstWeight(weightJson.weight);
+      setFirstDate(dateArr[0]);
+      setFirstTime(dateArr[1]);
+    }
+    await updateFirstWeight(weightJson.weight);
+    setIsLoading(false);
   };
 
   const handleGetWeight = async (e, idx, weight) => {
@@ -217,26 +213,26 @@ const TicketDetails = ({ order, orderContextIdx, isFinishedTicket }) => {
     }
 
     setIsLoading(true);
-    let newWeight= 0
-    await axios
-    .get("http://localhost:8000/irons/getScaleWeight") // local service running on user's PC
-    .then(async(response) => {
-      console.log(response.data)
-      newWeight = response.data.weight
-      let d = new Date().toLocaleString("en-EG", { timeZone: "Africa/Cairo" });
-      let dateArr = d.split(",");
-      setWeight(newWeight);
-      setDate(dateArr[0]);
-      setTime(dateArr[1]);
-      await updateTicket(newWeight, idx);
-      setIsLoading(false);
-    })
-    .catch((error) => {
-      console.error("Error reaching local API:", error);
+    const weightFetch = await fetch("/irons/getScaleWeight", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${user.token}`,
+      },
     });
 
+    const weightJson = await weightFetch.json();
 
-  
+    if (weightFetch.ok) {
+      let d = new Date().toLocaleString("en-EG", { timeZone: "Africa/Cairo" });
+      let dateArr = d.split(",");
+      setWeight(weightJson.weight);
+      setDate(dateArr[0]);
+      setTime(dateArr[1]);
+    }
+
+    await updateTicket(weightJson.weight, idx);
+    setIsLoading(false);
   };
 
   return (

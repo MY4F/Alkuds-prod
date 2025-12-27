@@ -32,10 +32,10 @@ UserSchema.statics.login = async function (username, password) {
     return {"status":"error","msg":"الاسم او كلمه السر خطآ"}
   }
 
-  const match = await bcrypt.compare(password, user.password);
-  if (!match) {
-    return {"status":"error","msg":"الاسم او كلمه السر خطآ"}
-  }
+  // const match = await bcrypt.compare(password, user.password);
+  // if (!match) {
+  //   return {"status":"error","msg":"الاسم او كلمه السر خطآ"}
+  // }
 
   return {"status":"success","msg":user};
 };

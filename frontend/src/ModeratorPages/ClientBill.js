@@ -495,7 +495,7 @@ const ClientBill = () => {
                     scope="row"
                     align="right"
                   >
-                    {totalProfit}
+                    {totalProfit.toLocaleString()}
                   </TableCell>
                 </TableRow>
                 {user.user.msg.name === "Sobhy" && (

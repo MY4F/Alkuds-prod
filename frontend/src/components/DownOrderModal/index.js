@@ -23,23 +23,31 @@ import Checkbox from '@mui/material/Checkbox';
 import { useDriverContext } from "../../hooks/useDriverContext";
 import { confirmAlert } from "react-confirm-alert";
 import axios from "axios";
-const OrderModal = ({ onClose, type, closeFun }) => {
+import { usePreCreatedTicketsContext } from "../../hooks/usePreCreatedTicketsContext";
+import { useAwaitForPaymentTicketsContext } from "../../hooks/useAwaitForPaymentTicketsContext";
+const DownOrderModal = ({ preOrder, onClose, type, closeFun }) => {
   const [price, setPrice] = useState(0);
   const [date, setDate] = useState();
-  const [selectedClientName, setSelectedClientName] = useState('');
+  const [selectedClientName, setSelectedClientName] = useState();
   const [clients, setClients] = useState("اختر عميل");
   const { client } = useClientContext();
   const [adding, setAdding] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [deliveryFees, setDeliveryFees] = useState(0);
-  const { unfinishedTickets, dispatch } = useUnfinishedTicketsContext();
+  const { preCreatedTickets, dispatch } = usePreCreatedTicketsContext();
+  const {
+      awaitForPaymentTicketsContext,
+      dispatch: awaitForPaymentTicketsContextUpdate,
+    } = useAwaitForPaymentTicketsContext();
   const {user} = useUserContext()
   const [password, setPassword] = useState("")
   const [netWeight, setNetWeight] = useState(0);
   const [ironList, setIronList] = useState([])
-  const [tickets, setTickets] = useState([
+  const [order,setOrder] = useState(preOrder)
+  const [tickets, setTickets] = useState(preOrder!==null ? preOrder.ticket : [
     { ironName: "", radius: "", neededWeight: 0, unitPrice: "", netWeight: 0 ,weightAfter:0},
   ]);
+  const { socket } = useSocketContext();
   const [firstWeight, setFirstWeight] = useState({weight: 0, date: ""});
   const [personName, setPersonName] = useState([]);
   const { driver } = useDriverContext();
@@ -52,7 +60,6 @@ const OrderModal = ({ onClose, type, closeFun }) => {
       typeof value === 'string' ? value.split(',') : value,
     );
   };
-  
 
 
   function confirmAsync() {
@@ -73,12 +80,141 @@ const OrderModal = ({ onClose, type, closeFun }) => {
         });
       });
     }
-
-  const createNewOrder  = async(e)=>{
+  const updateFirstWeight = async (weight) => {
     if(!clients){
       window.alert("برجاء اختيار عميل من القائمه")
       return
     }
+    let newCreatedOrder = await createNewOrder()
+    const firstWeightUpdateFetch = await fetch("/order/EditPreOrderFirstWeight", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${user.token}`,
+      },
+      body: JSON.stringify({ orderId: newCreatedOrder._id, firstWeight: weight }),
+    });
+
+    const firstWeightUpdate = await firstWeightUpdateFetch.json();
+
+    if (firstWeightUpdateFetch.ok) {
+    setOrder(firstWeightUpdate["orderUpdate"])
+    console.log(firstWeightUpdate["orderUpdate"])
+      console.log("Ticket Updated: ", firstWeightUpdate);
+      dispatch({
+        type: "SET_TICKETS",
+        payload: {
+          outOrders: firstWeightUpdate.outOrders,
+          inOrders: firstWeightUpdate.inOrders,
+        },
+      });
+    }
+  };
+
+  const updateTicket = async (newWeight, ticketId) => {
+    console.log(ticketId);
+    let newTicket = order.ticket[ticketId]
+    let newOrder = order;
+    if (ticketId > 0) {
+      newTicket.weightBefore = order.ticket[ticketId - 1].weightAfter;
+      newTicket.weightAfter = newWeight;
+      newTicket.netWeight = Math.abs(newWeight - newTicket.weightBefore);
+    } else {
+      console.log(order)
+      newTicket.weightBefore = order.firstWeight.weight;
+      newTicket.weightAfter = newWeight;
+      newTicket.netWeight = Math.abs(newWeight - order.firstWeight.weight);
+    }
+    newTicket.netWeightForProcessing = newTicket.netWeight;
+    setNetWeight(newTicket.netWeight);
+
+    let d = new Date().toLocaleString("en-EG", { timeZone: "Africa/Cairo" });
+    let dateArr = d.split(",");
+    newTicket.date = dateArr[0] + "," + dateArr[1];
+
+    newOrder.ticket[ticketId] = newTicket;
+
+    const ticketUpdateFetch = await fetch("/order/EditPreOrderTicket", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${user.token}`,
+      },
+      body: JSON.stringify({
+        orderId: order._id,
+        ticket: newOrder.ticket,
+        ticketId: ticketId,
+      }),
+    });
+
+    const ticketUpdate = await ticketUpdateFetch.json();
+    setOrder(ticketUpdate["orderUpdate"])
+    setTickets(ticketUpdate["orderUpdate"].ticket)
+    if (ticketUpdateFetch.ok) {
+        setOrder(ticketUpdate["orderUpdate"])
+        dispatch({
+        type: "SET_TICKETS",
+        payload: {
+          outOrders: ticketUpdate.outOrders,
+          inOrders: ticketUpdate.inOrders,
+        },
+      });
+      console.log("Ticket Updated: ", ticketUpdate);
+    } else if (
+      ticketUpdateFetch.status === 400 &&
+      ticketUpdate.error === "Not enough data of that iron available"
+    ) {
+      swal(
+        `لا يوجد ما يكفي من الوزن لهذا الحديد لتغطية الوزن المطلوب.\nالوزن المتاح هو ${ticketUpdate.availableWeight} كجم.`,
+        "",
+        "error"
+      );
+    }
+  };
+    const handleGetFirstWeight = async (e, weight) => {
+    let isYes = false;
+    e.preventDefault();
+    console.log("hehe", weight);
+    if (weight > 0) {
+      const isYes = await confirmAsync();
+      if (!isYes) {
+        console.log("User cancelled");
+        return;
+      }
+    }
+ 
+    setIsLoading(true);
+    // const weightFetch = await fetch("/irons/getScaleWeight", {
+    //   method: "GET",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //     Authorization: `Bearer ${user.token}`,
+    //   },
+    // });
+
+    // const weightJson = await weightFetch.json();
+    // if (weightFetch.ok) {
+    //   let d = new Date().toLocaleString("en-EG", { timeZone: "Africa/Cairo" });
+    //   let dateArr = d.split(",");
+    // }
+    
+    // setIsLoading(false);
+
+    await axios
+    .get("http://localhost:8000/irons/getScaleWeight") // local service running on user's PC
+    .then(async(response) => {
+      let newWeight = response.data.weight;
+      await updateFirstWeight(newWeight);
+      setIsLoading(false);
+    })
+    .catch((error) => {
+      console.error("Error reaching local API:", error);
+    });
+
+  };
+
+  
+  const createNewOrder  = async(e)=>{
     let driversArr = []
     for(let d of driver){
       if(personName.includes(d.name))
@@ -99,7 +235,8 @@ const OrderModal = ({ onClose, type, closeFun }) => {
       deliveryFees: deliveryFees,
       clientName: selectedClientName,
       password,
-      drivers: driversArr
+      drivers: driversArr,
+      isDown:true
     };
     try {
       const response = await fetch("/order/addOrder", {
@@ -128,7 +265,6 @@ const OrderModal = ({ onClose, type, closeFun }) => {
             icon: "success",
           }).then(e=>{
             setAdding(false)
-            closeFun()
           });
         }
         else{
@@ -145,6 +281,9 @@ const OrderModal = ({ onClose, type, closeFun }) => {
           });
         }
       }
+      setAdding(false)
+        return result
+
     } catch (error) {
       swal({
         text: "حدث خطأ ما برجاء المحاولة مرة اخرى",
@@ -156,7 +295,6 @@ const OrderModal = ({ onClose, type, closeFun }) => {
         }
       );
     }
-    setAdding(false)
   }
 
 
@@ -181,88 +319,32 @@ const handleGetWeight = async (e, idx, weight) => {
     }
     
     setIsLoading(true);
-    if(false){
-      await axios
-      .get("http://localhost:7000/irons/getScaleWeight") // local service running on user's PC
-      .then(async(response) => {
-        let d = new Date().toLocaleString("en-EG", { timeZone: "Africa/Cairo" });
-        let newWeight = response.data.weight;
-        if (idx > 0){
-          setTickets((prevTickets) => {
-            const updatedTickets = [...prevTickets];
-            updatedTickets[idx] = {
-              ...updatedTickets[idx],
-              netWeight: Math.abs(tickets[idx-1].weightAfter - newWeight),
-              weightAfter: newWeight,
-            };
-            return updatedTickets;
-          });
-        }
-        else{
-          let obj = {weight: parseInt(newWeight), date: d}
-          setFirstWeight(obj)
-          console.log("first weight here", obj)
-          setTickets((prevTickets) => {
-            const updatedTickets = [...prevTickets];
-            updatedTickets[idx] = {
-              ...updatedTickets[idx],
-              netWeight: newWeight,
-              weightAfter: newWeight,
-            };
-            return updatedTickets;
-          });
-        }
-        setIsLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error reaching local API:", error);
-      });
-    }
-    else{
-      setIsLoading(true);
-    const weightFetch = await fetch("/irons/getScaleWeight", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${user.token}`,
-      },
+    // const response = await fetch("/irons/getScaleWeight", {
+    //     method: "GET",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //       'Authorization': `Bearer ${user.token}`
+    //     },
+    // });
+    // let jsonAns = await response.json();
+    // if (response.ok) {
+
+    //     await updateTicket( jsonAns["weight"], idx);
+    //     setIsLoading(false);
+    // }
+
+    await axios
+    .get("http://localhost:8000/irons/getScaleWeight") // local service running on user's PC
+    .then(async(response) => {
+      let newWeight = response.data.weight;
+      await updateTicket( newWeight, idx);
+      setIsLoading(false);
+    })
+    .catch((error) => {
+      console.error("Error reaching local API:", error);
     });
 
-    const weightJson = await weightFetch.json();
-
-    if (weightFetch.ok) {
-      let d = new Date().toLocaleString("en-EG", { timeZone: "Africa/Cairo" });
-      let newWeight = weightJson.weight;
-      if (idx > 0){
-        setTickets((prevTickets) => {
-          const updatedTickets = [...prevTickets];
-          updatedTickets[idx] = {
-            ...updatedTickets[idx],
-            netWeight: Math.abs(tickets[idx-1].weightAfter - newWeight),
-            weightAfter: newWeight,
-          };
-          return updatedTickets;
-        });
-      }
-      else{
-        let obj = {weight: parseInt(newWeight), date: d}
-        setFirstWeight(obj)
-        console.log("first weight here", obj)
-        setTickets((prevTickets) => {
-          const updatedTickets = [...prevTickets];
-          updatedTickets[idx] = {
-            ...updatedTickets[idx],
-            netWeight: newWeight,
-            weightAfter: newWeight,
-          };
-          return updatedTickets;
-        });
-      }
-    }
-    }
-
   };
-  console.log(driver)
 
   const names = [
     'Oliver Hansen',
@@ -276,7 +358,6 @@ const handleGetWeight = async (e, idx, weight) => {
     'Virginia Andrews',
     'Kelly Snyder',
   ];
-  const { socket } = useSocketContext();
   const [open, setOpen] = useState(false);
   const handleClickOpen = () => {
     setOpen(true);
@@ -286,6 +367,24 @@ const handleGetWeight = async (e, idx, weight) => {
   };
 
   useEffect(()=>{
+    socket.on("receive_order_new_state", async (info) => {
+      console.log(info);
+      if (info.order === null) {
+        swal(info.message, "تم طباعه اذن الاستلام بنجاح .", "success");
+      } else {
+        swal(
+          info.message,
+          "تم طباعه اذن الاستلام بنجاح و ايضا تغير حاله الاوردر لجاري انتظار الدفع.",
+          "success"
+        );
+      }
+        console.log("here", info.order);
+        dispatch({ type: "DELETE_TICKET", payload: [info.order] });
+        awaitForPaymentTicketsContextUpdate({
+          type: "ADD_TICKET",
+          payload: [info.order],
+        });
+    });
     const getIronList = async() =>{
       const response = await fetch('/irons/getIronList',{
           method: 'GET',
@@ -298,19 +397,29 @@ const handleGetWeight = async (e, idx, weight) => {
       let data = await response.json()
 
       if(response.ok){
-        console.log(data)
         setIronList(data)
       }
     }
     getIronList()
-  },[])
+  },[order])
 
   const HandleFormSubmission = async (e) => {
     setAdding(true);
     handleClickOpen()
     e.preventDefault();
   };
-
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    closeFun()
+    window.open(
+      "http://localhost:3000/print/" +
+        "false" +
+        "/" +
+        order._id,
+      "_blank"
+    );
+    // window.open("https://alquds1-f4054fcbf7e6.herokuapp.com/print/"+ "false" + "/" + order._id,"_blank")
+  };
 
   return (
     <div dir="rtl">
@@ -351,34 +460,39 @@ const handleGetWeight = async (e, idx, weight) => {
           }}>الغاء</Button>
           <Button onClick={async(e) =>{
               handleCloseDialog()
-              await createNewOrder(e)
+              await handleSubmit(e)
+              handleCloseDialog()
+
             }} autoFocus>
             موافق
           </Button>
         </DialogActions>
       </Dialog>
       <form className="w-full px-4 pt-6" onSubmit={HandleFormSubmission}>
-        <div className="w-full flex md:flex-row flex-col gap-5 pb-6">
+        {!preOrder && <div className="w-full flex md:flex-row flex-col gap-5 pb-6">
           <div className="md:w-[33%] w-full flex justify-center">
             <div className="flex flex-col gap-2 w-full max-w-[300px]">
               <label className="text-center">أسم العميل</label>
               <input 
                 name="clientsList"
                 list="clients"
+                value={selectedClientName}
                 placeholder="ابحث ..."
                 className="w-full md:w-[300px]"
                 onChange={(e) => {
                   const selectedName = e.target.value;
                   setSelectedClientName(selectedName)
                   const selectedClient = Object.values(client).find(c => c.name === selectedName);
-                  if(selectedClient){
+                    if(selectedClient){
                     console.log(selectedClient["clientId"])
                     setClients(selectedClient["clientId"]);
+                    // clear any previous custom validity message so the form can be submitted
                     e.target.setCustomValidity("");
-                  } else {
+                    } else {
+                    // invalid entry (not from the datalist) -> prevent form submission
                     setClients(null);
                     e.target.setCustomValidity("الرجاء اختيار عميل من القائمة");
-                  }
+                    }
                 }}
                 type=""
                 required />
@@ -475,11 +589,39 @@ const handleGetWeight = async (e, idx, weight) => {
               />
             </div>
           </div>}
+        </div>}
+        <div className="w-full flex md:flex-row flex-col gap-5 pb-6">
+              <div className="md:w-[50%] w-full flex justify-center">
+                <div className="flex flex-col gap-2 ">
+                  <label htmlFor="weight">  الوزنه الاولي </label>
+                  <input
+                    name="weight"
+                    type="text"
+                    value={order!=null?order.firstWeight.weight:0}
+                    readOnly
+                  />
+                </div>
+              </div>
+              <div className="md:w-[50%] w-full flex justify-center">
+                <div className="flex flex-col gap-2 justify-end">
+                  <button
+                    onClick={(e) =>{
+                            if(!isLoading ){
+                                handleGetFirstWeight(e,order!=null?order.firstWeight.weight:0)
+                            }
+                        }
+                    }
+                    className="iron-btn"
+                  >
+                    {isLoading ? <CircularProgress /> : " تحميل الوزن"}{" "}
+                  </button>
+                </div>
+              </div>
         </div>
-        {tickets.map((_, index) => (
+        {tickets.map((item, index) => (
           <div key={index}>
             <Seperator text={`تذكرة رقم ${index + 1}`} />
-           { ((index> 0  && user.user.msg.name === "Hassan")|| ( user.user.msg.name !== "Hassan")) && <div className="w-full flex md:flex-row flex-col gap-5 py-6">
+           { <div className="w-full flex md:flex-row flex-col gap-5 py-6">
               <div className="md:w-[50%] w-full flex justify-center">
                 <div className="flex flex-col gap-2 w-full max-w-[300px]">
                   <label className="text-center">القطر </label>
@@ -492,6 +634,10 @@ const handleGetWeight = async (e, idx, weight) => {
                       const updatedTickets = [...tickets];
                       updatedTickets[index].radius = e.target.value;
                       setTickets(updatedTickets);
+                      const updatedTickets2 = [...order.ticket];
+                      updatedTickets2[index].radius = e.target.value;
+                      order.ticket = updatedTickets2
+                      setOrder(order)
                     }}
                   >
                     <option>اختر قطر</option>
@@ -520,6 +666,10 @@ const handleGetWeight = async (e, idx, weight) => {
                       const updatedTickets = [...tickets];
                       updatedTickets[index].ironName = e.target.value;
                       setTickets(updatedTickets);
+                      const updatedTickets2 = [...order.ticket];
+                      updatedTickets2[index].ironName = e.target.value;
+                      order.ticket = updatedTickets2
+                      setOrder(order)
                     }}
                   >
                     <option value="">نوع الحديد</option>
@@ -551,7 +701,7 @@ const handleGetWeight = async (e, idx, weight) => {
                 </div>
               </div>
             </div>}
-            { user.user.msg.name === "Hassan"  && <div className="w-full flex md:flex-row flex-col gap-5 pb-6">
+            <div className="w-full flex md:flex-row flex-col gap-5 pb-6">
               <div className="md:w-[50%] w-full flex justify-center">
                 <div className="flex flex-col gap-2 ">
                   <label htmlFor="weight">  الوزنه </label>
@@ -574,20 +724,22 @@ const handleGetWeight = async (e, idx, weight) => {
                   />
                 </div>
               </div>
-             {user.user.msg.name === "Hassan" && <div className="md:w-[50%] w-full flex justify-center">
+             <div className="md:w-[50%] w-full flex justify-center">
                 <div className="flex flex-col gap-2 justify-end">
                   <button
-                    onClick={(e) =>
-                      !isLoading &&
-                      handleGetWeight(e, index, tickets[index].weightAfter)
+                    onClick={(e) =>{
+                            if(!isLoading ){
+                                handleGetWeight(e, index, tickets[index].weightAfter)
+                            }
+                        }
                     }
                     className="iron-btn"
                   >
                     {isLoading ? <CircularProgress /> : " تحميل الوزن"}{" "}
                   </button>
                 </div>
-              </div>}
-            </div>}
+              </div>
+            </div>
             { user.user.msg.name !== "Hassan" && <div className="w-full flex md:flex-row flex-col gap-5 py-6">
               <div className="md:w-[50%] w-full flex justify-center">
                 <div className="flex flex-col gap-2 w-full max-w-[300px]">
@@ -649,6 +801,7 @@ const handleGetWeight = async (e, idx, weight) => {
               ...prev,
               { ironName: "", radius: "", neededWeight: 0, price: "", netWeight, weightAfter:0 },
             ]);
+            order.ticket.push({ ironName: "", radius: "", neededWeight: 0, price: "", netWeight: 0 ,weightAfter:0}) 
           }}
         >
           اضافه تذكرة
@@ -664,4 +817,4 @@ const handleGetWeight = async (e, idx, weight) => {
   );
 };
 
-export default OrderModal;
+export default DownOrderModal;

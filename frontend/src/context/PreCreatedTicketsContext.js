@@ -1,0 +1,102 @@
+import { createContext, useReducer } from "react";
+import { useEffect } from "react";
+import useLogout from "../hooks/useLogout";
+import { useUserContext } from "../hooks/useUserContext";
+export const PreCreatedTicketsContext = createContext();
+
+export const PreCreatedTicketsReducer = (state, action) => {
+  switch (action.type) {
+    case "SET_TICKETS":
+      return {
+        preCreatedTickets: action.payload,
+      };
+    case "ADD_TICKET":
+      {
+        let typeObj = {
+          "in":"inOrders",
+          "out":"outOrders"
+        }
+        let usedArrObj = state.preCreatedTickets
+        for(let j of action.payload){
+          usedArrObj[`${typeObj[j.type]}`].push(j)
+        }
+        return {
+            preCreatedTickets: usedArrObj
+        };
+      }
+    case "UPDATE_TICKET":
+      let typeObj = {
+        "in":"inOrders",
+        "out":"outOrders"
+      }
+      let newArr = []
+      let usedArrObj = state.preCreatedTickets
+      for(let j of action.payload){
+        for(let i = 0 ;i<usedArrObj[`${typeObj[j.type]}`].length;i++){
+          if(usedArrObj[`${typeObj[j.type]}`][i]._id === j._id){
+            usedArrObj[`${typeObj[j.type]}`][i] = j
+          }
+        }
+      }
+      return {
+          preCreatedTickets: usedArrObj
+      };
+    case "DELETE_TICKET":
+      {
+        let typeObj = {
+          "in":"inOrders",
+          "out":"outOrders"
+        }
+        let newArr = []
+        let usedArrObj = state.preCreatedTickets
+        for(let j of action.payload){
+          for(let i = 0 ;i<usedArrObj[`${typeObj[j.type]}`].length;i++){
+            if(usedArrObj[`${typeObj[j.type]}`][i]._id === j._id){
+              usedArrObj[`${typeObj[j.type]}`].splice(i,1)
+            }
+          }
+        }
+        return {
+          preCreatedTickets: usedArrObj
+        };
+      }
+    default:
+      return state;
+  }
+};
+
+export const PreCreatedTicketsContextProvider = ({ children }) => {
+  const [state, dispatch] = useReducer(PreCreatedTicketsReducer, {
+    preCreatedTickets: {},
+  });
+  const {logout} = useLogout();
+  const {user} = useUserContext()
+useEffect(() => {
+  const getPreCreatedTickets = async () => {
+      const user = JSON.parse(localStorage.getItem('user'))
+      const response = await fetch("/order/getPreCreatedOrdersGroupedByType", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${user.token}`
+        },
+      });
+      let jsonAns = await response.json();
+      if (response.ok) {
+        console.log(jsonAns)
+        dispatch({ type: "SET_TICKETS", payload: jsonAns });
+      }else{
+        localStorage.removeItem('user');
+        logout()
+      }
+    };
+    if(user)
+    getPreCreatedTickets();
+  }, [dispatch,user]);
+
+  return (
+    <PreCreatedTicketsContext.Provider value={{ ...state, dispatch }}>
+      {children}
+    </PreCreatedTicketsContext.Provider>
+  );
+};

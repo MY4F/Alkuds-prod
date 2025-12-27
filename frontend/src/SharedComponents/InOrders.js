@@ -6,7 +6,8 @@ import TicketDetails from "./TicketDetails";
 import { useClientContext } from "../hooks/useClientContext";
 import { useUnfinishedTicketsContext } from "../hooks/useUnfinishedTicketsContext";
 import { useEffect, useState } from "react";
-const InOrders = ({ isFinishedTicket, order, orderContextIdx }) => {
+import DownOrderModal from "../components/DownOrderModal";
+const InOrders = ({ isFinishedTicket, order, orderContextIdx, pre }) => {
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -45,6 +46,7 @@ const InOrders = ({ isFinishedTicket, order, orderContextIdx }) => {
         <div>
           <h2> {client[order.clientId].name} </h2>
           <p className="text-[#6c6f75]">{order.date}</p>
+          {pre && <p className="text-[#6c6f75]">{order.type === "in" ?"وارد":"خارج"}</p>}
         </div>
       </button>
       <Modal
@@ -55,11 +57,11 @@ const InOrders = ({ isFinishedTicket, order, orderContextIdx }) => {
         aria-describedby="modal-modal-description"
       >
         <Box sx={style}>
-          <TicketDetails
+          {!pre?<TicketDetails
             isFinishedTicket={isFinishedTicket}
             orderContextIdx={orderContextIdx}
             order={order}
-          />
+          />: <DownOrderModal preOrder={order} closeFun={handleClose} />}
         </Box>
       </Modal>
     </>

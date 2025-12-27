@@ -23,6 +23,7 @@ const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
     order.ticket.map((ticket) => ticket.unitPrice)
   );
   const [orderTickets, setOrderTickets] = useState(order.ticket)
+  const [deliveryFees, setDeliveryFees] = useState(order.deliveryFees)
   const [firstWeight, setFirstWeight] = useState(order.firstWeight.weight);
   const [firstTime, setFirstTime] = useState(0);
   const [firstDate, setFirstDate] = useState(0);
@@ -32,6 +33,7 @@ const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
   const [netWeight, setNetWeight] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingPrice, setIsLoadingPrice] = useState(false);
+  const [isLoadingFees, setIsLoadingFees] = useState(false);
   const { unfinishedTickets, dispatch } = useUnfinishedTicketsContext();
   const { awaitForPaymentTickets, dispatch: awaitDispatch } = useAwaitForPaymentTicketsContext();
   const { socket } = useSocketContext();
@@ -196,13 +198,13 @@ const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
     // window.open(
     //   "http://localhost:3000/print/" +
     //     isFinishedTicket.toString() +
-    //     "/" +
+    //     "/" + 
     //     order._id,
     //   "_blank"  
     // );
     window.open("https://alkuds-cd6a685335ea.herokuapp.com/print/"+ isFinishedTicket.toString() + "/" + order._id,"_blank")
   };
-
+ 
   const handlePurchaseBill = (e) => {
     e.preventDefault();
     // window.open(
@@ -218,6 +220,12 @@ const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
     const resetPrices = [...ticketsPrices];
     resetPrices[idx] = order.ticket[idx].unitPrice;
     setTicketsPrices(resetPrices);
+  };
+
+  const handleCancelChangeDeliveryFees = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDeliveryFees(order.deliveryFees)
   };
   useEffect(() => {}, []);
   const isAnyPriceChanged = ticketsPrices.some(
@@ -261,6 +269,40 @@ const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
     }
   };
 
+
+  const changeDeliveryFees = async(e) =>{
+    console.log("here")
+    e.preventDefault();
+    setIsLoadingFees(true)
+    try{
+      const deliveryFeesFetch = await fetch('/order/changeDeliveryPrice',{
+      method:"POST",
+      headers: {
+        "Content-Type": "application/json",
+          'Authorization': `Bearer ${user.token}`
+      },
+      body:JSON.stringify({orderId: order._id,newDeliveryFees:deliveryFees})
+    })
+     const deliveryFeesOrder = await deliveryFeesFetch.json()
+     if(deliveryFeesFetch.ok){
+      if(deliveryFeesOrder["order"].state === 'جاري انتظار التحميل'){
+        dispatch({type:"UPDATE_TICKET",payload: [deliveryFeesOrder["order"]]})
+      }
+      else if(deliveryFeesOrder["order"].state === 'جاري انتظار الدفع'){
+        awaitDispatch({type:"UPDATE_TICKET",payload: [deliveryFeesOrder["order"]]})
+
+      }
+     }
+     swal({
+        text: "تم تغير التذكار بنجاح",
+        icon: "success",
+        buttons: "ok",
+      }).then(()=>{setIsLoadingFees(false)})
+    }
+    catch(err){
+      console.log(err)
+    }
+  }
 
   return (
     <div>
@@ -340,6 +382,39 @@ const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
             </div>
           </div>
         </div>
+        <div className=" w-full flex justify-center">
+                <div className="flex flex-col gap-2 w-full max-w-[300px]">
+                  <label className="text-center">المشال</label>
+                  <div className="flex flex-col space-y-3">
+                    <input
+                      type="number"
+                      placeholder="المشال"
+                      pattern="^[1-9][0-9]*$"
+                      value={deliveryFees}
+                      onChange={(e) => {
+                        setDeliveryFees(e.target.value)
+                      }}
+                    />
+                    {order.deliveryFees !== deliveryFees && (
+                      <button
+                        onClick={(e) => handleCancelChangeDeliveryFees(e)}
+                        className="iron-btn remove w-[100px]"
+                      >
+                        إلغاء
+                      </button>
+                    )}
+                   {order.state !=="جاري انتظار التسعيير" && <LoadingButton
+                      onClick={(e) => {
+                        changeDeliveryFees(e);
+                      }}
+                      defaultText="تغيير المشال"
+                      loadingText="يتم تغيير المشال ..."
+                      className="print-submit w-[300px]"
+                      loading={isLoadingFees}
+                    />}
+                  </div>
+                </div>
+              </div>
        { user.user.msg.name === "Ziad" && <div style={{textAlign:"right"}}>
           <FormControlLabel control={<Switch onChange={e=> setIsManual(!isManual)} defaultChecked />} label={ isManual? 'يدوي':"اتوماتيكي" } />
         </div>}
@@ -449,7 +524,7 @@ const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
                         إلغاء
                       </button>
                     )}
-                    <LoadingButton
+                   {order.state !=="جاري انتظار التسعيير" &&  <LoadingButton
                       onClick={(e) => {
                         e.stopPropagation();
                         updateTicketPrice(e,idx,ticketsPrices[idx]);
@@ -458,7 +533,7 @@ const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
                       loadingText="يتم تغيير السعر ..."
                       className="print-submit w-[300px]"
                       loading={isLoadingPrice}
-                    />
+                    />}
                   </div>
                 </div>
               </div>
@@ -514,14 +589,14 @@ const OrderView = ({ order, isFinishedTicket, name, handleClose }) => {
             />
           )}
         </div>
-        <button type="submit" className="print-submit">
+       {order.state !=="جاري انتظار التسعيير" &&  <button type="submit" className="print-submit">
           {" "}
           انشاء اذن استلام <ReceiptIcon />{" "}
-        </button>
-        <button onClick={(e) => handlePurchaseBill(e)} className="print-submit">
+        </button>}
+        {order.state !=="جاري انتظار التسعيير" && <button onClick={(e) => handlePurchaseBill(e)} className="print-submit">
           {" "}
           انشاء فاتوره مبيعات <ReceiptIcon />{" "}
-        </button>
+        </button>}
       </form>
     </div>
   );

@@ -8,6 +8,7 @@ const addTransaction = async (req, res) => {
         amount,bankName,clientId, orderId, type, notes
     } , orders, isDivided = [],amountProcessing = amount, statement, clientUpdate = null, updatedOrders=[];
     notes = notes || " "
+    console.log("bankName: ",bankName)
     try{
         if(type === "استلام من"){
             orders = await Order.find(
@@ -236,7 +237,7 @@ const addTransaction = async (req, res) => {
                             "sign":"-"
                         }
                     },
-                    $inc: { totalAmount: amount } 
+                    $inc: { totalAmount: -amount } 
                 },
                 {
                     returnDocument: 'after'
@@ -337,24 +338,25 @@ const addTransaction = async (req, res) => {
 }
 
 const addChequeTransaction = async(req,res) =>{
-    let {amount, bankName, clientId, orderId, type, notes, chequeId} = req.body
+    let {amount, bankName, clientId, orderId, type, notes, chequeId, clientName} = req.body
     let newTransaction = null, transactionObj = {
         amount,bankName,clientId, orderId, type, notes
     } , orders, isDivided = [],amountProcessing = amount, statement, clientUpdate = null, updatedOrders=[];
     notes = notes || " "
+    let chequeWallet = null
     console.log("heeereee")
     console.log(amount, bankName, clientId, orderId, type, notes, chequeId)
     try{
+        orders = await Order.find(
+            {
+                $and: [
+                    { clientId },
+                    { "state": "جاري انتظار الدفع" },
+                    {type : "out"}
+                ] 
+            }   
+        ).sort({ date: 1 });
         if(type === "استلام من"){
-            orders = await Order.find(
-                {
-                    $and: [
-                        { clientId },
-                        { "state": "جاري انتظار الدفع" },
-                        {type : "out"}
-                    ] 
-                }   
-            ).sort({ date: 1 });
             newTransaction = await Wallet.findOneAndUpdate(
                 {
                     "bankName":'شيكات'
@@ -377,62 +379,62 @@ const addChequeTransaction = async(req,res) =>{
                 }
             )
             console.log('orders.length',orders.length)
-            for(let i of orders){
-                let RemainingPrice = i.realTotalPrice - i.totalPaid
-                console.log("RemainingPrice",RemainingPrice, "amountProcessing",amountProcessing)
-                if(amountProcessing == 0) break;
-                if(amountProcessing > 0 && RemainingPrice > 0){
-                    let amountToPay;
-                    if(RemainingPrice > amountProcessing){
-                        amountToPay = amountProcessing
-                        RemainingPrice -= amountProcessing
-                        amountProcessing = 0;
-                    }
-                    else{
-                        amountToPay = RemainingPrice
-                        amountProcessing = amountProcessing - RemainingPrice
-                        RemainingPrice = 0
-                    }
-                    console.log("RemainingPrice",RemainingPrice, "amountToPay",amountToPay)
-                    statement = await Order.findOneAndUpdate(   
-                        {
-                            _id:i._id
-                        },
-                        {
-                            $push: {
-                                'statement': 
-                                    {
-                                        "paidAmount":amountToPay,
-                                        "clientId": clientId,
-                                        "bankName" : bankName,
-                                        "date": new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' }),
-                                        "walletTransactionId" : newTransaction.transactions[newTransaction.transactions.length-1]._id.toString()
-                                    }
-                            },
-                            $inc: {
-                                totalPaid: amountToPay
-                            },
-                            state: ((i.realTotalPrice - i.totalPaid - amountToPay) === 0)? "منتهي" : i.state
-                        },
-                        { 
-                            returnDocument: 'after' 
-                        } 
-                    )
-                } 
-            }
-            clientUpdate = await Client.findOneAndUpdate({clientId},
-                {
-                    $inc: {
-                        balance: -amount
-                    },
-                    $push: {
-                        'transactionsHistory': { amount:amount, type }
-                    },
-                },
-                { 
-                    returnDocument: 'after' 
-                } 
-            )
+            // for(let i of orders){
+            //     let RemainingPrice = i.realTotalPrice - i.totalPaid
+            //     console.log("RemainingPrice",RemainingPrice, "amountProcessing",amountProcessing)
+            //     if(amountProcessing == 0) break;
+            //     if(amountProcessing > 0 && RemainingPrice > 0){
+            //         let amountToPay;
+            //         if(RemainingPrice > amountProcessing){
+            //             amountToPay = amountProcessing
+            //             RemainingPrice -= amountProcessing
+            //             amountProcessing = 0;
+            //         }
+            //         else{
+            //             amountToPay = RemainingPrice
+            //             amountProcessing = amountProcessing - RemainingPrice
+            //             RemainingPrice = 0
+            //         }
+            //         console.log("RemainingPrice",RemainingPrice, "amountToPay",amountToPay)
+            //         statement = await Order.findOneAndUpdate(   
+            //             {
+            //                 _id:i._id
+            //             },
+            //             {
+            //                 $push: {
+            //                     'statement': 
+            //                         {
+            //                             "paidAmount":amountToPay,
+            //                             "clientId": clientId,
+            //                             "bankName" : bankName,
+            //                             "date": new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' }),
+            //                             "walletTransactionId" : newTransaction.transactions[newTransaction.transactions.length-1]._id.toString()
+            //                         }
+            //                 },
+            //                 $inc: {
+            //                     totalPaid: amountToPay
+            //                 },
+            //                 state: ((i.realTotalPrice - i.totalPaid - amountToPay) === 0)? "منتهي" : i.state
+            //             },
+            //             { 
+            //                 returnDocument: 'after' 
+            //             } 
+            //         )
+            //     } 
+            // }
+            // clientUpdate = await Client.findOneAndUpdate({clientId},
+            //     {
+            //         $inc: {
+            //             balance: -amount
+            //         },
+            //         $push: {
+            //             'transactionsHistory': { amount:amount, type }
+            //         },
+            //     },
+            //     { 
+            //         returnDocument: 'after' 
+            //     } 
+            // )
         }
         else if(type==="تحويل الي"){
             console.log("here inside in",clientId)
@@ -537,6 +539,7 @@ const addChequeTransaction = async(req,res) =>{
             )
         }
         else if(type ==="صرف شيك"){
+            console.log("here in sarf cheque", amount)
             newTransaction = await Wallet.findOneAndUpdate(
                 {
                     'bankName':'شيكات',
@@ -555,6 +558,51 @@ const addChequeTransaction = async(req,res) =>{
             )
             let cId = newTransaction.transactions.filter(tx=>tx._id.toString()===chequeId)
             console.log("cId: ",cId)
+            console.log("bankName: ",bankName)
+            for(let i of orders){
+                let RemainingPrice = i.realTotalPrice - i.totalPaid
+                console.log("RemainingPrice",RemainingPrice, "amountProcessing",amountProcessing)
+                if(amountProcessing == 0) break;
+                if(amountProcessing > 0 && RemainingPrice > 0){
+                    let amountToPay;
+                    if(RemainingPrice > amountProcessing){
+                        amountToPay = amountProcessing
+                        RemainingPrice -= amountProcessing
+                        amountProcessing = 0;
+                    }
+                    else{
+                        amountToPay = RemainingPrice
+                        amountProcessing = amountProcessing - RemainingPrice
+                        RemainingPrice = 0
+                    }
+                    console.log("RemainingPrice",RemainingPrice, "amountToPay",amountToPay)
+                    statement = await Order.findOneAndUpdate(   
+                        {
+                            _id:i._id
+                        },
+                        {
+                            $push: {
+                                'statement': 
+                                    {
+                                        "paidAmount":amountToPay,
+                                        "clientId": cId[0].clientId,
+                                        "bankName" : bankName,
+                                        "date": new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' }),
+                                        "walletTransactionId" : newTransaction.transactions[newTransaction.transactions.length-1]._id.toString()
+                                    }
+                            },
+                            $inc: {
+                                totalPaid: amountToPay
+                            },
+                            state: ((i.realTotalPrice - i.totalPaid - amountToPay) === 0)? "منتهي" : i.state
+                        },
+                        { 
+                            returnDocument: 'after' 
+                        } 
+                    )
+                } 
+            }
+            chequeWallet = newTransaction
             newTransaction = await Wallet.findOneAndUpdate(
                 {
                     bankName
@@ -562,11 +610,12 @@ const addChequeTransaction = async(req,res) =>{
                 {
                     $push: {
                         'transactions': {
-                            notes,
+                            notes:notes + ' تم صرف الشيك من ' + clientName,
                             bankName,
                             "amount":amount,
                             "clientId": cId[0].clientId,
-                            "date": new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' })
+                            "date": new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' }),
+                            "sign":"+"
                         }
                     },
                     $inc: { totalAmount: amount } 
@@ -575,6 +624,21 @@ const addChequeTransaction = async(req,res) =>{
                     returnDocument: 'after'
                 }
             )
+            console.log("clientId: ",clientId)
+            clientUpdate = await Client.findOneAndUpdate({clientId:cId[0].clientId},
+                {
+                    $inc: {
+                        balance: -amount
+                    },
+                    $push: {
+                        'transactionsHistory': { amount:amount, type }
+                    },
+                },
+                { 
+                    returnDocument: 'after' 
+                } 
+            )
+            console.log("clientUpdate: ",clientUpdate)
         }
         updatedOrders = await Order.find({clientId})
 
@@ -586,7 +650,8 @@ const addChequeTransaction = async(req,res) =>{
     let returnedObj = {
         bank: newTransaction,
         orders: updatedOrders,
-        client: clientUpdate
+        client: clientUpdate,
+        chequeWallet
     }
     res.json(returnedObj)
 }
@@ -659,6 +724,7 @@ const addCompanyExpenses = async(req,res)=>{
                                 bankName,
                                 clientId,
                                 type,
+                                "date": new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' }),
                                 "sign":"+"
                             }
                         },
@@ -701,6 +767,7 @@ const addCompanyExpenses = async(req,res)=>{
                                 bankName,
                                 clientId,
                                 type,
+                                "date": new Date().toLocaleString('en-EG', { timeZone: 'Africa/Cairo' }),
                                 "sign":"-"
                             }
                         },
@@ -806,7 +873,7 @@ function isSameDay(date1Str, date2Str) {
       date1.getDate() === date2.getDate()
     );
 }
-
+ 
 const getWalletInventoryByDate = async(req,res)=>{
     let { startDate } = req.body, wallet, transactions = [];
     try{

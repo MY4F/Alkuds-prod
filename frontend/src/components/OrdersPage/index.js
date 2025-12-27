@@ -44,13 +44,24 @@ const OrdersPage = () => {
   };
   const assignList = () => {
     if (category === "progress-load" && unfinishedTickets[typeObj[alignment]]) {
-      return [...unfinishedTickets[typeObj[alignment]]];
+      return [...unfinishedTickets[`${typeObj[alignment]}`]].filter(
+        (ticket) => ticket.state === "جاري انتظار التحميل"
+      );
     } else if (
       category === "progress-pay" &&
       awaitForPaymentTickets[`${typeObj[alignment]}`]
     ) {
       return [...awaitForPaymentTickets[`${typeObj[alignment]}`]];
-    } else if (
+    }
+    else if (
+      category === "progress-pricing" &&
+      unfinishedTickets[`${typeObj[alignment]}`]
+    ) {
+      return [...unfinishedTickets[`${typeObj[alignment]}`]].filter(
+        (ticket) => ticket.state === "جاري انتظار التسعيير"
+      );
+    } 
+    else if (
       category === "done" &&
       finishedTickets[`${typeObj[alignment]}`]
     ) {
@@ -80,7 +91,7 @@ const OrdersPage = () => {
       setNoMoreLoad(true);
     }
   };
-
+  console.log("list",list)
   return (
     <div className="worker-container">
       <div
@@ -153,6 +164,8 @@ const OrdersPage = () => {
             ? "طلبات جاري التحميل"
             : category === "progress-pay"
             ? "طلبات جاري الدفع"
+            : category === "progress-pricing"
+            ? "طلبات جاري انتظار التسعيير"
             : category === "done"
             ? "طلبات تمت و جاري انتظار الدفع"
             : category === "new"
@@ -171,7 +184,7 @@ const OrdersPage = () => {
                   startOfToday.setHours(0, 0, 0, 0);
                   const endOfToday = new Date();
                   endOfToday.setHours(23, 59, 59, 999);
-                  if(category === "progress-load"){
+                  if(category === "progress-load"|| category === "progress-pricing"){
                     return itemDate >= startOfToday && itemDate <= endOfToday;
                   }
                   else if(category === 'new'){

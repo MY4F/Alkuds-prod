@@ -13,13 +13,20 @@ export const WalletReducer = (state, action) => {
       };
     case "ADD_TICKET":
       return {
-        wallet: [action.payload, ...state.wallet],
+        wallet: {
+          ...state.wallet,
+          [action.payload.bankName]: action.payload,
+        },
       };
     case "UPDATE_WALLET":
+      if (!action.payload || !action.payload.bankName) {
+        return state;
+      }
+
       return {
         wallet: {
           ...state.wallet,
-          [action.payload.bankName]: action.payload, // returns a new object reference
+          [action.payload.bankName]: action.payload,
         },
       };
     case "DELETE_TICKET":

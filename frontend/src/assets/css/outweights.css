@@ -312,9 +312,7 @@ label {
 }
 
 .static-data-holder p {
-  display: flex;
-  flex-direction: row;
-  gap: 30px;
+  
 }
 /* .static-info p{
     width: 80%;

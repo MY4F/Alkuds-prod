@@ -13,7 +13,7 @@ const ClientBalanceInput = () =>{
     }
     const handleUpdate = async(e) =>{
         e.preventDefault();
-        isLoading(true)
+        setIsLoading(true)
         try{
             console.log(balance)
             const response = await fetch('/client/updateBalances',{
@@ -37,7 +37,7 @@ const ClientBalanceInput = () =>{
             console.error(err);
             alert('حدث خطأ أثناء التحديث')
         }
-        isLoading(false)
+        setIsLoading(false)
     }
     return (
         <div className="clients-container" dir="rtl">

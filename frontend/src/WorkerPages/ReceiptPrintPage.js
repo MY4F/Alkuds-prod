@@ -72,15 +72,15 @@ const ReceiptPrintPage = () => {
   const { isFinishedTicket } = useParams();
   const {user} = useUserContext()
   useEffect(() => {
-    const closeAfterPrint = () => {
-      window.close();
-    };
+    // const closeAfterPrint = () => {
+    //   window.close();
+    // };
 
-    window.addEventListener("afterprint", closeAfterPrint);
+    // window.addEventListener("afterprint", closeAfterPrint);
 
-    return () => {
-      window.removeEventListener("afterprint", closeAfterPrint);
-    };
+    // return () => {
+    //   window.removeEventListener("afterprint", closeAfterPrint);
+    // };
   }, [socket]);
 
   if (!client) {
@@ -91,8 +91,8 @@ const ReceiptPrintPage = () => {
   const handlePrint = async () => {
     if (window.confirm("هل تريد طباعه التيكيت") === true) {
       try {
-        if (order.state === "جاري انتظار التحميل" && isFinishedTicket ==="false") {
-          const orderStateUpdateFetch = await fetch("/order/orderFinishState", {
+        if ((order.state === "جاري انتظار التحميل" && isFinishedTicket ==="false" )|| (order.state === "تحت الانشاء" && isFinishedTicket ==="false") || (order.state === "تحت الانشاء" && isFinishedTicket ==="false")) {
+          const orderStateUpdateFetch = await fetch((order.state === "جاري انتظار التحميل")?"/order/orderFinishState": "/order/orderFinishStateNoPrice", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -164,8 +164,7 @@ const ReceiptPrintPage = () => {
         </div>
         <div className="type-date-holder">
           <h1> اذن استلام بضاعه </h1>
-          <span> {order.type === "in" ? "داخل" : "خارج"} </span>
-          <span> {new Date().toLocaleString()} </span>
+          <span> {new Date().toLocaleDateString('en-EG', { timeZone: 'Africa/Cairo' })} </span>
         </div>
         <img style={{ width: "15%", margin: "30px" }} src={qr} />
       </div>
@@ -210,16 +209,11 @@ const ReceiptPrintPage = () => {
           {
             order && order.drivers.map((i,idx)=>(
               <div>
-                <p>
-              <span> 1 </span>
-              &nbsp;
-              <span>{i.number}: رقم السائق</span>
-            </p>
-              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+              
               <p>
                 <span>1</span>
                 &nbsp;
-                <span>{i.name}: اسم السائق</span>
+                <span> اسم السائق&nbsp;:&nbsp;{i.name}</span>
               </p>
               </div>
             ))
@@ -238,8 +232,8 @@ const ReceiptPrintPage = () => {
         لحين توريد ثمنها بإصال مستقل.
       </p>
       <p>اقرار استلام عميل</p>
-      <p style={{ width: "100%" }}>______________________/الاسم</p>
-      <p style={{ width: "100%" }}>_____________________/التوقع</p>
+      <p style={{ width: "90%" }}>______________________/الاسم</p>
+      <p style={{ width: "90%" }}>_____________________/التوقع</p>
 
       <button onClick={(e) => handlePrint()} className="iron-btn print-btn">
         {" "}

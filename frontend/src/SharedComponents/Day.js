@@ -235,7 +235,7 @@ const Day = () => {
                         ironName={i.ironName}
                         w={i.w}
                         raduis={i.raduis}
-                        price={parseFloat(i.w * parseFloat(i.unitPrice/1000))}
+                        price={parseFloat(i.unitPrice).toLocaleString()}
                         loggedUser={showPriceColumn}
                       />
                     ))}

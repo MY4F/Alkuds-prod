@@ -82,11 +82,19 @@ export default function RootLayout() {
                 {" "}
                 الرئيسيه{" "}
               </NavLink>
+              <NavLink className="text-center" to={"createOrders"}>
+                {" "}
+                انشاء طلب{" "}
+              </NavLink>
+              
               <NavLink className="text-center" to={"impexp"}>
                 جرد
               </NavLink>
               <NavLink className="text-center" to={"day"}>
                 يوميه
+              </NavLink>
+              <NavLink className="text-center" to={"settings"}>
+                اعدادات
               </NavLink>
               <button onClick={handleLogout} className="iron-btn logout"> تسجيل خروج </button>
 

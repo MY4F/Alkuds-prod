@@ -21,8 +21,9 @@ const CashInput = (props) => {
   const [notes, setNotes] = useState(" ");
   const [amount, setAmount] = useState("");
   const { socket } = useSocketContext()
-  const [selectedBank, setSelectedBank] = useState();
+  const [selectedBank, setSelectedBank] = useState("اختر بنك");
   const [selectedCheque, setSelectedCheque] = useState("");
+  const [selectedChequeClientName, setSelectedChequeClientName] = useState("null")
   const [selectedChequeName, setSelectedChequeName] = useState();
   const { client, dispatch: clientUpdate } = useClientContext();
   const { wallet, dispatch: walletUpdate } = useWalletContext();
@@ -99,8 +100,9 @@ const CashInput = (props) => {
     e.preventDefault()
     setIsLoading(true)
     let newTransaction = {
-        amount, notes,"orderId":" ","type" : selectedType, "clientId":selectedClient, "bankName":selectedBank
-      }
+      amount, notes,"orderId":" ","type" : selectedType, "clientId":selectedClient, "bankName":selectedBank, "clientName":selectedChequeClientName
+    }
+    console.log(newTransaction)
       if (isCheque)
         newTransaction["chequeId"]= selectedCheque
       const addTransactionFetch = await fetch(!isCheque?'/wallet/addTransaction':'/wallet/addChequeTransaction' ,
@@ -119,6 +121,7 @@ const CashInput = (props) => {
       if(addTransactionFetch.ok){
           swal ( "تم اضافعه العمليه بنجاح." ,  "تم تحديث البانات الماليه" ,  "success" )
           console.log(addTransaction)
+          console.log("addTransaction",addTransaction.bank.bankName)
           setSelectedBank("اختر البنك")
           setSelectedClient("اختر عميل")
           setSelectedType("نوع العمليه")
@@ -157,9 +160,17 @@ const CashInput = (props) => {
           if (addTransaction.client !==null)
             clientUpdate({ type: "UPDATE_CLIENT", payload: addTransaction.client })
 
-          if (addTransaction.bank !==null)
-          walletUpdate({ type: "UPDATE_WALLET", payload: addTransaction.bank })
+          if (addTransaction.bank !==null){
+            if (addTransaction?.bank?.bankName) {
+              walletUpdate({
+                type: "UPDATE_WALLET",
+                payload: addTransaction.bank
+              });
+            }          
+          }
 
+          if (addTransaction.chequeWallet !== null)
+            walletUpdate({ type: "UPDATE_WALLET", payload: addTransaction.chequeWallet })
           socketTransactionNotification(addTransaction.bank)
       }
       else{
@@ -279,16 +290,19 @@ const CashInput = (props) => {
                   let selectedId = e.target.value.split('-|-')[0]
                   let selectedAmount = e.target.value.split('-|-')[1]
                   let selectedName = e.target.value.split('-|-')[2]
+                  let cId = e.target.value.split('-|-')[3]
                   console.log(selectedId,selectedAmount,selectedName)
                   setSelectedChequeName(e.target.value)
                   setSelectedCheque(selectedId);
                   setAmount(parseInt(selectedAmount))
+                  setSelectedClient(cId)
+                  setSelectedChequeClientName(selectedName)
                 }}
               >
                 <option value="اختر الشيك">اختر من الشيكات</option>
                 {cheques &&
                 cheques.map((i, idx) => (
-                    <option value={i._id.toString()+'-|-'+i.amount.toString()+"-|-"+ client[i.clientId].name}> {client[i.clientId].name} {i.amount} </option>
+                    <option value={i._id.toString()+'-|-'+i.amount.toString()+"-|-"+ client[i.clientId].name + "-|-" + i.clientId}> {client[i.clientId].name} {i.amount} </option>
                   ))}
               </select>
         </div> 
@@ -318,7 +332,7 @@ const CashInput = (props) => {
                 setSelectedBank(e.target.value);
               }}
             >
-              <option disabled>أسم البنك</option>
+              <option >أسم البنك</option>
               {wallet &&
                 [...Object.keys(wallet)].map((i, idx) => (
                   <option value={wallet[i].bankName}> {wallet[i].bankName} </option>

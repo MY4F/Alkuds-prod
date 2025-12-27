@@ -3,6 +3,7 @@ import Seperator from "../components/Seperator";
 import React, { useEffect, useState } from "react";
 import swal from "sweetalert";
 import { useClientContext } from "../hooks/useClientContext";
+import { useDriverContext } from "../hooks/useDriverContext";
 const Settings = () => {
   const [driverName, setDriverName] = useState("");
   const [driverNumber, setDriverNumber] = useState("");
@@ -11,7 +12,7 @@ const Settings = () => {
   const [clientType, setClientType] = useState("");
   const {user} = useUserContext()
   const { dispatch } = useClientContext()
-
+  const {driver , dispatch: driverDispatch} = useDriverContext()
   useEffect(()=>{},[dispatch])
 
   const handleClientAdd = async (e) => {
@@ -32,6 +33,7 @@ const Settings = () => {
     const json = await response.json();
     dispatch({ type: "UPDATE_CLIENT", payload: json })
     if (response.ok) swal("تم اضافعه عميل جديد بنجاح.", "", "success");
+
   };
 
   const handleDriverAdd = async (e) => {
@@ -49,8 +51,10 @@ const Settings = () => {
     });
     const json = await response.json();
     console.log(json);
-    if (json["msg"] === "success")
-      swal("تم اضافعه العمليه بنجاح.", "تم تحديث البانات الماليه", "success");
+    if (response.ok){
+      swal("تم اضافعه سائق جديد.", "تم تحديث البانات الماليه", "success");
+      driverDispatch({ type: "ADD_DRIVER", payload: json })
+    }
   };
 
   return (

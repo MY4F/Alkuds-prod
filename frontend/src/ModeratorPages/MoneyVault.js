@@ -21,9 +21,8 @@ import CircularProgress from "@mui/material/CircularProgress";
 import { useUserContext } from "../hooks/useUserContext";
 
 const Row = (props) => {
-  const { row } = props;
+  const { row, client } = props;
   const [open, setOpen] = useState(false);
-
   return (
     <Fragment>
       <TableRow sx={{ "& > *": { borderBottom: "unset" } }}>
@@ -66,7 +65,7 @@ const Row = (props) => {
                     {row.transactions.map((transactionRow) => (
                       <TableRow key={transactionRow.clientName}>
                         <TableCell align="right" component="th" scope="row">
-                          {transactionRow.clientName}
+                          {transactionRow.bankName == "شيكات"? client[transactionRow.clientId].name:transactionRow.clientName }
                         </TableCell>
                         <TableCell align="right" component="th" scope="row">
                           {transactionRow.orderId}
@@ -81,7 +80,11 @@ const Row = (props) => {
                           {transactionRow.amount.toLocaleString()}
                         </TableCell>
                         <TableCell align="right" component="th" scope="row">
-                          {transactionRow.date}
+                          
+                           {new Date(transactionRow.date).toLocaleString("en-US", {
+                              timeZone: "Africa/Cairo"
+                              })
+                            }
                         </TableCell>
                       </TableRow>
                     ))}
@@ -358,7 +361,7 @@ const MoneyVault = () => {
             </TableHead>
             <TableBody>
               {!isLoading ? (
-                currentCheques.map((row) => <Row key={row.walletId} row={row} />)
+                currentCheques.map((row) => <Row key={row.walletId} row={row} client={client} />)
               ) : (
                 <CircularProgress />
               )}

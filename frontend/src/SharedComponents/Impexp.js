@@ -48,6 +48,7 @@ const Impexp = () => {
   const [startDate, setStartDate] = useState();
   const { client } = useClientContext();
   const [showPricePerTon, setShowPricePerTon] = useState(false);
+  const [showExpenseRow, setShowExpenseRow] = useState(false);
   const [showTotalPrice, setShowTotalPrice] = useState(false);
   const { user } = useUserContext();
   const [showTable, setShowTable] = useState(false);
@@ -55,14 +56,16 @@ const Impexp = () => {
 
   useEffect(() => {
     console.log(user.user.msg.name);
-    if (user.user.msg.name === "Osama") {
-      setShowPricePerTon(true);
-    } else if (
+    if (
       user.user.msg.name === "Sobhy" ||
       user.user.msg.name === "Ziad"
     ) {
       setShowPricePerTon(true);
       setShowTotalPrice(true);
+    }
+    if(user.user.msg.name === "Osama" ){
+      console.log("Hassan user")
+      setShowExpenseRow(true);
     }
   }, []);
   useEffect(() => {}, [
@@ -84,7 +87,8 @@ const Impexp = () => {
     if (!showTable) {
       setShowTable(true);
     }
-    const response = await fetch("/irons/getIronStorage", {
+
+    const response = await fetch((user.user.msg.name === "Sobhy" ||user.user.msg.name === "Ziad") ? "/irons/getIronStorage":"/irons/getIronStorageNonAdmin", {
       method: "POST",
       body: JSON.stringify({ startDate }),
       headers: {
@@ -93,6 +97,7 @@ const Impexp = () => {
       },
     });
     const { ironStorage, total } = await response.json();
+    console.log(ironStorage)
     const transactionsFetch = await fetch("/wallet/getWalletInventoryByDate", {
       method: "POST",
       body: JSON.stringify({ startDate }),
@@ -172,7 +177,7 @@ const Impexp = () => {
                     {transactions &&
                       transactions.map((i, idx) => (
                         <>
-                         {showPricePerTon && <DayExpenseRow data={i} key={idx} client={client} />}
+                         {(showPricePerTon || showExpenseRow) && <DayExpenseRow data={i} key={idx} client={client} />}
                         </>
                       ))}
                   </tbody>
@@ -202,11 +207,11 @@ const Impexp = () => {
                   <tbody>
                     {dailyData.map((el) => (
                       <>
-                        {(el.weight > 0 || el.weight < 0) &&
-                          el.radius === "6" && (
+                        {((el.weight > 0 || el.weight < 0) &&
+                          el.radius === "6") && ( !el.highlight ||(el.highlight && showPricePerTon))&& (
                             <tr  style={{ border: "2px solid black", "background": el.highlight? 'orange':'none' }}>
                               <td className=" text-center border-l-2 border-black">
-                                {el.weight}
+                                {el.weight.toLocaleString()}
                               </td>
                               <td className="text-center border-l-2 border-black">
                                 {el.radius}
@@ -234,11 +239,11 @@ const Impexp = () => {
                     {dailyData.map((el) => (
                       <>
                         {(el.weight > 0 || el.weight < 0) &&
-                          el.radius === "8" && (
+                          el.radius === "8" && ( !el.highlight ||(el.highlight && showPricePerTon))&&(
                             <tr style={{ border: "2px solid black" , "background": el.highlight? 'orange':'none' }}>
                               <td className="text-center border-l-2 border-black">
                                 {" "}
-                                {el.weight}
+                                {el.weight.toLocaleString()}
                               </td>
                               <td className="text-center border-l-2 border-black">
                                 {el.radius}
@@ -267,11 +272,11 @@ const Impexp = () => {
                       <>
                         {(el.weight > 0 || el.weight < 0) &&
                           el.radius !== "6" &&
-                          el.radius !== "8" && (
+                          el.radius !== "8"  && ( !el.highlight ||(el.highlight && showPricePerTon))&& (
                             <tr style={{ border: "2px solid black", "background": el.highlight? 'orange':'none'  }}>
                               <td className="text-center border-l-2 border-black">
                                 {" "}
-                                {el.weight}
+                                {el.weight.toLocaleString()}
                               </td>
                               <td className="text-center border-l-2 border-black">
                                 {el.radius}
@@ -308,8 +313,8 @@ const Impexp = () => {
                   </tfoot>
                 </table>
               </div>
-              { showPricePerTon && <Seperator text="الخزنه"  />}
-             { showPricePerTon && <TableContainer
+              { (showPricePerTon || showExpenseRow) && <Seperator text="الخزنه"  />}
+             { (showPricePerTon||showExpenseRow) && <TableContainer
                 component={Paper}
                 className="no-print"
                 sx={{ border: "1px solid black" }}
